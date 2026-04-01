@@ -128,12 +128,12 @@
         /* Trajectory Line */
         .trajectory {
             position: absolute;
-            width: 328px;
+            width: min(22vw, 328px);
             height: 2px;
             background: repeating-linear-gradient(to right, rgba(0, 255, 255, 0.8) 0, rgba(0, 255, 255, 0.8) 10px, transparent 10px, transparent 20px);
             transform-origin: left center;
-            transform: rotate(-37.5deg);
-            top: 10px; left: 40px;
+            transform: rotate(-28deg);
+            top: 14px; left: 38px;
             animation: dash 1s linear infinite;
         }
         @keyframes dash {
@@ -277,7 +277,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 20px;
+            padding: clamp(16px, 2vw, 28px);
             box-sizing: border-box;
         }
 
@@ -287,6 +287,7 @@
             justify-content: space-between;
             align-items: flex-start;
             width: 100%;
+            gap: 20px;
         }
 
         /* Minimap & Stage Info */
@@ -298,6 +299,7 @@
             padding: 10px;
             border-radius: 8px;
             backdrop-filter: blur(5px);
+            width: min(280px, 26vw);
         }
         .minimap {
             width: 150px; height: 100px;
@@ -328,6 +330,7 @@
             padding: 5px 20px;
             border-radius: 10px;
             border: 1px solid rgba(255,255,255,0.2);
+            margin-top: 6px;
         }
 
         /* Records */
@@ -338,6 +341,7 @@
             border-radius: 8px;
             text-align: right;
             backdrop-filter: blur(5px);
+            min-width: min(260px, 24vw);
         }
         .current-best {
             font-size: 1.5rem;
@@ -348,10 +352,10 @@
         /* Middle Section (Info boxes) */
         .middle-section {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            justify-content: flex-start;
+            align-items: flex-start;
             width: 100%;
-            margin-top: auto;
+            margin-top: clamp(110px, 18vh, 180px);
             margin-bottom: auto;
         }
 
@@ -361,7 +365,7 @@
             border: 1px solid #ff5500;
             border-left: 4px solid #ff5500;
             padding: 15px;
-            max-width: 300px;
+            max-width: 320px;
             border-radius: 0 8px 8px 0;
             box-shadow: 0 0 20px rgba(255, 85, 0, 0.2);
         }
@@ -384,6 +388,7 @@
             justify-content: space-between;
             align-items: flex-end;
             width: 100%;
+            gap: 20px;
         }
 
         .inventory-slots {
@@ -438,6 +443,34 @@
             z-index: 50;
         }
 
+        @media (max-width: 960px) {
+            .top-bar,
+            .bottom-bar {
+                flex-wrap: wrap;
+            }
+
+            .stage-info,
+            .records-box {
+                width: auto;
+                min-width: 0;
+            }
+
+            .central-timer {
+                order: -1;
+                width: 100%;
+                text-align: center;
+                font-size: 2.25rem;
+            }
+
+            .middle-section {
+                margin-top: 90px;
+            }
+
+            .info-box {
+                max-width: 260px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -447,37 +480,37 @@
     <div class="bg-layer" style="opacity: 0.3; background-image: radial-gradient(#4a1a3a 1px, transparent 1px); background-size: 20px 20px;"></div>
 
     <!-- Level Geometry -->
-    <div class="platform volcanic-rock" style="bottom: 100px; left: 50px; width: 300px; height: 50px;"></div>
-    <div class="platform" style="bottom: 250px; left: 150px; width: 100px; height: 20px;"></div>
+    <div class="platform volcanic-rock" style="bottom: 11vh; left: 6vw; width: 25vw; height: 8vh;"></div>
+    <div class="platform" style="bottom: 34vh; left: 19vw; width: 11vw; height: 2.5vh;"></div>
 
     <!-- Central Collision Area (Lava meets Ice) -->
-    <div class="lava-fall" style="top: -50px; left: 400px; width: 80px; height: 400px; transform: rotate(15deg);"></div>
-    <div class="ice-water" style="top: -50px; left: 600px; width: 60px; height: 400px; transform: rotate(-15deg);"></div>
-    <div class="stone-bridge" style="top: 300px; left: 350px; width: 350px; height: 40px; border-radius: 20px;"></div>
+    <div class="lava-fall" style="top: 9vh; left: 43vw; width: 5vw; height: 45vh; transform: rotate(12deg);"></div>
+    <div class="ice-water" style="top: 8vh; left: 56vw; width: 4.5vw; height: 47vh; transform: rotate(-12deg);"></div>
+    <div class="stone-bridge" style="top: 51vh; left: 44vw; width: 17vw; height: 4vh; border-radius: 999px;"></div>
 
     <!-- Steam particles where they meet -->
-    <div class="particle" style="top: 280px; left: 500px; width: 10px; height: 10px;"></div>
-    <div class="particle" style="top: 290px; left: 520px; width: 15px; height: 15px; animation-delay: 0.5s;"></div>
-    <div class="particle" style="top: 270px; left: 490px; width: 8px; height: 8px; animation-delay: 1.2s;"></div>
+    <div class="particle" style="top: 47vh; left: 49vw; width: 10px; height: 10px;"></div>
+    <div class="particle" style="top: 48vh; left: 51vw; width: 15px; height: 15px; animation-delay: 0.5s;"></div>
+    <div class="particle" style="top: 46vh; left: 50vw; width: 8px; height: 8px; animation-delay: 1.2s;"></div>
 
     <!-- Right Side Goal Area -->
-    <div class="platform volcanic-rock" style="bottom: 100px; right: 50px; width: 400px; height: 50px;"></div>
+    <div class="platform volcanic-rock" style="bottom: 11vh; right: 6vw; width: 27vw; height: 8vh;"></div>
 
     <!-- Gimmicks -->
-    <div class="cannon" style="top: 380px; left: 300px;">
+    <div class="cannon" style="top: 47vh; left: 28vw;">
         <div class="cannon-barrel"></div>
         <div class="angle-indicator" style="top: -25px; left: -10px;">ANGLE: 45°</div>
     </div>
 
-    <div class="barrel" style="top: 380px; left: 200px;"></div>
-    <div class="mech-pin" style="top: 390px; left: 180px; border-radius: 2px; width: 10px; height: 20px; background: #663333; border: 1px solid #ff5555; box-shadow: 0 0 5px #ff0000;"></div>
+    <div class="barrel" style="top: 48vh; left: 20vw;"></div>
+    <div class="mech-pin" style="top: 49vh; left: 18vw; border-radius: 2px; width: 10px; height: 20px; background: #663333; border: 1px solid #ff5555; box-shadow: 0 0 5px #ff0000;"></div>
 
-    <div class="timer-block" style="top: 300px; left: 250px;">5s</div>
+    <div class="timer-block" style="top: 37vh; left: 24vw;">5s</div>
 
-    <div class="portal" style="top: 100px; right: 300px;"></div>
+    <div class="portal" style="top: 19vh; right: 21vw;"></div>
 
     <!-- Goal -->
-    <div class="goal-area" style="bottom: 150px; right: 100px;">
+    <div class="goal-area" style="bottom: 19vh; right: 13vw;">
         <div class="coins"></div>
         <div class="sword">
             <div class="sword-hilt"><div class="gem"></div></div>
@@ -485,7 +518,7 @@
     </div>
 
     <!-- Character & Action -->
-    <div class="character" style="bottom: 150px; left: 150px;">
+    <div class="character" style="bottom: 19vh; left: 12vw;">
         <div class="character-head">
             <div class="character-eye"></div>
         </div>
@@ -494,15 +527,15 @@
     </div>
 
     <!-- Interaction Pins -->
-    <div class="mech-pin" style="bottom: 350px; left: 410px;">
+    <div class="mech-pin" style="bottom: 42vh; left: 46vw;">
         <div class="interact-prompt"><span class="text-cyan-300 font-bold">Space</span> Interact</div>
     </div>
 
-    <div class="mech-pin" style="top: 250px; left: 750px;">
+    <div class="mech-pin" style="top: 34vh; left: 72vw;">
         <div class="interact-prompt" style="font-size: 8px; transform: scale(0.8) translateX(-50%);"><span class="text-cyan-300">Space</span></div>
     </div>
 
-    <div class="mech-pin" style="top: 450px; left: 500px;">
+    <div class="mech-pin" style="top: 61vh; left: 54vw;">
         <div class="interact-prompt" style="font-size: 8px; transform: scale(0.8) translateX(-50%);"><span class="text-cyan-300">Space</span></div>
     </div>
 
