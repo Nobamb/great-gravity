@@ -1,9 +1,584 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body></body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stage 09: The Volcanic Lore</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050510;
+            font-family: 'Rajdhani', sans-serif;
+            color: white;
+            user-select: none;
+        }
+
+        /* Sci-fi UI fonts */
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        /* Game World */
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 100%, #301030 0%, #050510 80%);
+            overflow: hidden;
+        }
+
+        /* Parallax Background Layers */
+        .bg-layer {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* Level Elements */
+        .platform {
+            position: absolute;
+            background: linear-gradient(to bottom, #4a4a5a, #2a2a3a);
+            border-top: 2px solid #6a6a8a;
+            border-radius: 4px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 2px 5px rgba(255,255,255,0.1);
+            /* Mechanical texture */
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.2) 10px, rgba(0,0,0,0.2) 20px);
+        }
+
+        .volcanic-rock {
+            background: linear-gradient(to bottom, #3a1a1a, #1a0505);
+            border-top: 2px solid #ff5500;
+            box-shadow: 0 0 15px rgba(255, 85, 0, 0.4);
+        }
+
+        /* Super Lava */
+        .lava-fall {
+            position: absolute;
+            background: linear-gradient(to bottom, #ffaa00, #ff3300);
+            box-shadow: 0 0 30px #ff5500, inset 0 0 10px #ffffaa;
+            animation: flowDown 2s linear infinite;
+        }
+
+        /* Ice Water */
+        .ice-water {
+            position: absolute;
+            background: linear-gradient(to bottom, #00ffff, #0055ff);
+            box-shadow: 0 0 30px #00aaff, inset 0 0 10px #ffffff;
+            animation: flowDown 1.5s linear infinite;
+        }
+
+        @keyframes flowDown {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100px; }
+        }
+
+        /* Stone Bridge */
+        .stone-bridge {
+            position: absolute;
+            background: #555;
+            border-top: 3px solid #888;
+            box-shadow: 0 10px 10px rgba(0,0,0,0.8);
+        }
+
+        /* Character */
+        .character {
+            position: absolute;
+            width: 40px;
+            height: 80px;
+            background: #222;
+            border-radius: 20px 20px 10px 10px;
+            box-shadow: 0 0 20px #00ffff;
+            /* Glowing cyan accents */
+            border: 2px solid #00ffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .character-head {
+            width: 30px; height: 30px;
+            background: #111;
+            border-radius: 50%;
+            margin-top: -15px;
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 15px #00ffff;
+            position: relative;
+        }
+        .character-eye {
+            position: absolute;
+            width: 8px; height: 4px;
+            background: #fff;
+            box-shadow: 0 0 10px #fff, 0 0 20px #00ffff;
+            border-radius: 50%;
+            top: 10px; right: 5px;
+        }
+
+        /* Cracked Brick (Ammo) */
+        .brick {
+            position: absolute;
+            width: 20px; height: 15px;
+            background: #885533;
+            border: 1px solid #552200;
+            top: -10px; right: -15px;
+            transform: rotate(15deg);
+        }
+
+        /* Trajectory Line */
+        .trajectory {
+            position: absolute;
+            width: 328px;
+            height: 2px;
+            background: repeating-linear-gradient(to right, rgba(0, 255, 255, 0.8) 0, rgba(0, 255, 255, 0.8) 10px, transparent 10px, transparent 20px);
+            transform-origin: left center;
+            transform: rotate(-37.5deg);
+            top: 10px; left: 40px;
+            animation: dash 1s linear infinite;
+        }
+        @keyframes dash {
+            to { background-position: 20px 0; }
+        }
+
+        /* Cannon */
+        .cannon {
+            position: absolute;
+            width: 60px; height: 40px;
+            background: #333;
+            border: 2px solid #666;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: rotate(-45deg);
+        }
+        .cannon-barrel {
+            width: 40px; height: 20px;
+            background: #222;
+            position: absolute;
+            right: -20px;
+            border: 1px solid #555;
+        }
+
+        /* Crumbling Barrel */
+        .barrel {
+            position: absolute;
+            width: 30px; height: 40px;
+            background: #5c4033;
+            border-radius: 5px;
+            border: 2px solid #3e2723;
+        }
+
+        /* Timer Block */
+        .timer-block {
+            position: absolute;
+            width: 40px; height: 40px;
+            background: rgba(255,0,0,0.2);
+            border: 2px dashed #ff0000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #ff5555;
+        }
+
+        /* Portal */
+        .portal {
+            position: absolute;
+            width: 60px; height: 100px;
+            background: radial-gradient(ellipse at center, #ffffff 0%, #00aaff 40%, transparent 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 40px #00aaff;
+            animation: pulse 2s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            100% { transform: scale(1.05); opacity: 1; }
+        }
+
+        /* Goal (Coins and Sword) */
+        .goal-area {
+            position: absolute;
+            width: 150px; height: 80px;
+        }
+        .coins {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 40px;
+            background: linear-gradient(to top, #ffd700, #ffaa00);
+            border-radius: 50px 50px 0 0;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+        }
+        .sword {
+            position: absolute;
+            width: 10px; height: 80px;
+            background: linear-gradient(to right, #ddd, #fff, #aaa);
+            bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 20px #ffd700;
+        }
+        .sword-hilt {
+            position: absolute;
+            width: 30px; height: 10px;
+            background: #ffd700;
+            top: 10px; left: -10px;
+            box-shadow: 0 0 10px #ffd700;
+        }
+        .gem {
+            position: absolute;
+            width: 8px; height: 8px;
+            background: #00ff00;
+            border-radius: 50%;
+            top: 1px; left: 11px;
+            box-shadow: 0 0 15px #00ff00;
+        }
+
+        /* Mechanical Pin */
+        .mech-pin {
+            position: absolute;
+            width: 15px; height: 15px;
+            background: #aaa;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px #fff;
+        }
+
+        /* Space Interact Prompt */
+        .interact-prompt {
+            position: absolute;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            color: white;
+            white-space: nowrap;
+            top: -25px; left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Particle effects */
+        .particle {
+            position: absolute;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            animation: rise 3s infinite;
+        }
+        @keyframes rise {
+            0% { transform: translateY(0) scale(1); opacity: 0.8; }
+            100% { transform: translateY(-100px) scale(2); opacity: 0; }
+        }
+
+        /* --- STITCH UI OVERLAY --- */
+        .ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; /* Let clicks pass through to game */
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        /* Minimap & Stage Info */
+        .stage-info {
+            display: flex;
+            flex-direction: column;
+            background: rgba(10, 15, 25, 0.8);
+            border: 1px solid #334455;
+            padding: 10px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+        .minimap {
+            width: 150px; height: 100px;
+            background: #050a15;
+            border: 1px solid #4a5a6a;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        .minimap-node {
+            position: absolute;
+            width: 6px; height: 6px;
+            background: #00ffff;
+            border-radius: 50%;
+        }
+        .minimap-line {
+            position: absolute;
+            height: 2px;
+            background: #4a5a6a;
+        }
+
+        /* Central Timer */
+        .central-timer {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            background: rgba(0,0,0,0.5);
+            padding: 5px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Records */
+        .records-box {
+            background: rgba(10, 15, 25, 0.8);
+            border: 1px solid #334455;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: right;
+            backdrop-filter: blur(5px);
+        }
+        .current-best {
+            font-size: 1.5rem;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        /* Middle Section (Info boxes) */
+        .middle-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+
+        /* Thermal Conflict Box */
+        .info-box {
+            background: rgba(20, 10, 10, 0.85);
+            border: 1px solid #ff5500;
+            border-left: 4px solid #ff5500;
+            padding: 15px;
+            max-width: 300px;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 0 20px rgba(255, 85, 0, 0.2);
+        }
+
+        /* Cannon Angle UI */
+        .angle-indicator {
+            position: absolute;
+            color: #00ffff;
+            font-size: 0.8rem;
+            font-family: monospace;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 5px;
+            border: 1px solid #00ffff;
+            border-radius: 3px;
+        }
+
+        /* Bottom Bar (Inventory, Ammo, Elements) */
+        .bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            width: 100%;
+        }
+
+        .inventory-slots {
+            display: flex;
+            gap: 10px;
+        }
+        .slot {
+            width: 50px; height: 50px;
+            background: rgba(10, 15, 25, 0.8);
+            border: 1px solid #4a5a6a;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .elemental-boxes {
+            display: flex;
+            gap: 15px;
+        }
+        .elem-box {
+            width: 60px; height: 60px;
+            background: rgba(10, 15, 25, 0.8);
+            border: 2px solid;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .elem-fire { border-color: #ff5500; box-shadow: 0 0 15px rgba(255,85,0,0.4); }
+        .elem-ice { border-color: #00aaff; box-shadow: 0 0 15px rgba(0,170,255,0.4); }
+
+        .ammo-panel {
+            background: rgba(10, 15, 25, 0.8);
+            border: 1px solid #4a5a6a;
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Vignette */
+        .vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.8) 100%);
+            pointer-events: none;
+            z-index: 50;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- Background elements -->
+    <div class="bg-layer" style="opacity: 0.3; background-image: radial-gradient(#4a1a3a 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+    <!-- Level Geometry -->
+    <div class="platform volcanic-rock" style="bottom: 100px; left: 50px; width: 300px; height: 50px;"></div>
+    <div class="platform" style="bottom: 250px; left: 150px; width: 100px; height: 20px;"></div>
+
+    <!-- Central Collision Area (Lava meets Ice) -->
+    <div class="lava-fall" style="top: -50px; left: 400px; width: 80px; height: 400px; transform: rotate(15deg);"></div>
+    <div class="ice-water" style="top: -50px; left: 600px; width: 60px; height: 400px; transform: rotate(-15deg);"></div>
+    <div class="stone-bridge" style="top: 300px; left: 350px; width: 350px; height: 40px; border-radius: 20px;"></div>
+
+    <!-- Steam particles where they meet -->
+    <div class="particle" style="top: 280px; left: 500px; width: 10px; height: 10px;"></div>
+    <div class="particle" style="top: 290px; left: 520px; width: 15px; height: 15px; animation-delay: 0.5s;"></div>
+    <div class="particle" style="top: 270px; left: 490px; width: 8px; height: 8px; animation-delay: 1.2s;"></div>
+
+    <!-- Right Side Goal Area -->
+    <div class="platform volcanic-rock" style="bottom: 100px; right: 50px; width: 400px; height: 50px;"></div>
+
+    <!-- Gimmicks -->
+    <div class="cannon" style="top: 380px; left: 300px;">
+        <div class="cannon-barrel"></div>
+        <div class="angle-indicator" style="top: -25px; left: -10px;">ANGLE: 45°</div>
+    </div>
+
+    <div class="barrel" style="top: 380px; left: 200px;"></div>
+    <div class="mech-pin" style="top: 390px; left: 180px; border-radius: 2px; width: 10px; height: 20px; background: #663333; border: 1px solid #ff5555; box-shadow: 0 0 5px #ff0000;"></div>
+
+    <div class="timer-block" style="top: 300px; left: 250px;">5s</div>
+
+    <div class="portal" style="top: 100px; right: 300px;"></div>
+
+    <!-- Goal -->
+    <div class="goal-area" style="bottom: 150px; right: 100px;">
+        <div class="coins"></div>
+        <div class="sword">
+            <div class="sword-hilt"><div class="gem"></div></div>
+        </div>
+    </div>
+
+    <!-- Character & Action -->
+    <div class="character" style="bottom: 150px; left: 150px;">
+        <div class="character-head">
+            <div class="character-eye"></div>
+        </div>
+        <div class="brick"></div>
+        <div class="trajectory"></div>
+    </div>
+
+    <!-- Interaction Pins -->
+    <div class="mech-pin" style="bottom: 350px; left: 410px;">
+        <div class="interact-prompt"><span class="text-cyan-300 font-bold">Space</span> Interact</div>
+    </div>
+
+    <div class="mech-pin" style="top: 250px; left: 750px;">
+        <div class="interact-prompt" style="font-size: 8px; transform: scale(0.8) translateX(-50%);"><span class="text-cyan-300">Space</span></div>
+    </div>
+
+    <div class="mech-pin" style="top: 450px; left: 500px;">
+        <div class="interact-prompt" style="font-size: 8px; transform: scale(0.8) translateX(-50%);"><span class="text-cyan-300">Space</span></div>
+    </div>
+
+</div>
+
+<!-- Vignette for cinematic look -->
+<div class="vignette"></div>
+
+<!-- UI LAYER (STITCH Overlay) -->
+<div class="ui-layer font-orbitron">
+
+    <!-- TOP -->
+    <div class="top-bar">
+        <div class="stage-info">
+            <div class="text-gray-400 text-xs mb-1">LOCATION</div>
+            <div class="text-white text-lg font-bold tracking-wider mb-2 text-orange-400">STAGE 09: THE VOLCANIC LORE</div>
+            <div class="minimap">
+                <!-- simple map representation -->
+                <div class="minimap-line" style="top: 50px; left: 20px; width: 110px;"></div>
+                <div class="minimap-node" style="top: 47px; left: 20px;"></div>
+                <div class="minimap-node" style="top: 47px; left: 70px; background: #ff5500;"></div>
+                <div class="minimap-node" style="top: 47px; left: 120px; background: #ffd700;"></div>
+                <!-- player marker -->
+                <div class="w-3 h-3 border border-cyan-400 rounded-full absolute" style="top: 44px; left: 28px; box-shadow: 0 0 5px #00ffff;"></div>
+            </div>
+        </div>
+
+        <div class="central-timer font-orbitron">
+            01:14<span class="text-xl text-gray-400">.22</span>
+        </div>
+
+        <div class="records-box">
+            <div class="text-gray-400 text-sm mb-1 uppercase tracking-widest">Speedrun Record</div>
+            <div class="current-best font-sans">CURRENT BEST: 00:32.45</div>
+            <div class="text-gray-500 text-xs mt-1">GLOBAL RANK: #42</div>
+        </div>
+    </div>
+
+    <!-- MIDDLE -->
+    <div class="middle-section">
+        <div class="info-box">
+            <div class="text-orange-500 font-bold mb-1 border-b border-orange-900 pb-1">THERMAL CONFLICT</div>
+            <div class="text-gray-300 text-sm font-sans mt-2">
+                Super Lava and Ice Water negate each other, forming unstable rock bridges. Warning: Bridges deteriorate rapidly.
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM -->
+    <div class="bottom-bar">
+        <div class="inventory-slots">
+            <div class="slot text-gray-500 text-xs">1</div>
+            <div class="slot text-gray-500 text-xs">2</div>
+            <div class="slot text-gray-500 text-xs">3</div>
+            <div class="slot text-gray-500 text-xs">4</div>
+        </div>
+
+        <div class="elemental-boxes">
+            <div class="elem-box elem-fire text-orange-400">
+                <span class="text-xs">TEMP</span>
+                <span class="text-lg">HIGH</span>
+            </div>
+            <div class="elem-box elem-ice text-cyan-400">
+                <span class="text-xs">STATE</span>
+                <span class="text-lg">SOLID</span>
+            </div>
+        </div>
+
+        <div class="ammo-panel">
+            <div class="text-gray-400 text-xs tracking-widest mb-1">EQUIPPED</div>
+            <div class="text-white text-xl font-bold">BRICK</div>
+            <div class="text-cyan-400 text-lg mt-1 font-bold">AMMO: 1/1</div>
+        </div>
+    </div>
+
+</div>
+
+</body>
 </html>
