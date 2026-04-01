@@ -119,8 +119,7 @@
         position: absolute;
         left: 62.8vw;
         top: 24vh;
-        width: 1.2vw;
-        min-width: 12px;
+        width: 15px;
         height: 60vh;
         background: #9b6666;
         box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
@@ -129,10 +128,10 @@
       .main-support::before {
         content: "";
         position: absolute;
-        left: -0.4vw;
-        top: -1.5vh;
-        width: 2vw;
-        height: 1.5vh;
+        left: 0;
+        top: -30px;
+        width: 100%;
+        height: 30px;
         background: #ff180d;
         box-shadow: 0 0 12px rgba(255, 24, 13, 0.35);
       }
@@ -141,8 +140,7 @@
         position: absolute;
         left: 77vw;
         top: 24vh;
-        width: 1vw;
-        min-width: 10px;
+        width: 15px;
         height: 60vh;
         background: #6d6d6d;
         box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
@@ -151,20 +149,19 @@
       .right-frame::before {
         content: "";
         position: absolute;
-        left: -0.5vw;
-        top: -1.5vh;
-        width: 2vw;
-        height: 1.5vh;
+        left: 0;
+        top: -30px;
+        width: 100%;
+        height: 30px;
         background: #ff180d;
         box-shadow: 0 0 12px rgba(255, 24, 13, 0.35);
       }
 
       .top-beam {
         position: absolute;
-        left: 63.4vw;
+        left: calc(62.8vw + 15px);
         top: 24vh;
-        width: 14vw; /* between main-support and right-frame */
-        min-width: 150px;
+        width: calc(14.2vw - 15px); /* between main-support and right-frame */
         height: 1.9vh;
         min-height: 14px;
         background: linear-gradient(to right, #9b6666 0 70%, #6d6d6d 70% 100%);
@@ -172,10 +169,9 @@
 
       .mid-ledge {
         position: absolute;
-        left: 63.4vw;
+        left: 62.8vw;
         top: 58vh;
-        width: 14vw;
-        min-width: 150px;
+        width: calc(14.2vw + 15px);
         height: 1.9vh;
         min-height: 14px;
         background: linear-gradient(to right, #9b6666 0 68%, #6d6d6d 68% 100%);
@@ -185,18 +181,18 @@
       .mid-ledge::before {
         content: "";
         position: absolute;
-        left: -0.8vw;
-        top: -0.1vh;
-        width: 2vw;
-        min-width: 20px;
-        height: 2vh;
+        left: -30px;
+        top: 0;
+        width: 30px;
+        height: 100%;
         background: linear-gradient(to right, #ff180d 0 78%, #cb2c2c 78% 100%);
         box-shadow: 0 0 10px rgba(255, 24, 13, 0.3);
+        z-index: 20; /* 사다리보다 앞에 오도록 */
       }
 
       .ladder {
         position: absolute;
-        left: 59vw;
+        right: 37.2vw; /* Flush against main-support at 62.8vw */
         top: 24vh;
         width: 4.2vw;
         min-width: 44px;
@@ -219,9 +215,8 @@
       .lava-fall,
       .ice-water {
         position: absolute;
-        left: 64vw;
-        width: 13vw;
-        min-width: 140px;
+        left: calc(62.8vw + 15px);
+        width: calc(14.2vw - 15px);
       }
 
       .lava-fall {
@@ -240,10 +235,9 @@
 
       .bottom-bar {
         position: absolute;
-        left: 62.8vw; /* from main-support */
+        left: 62.8vw; /* aligns with main-support */
         top: 83.9vh;
-        width: 15.2vw; /* up to right-frame */
-        min-width: 160px;
+        width: calc(14.2vw + 15px); /* aligns with mid-ledge and goal-ledge */
         height: 2.8vh;
         background: #5a5a5a;
         box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.25);
@@ -255,30 +249,38 @@
        */
       .goal-ledge {
         position: absolute;
-        right: 7vw;
+        right: 0;
         top: 83.9vh; /* same height as bottom-bar / bottom of ice-water */
-        width: 15vw;
-        min-width: 150px;
+        width: calc(23vw - 15px);
         height: 1.9vh;
         min-height: 14px;
         background: #6d6d6d;
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.32);
       }
 
-      /* coins and sword are moved to mid-ledge! 
-         "coin, sword요소도 mid-ledge 요소의 상단에 딱 붙어있는 형태였으면 하고" */
+      .goal-location {
+        position: absolute;
+        left: 100%;
+        top: 0;
+        width: calc(23vw - 15px);
+        height: 100%;
+        background: #6d6d6d;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.32);
+      }
+
       .treasure-pile {
         position: absolute;
-        left: 65vw;
-        bottom: 42vh; /* Bottom 42vh matches top 58vh (100 - 58 = 42). So they stick to top of mid-ledge */
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 100%; /* goal-location의 바로 윗상단에 안착 */
         width: 100px;
         height: 60px;
-        z-index: 20; 
+        z-index: 20;
       }
 
       .coins-container {
         position: absolute;
-        bottom: 0px; 
+        bottom: 0px;
         left: 10px;
         width: 80px;
         height: 38px; /* 절반 잘린 형태 구현 */
@@ -340,7 +342,7 @@
       .character {
         position: absolute;
         left: 8vw; /* centered on spawn-pad */
-        bottom: 20.2vh; 
+        bottom: 20.2vh;
         width: 42px;
         height: 80px;
         background: #222;
@@ -414,7 +416,8 @@
         }
 
         .ladder {
-          left: 58vw;
+          left: auto;
+          right: 34vw;
           height: 49vh;
         }
 
@@ -428,34 +431,34 @@
           height: 62vh;
         }
 
-        .top-beam,
+        .top-beam {
+          left: calc(66vw + 15px);
+          width: calc(17vw - 15px);
+        }
+
         .mid-ledge {
-          left: 66.5vw;
-          width: 17vw;
-          min-width: 120px;
+          left: 66vw;
+          width: calc(17vw + 15px);
         }
 
         .lava-fall,
         .ice-water {
-          left: 67vw;
-          width: 15vw;
-          min-width: 90px;
+          left: calc(66vw + 15px);
+          width: calc(17vw - 15px);
         }
-        
+
         .bottom-bar {
-          left: 66.5vw;
-          width: 17.5vw;
+          left: 66vw;
+          width: calc(17vw + 15px);
+        }
+
+        .goal-location,
+        .goal-ledge {
+          width: calc(17vw - 15px);
         }
 
         .goal-ledge {
-          right: 5vw;
           top: 83.9vh;
-          width: 12vw;
-          min-width: 90px;
-        }
-
-        .treasure-pile {
-          left: 68vw;
         }
       }
     </style>
@@ -465,7 +468,7 @@
       <div class="bg-layer"></div>
       <div class="ambient-glow cyan"></div>
       <div class="ambient-glow orange"></div>
-      
+
       <div class="timer-ui">00:00:00</div>
 
       <div class="spawn-pad"></div>
@@ -474,7 +477,20 @@
       <div class="ladder"></div>
       <div class="main-support"></div>
       <div class="top-beam"></div>
-      <div class="mid-ledge"></div>
+      <div class="mid-ledge">
+        <div class="goal-location">
+          <div class="treasure-pile">
+            <div class="sword">
+              <div class="sword-hilt">
+                <div class="gem"></div>
+              </div>
+            </div>
+            <div class="coins-container">
+              <div class="coins"></div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="right-frame"></div>
 
       <div class="lava-fall"></div>
@@ -482,17 +498,6 @@
       <div class="bottom-bar"></div>
 
       <div class="goal-ledge"></div>
-      
-      <div class="treasure-pile">
-        <div class="sword">
-          <div class="sword-hilt">
-            <div class="gem"></div>
-          </div>
-        </div>
-        <div class="coins-container">
-            <div class="coins"></div>
-        </div>
-      </div>
 
       <div class="character">
         <div class="character-head">
