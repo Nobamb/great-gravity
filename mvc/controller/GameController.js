@@ -26,8 +26,9 @@ export class GameController {
         const stageState = this.stageModel.refresh();
         const characterSize = this.gameView.measureCharacter();
 
-        // 캐릭터 모델의 크기를 View와 동기화하고 스폰 지점으로 위치시킵니다.
+        // 캐릭터 모델의 크기 및 물리 배율을 화면과 동기화합니다.
         this.characterModel.syncSize(characterSize);
+        this.characterModel.syncPhysics(stageState.width);
         this.characterModel.updateSpawn(this.stageModel.getSpawnPoint(characterSize));
         this.characterModel.resetToSpawn();
 
@@ -87,9 +88,11 @@ export class GameController {
             return;
         }
 
-        // 화면 크기 비율에 맞춰 캐릭터의 좌표를 재계산합니다.
+        // 화면 크기 비율에 맞춰 캐릭터의 좌표 및 물리 배율을 재계산합니다.
         const characterSize = this.gameView.measureCharacter();
+        this.characterModel.syncPhysics(stageState.width);
         this.characterModel.resizeWorld(stageState.scaleX, stageState.scaleY, characterSize);
+
         // 새로운 스폰 지점을 계산합니다.
         this.characterModel.updateSpawn(this.stageModel.getSpawnPoint(characterSize));
     }
