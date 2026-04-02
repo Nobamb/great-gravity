@@ -183,7 +183,7 @@ body {
   position: absolute;
   left: calc(62.8% + calc(15 * var(--cw)));
   top: 24%;
-  width: calc(14.2% - calc(15 * var(--cw)));
+  width: 100vw;
   height: 1.9%;
   min-height: calc(14 * var(--cw));
   background: linear-gradient(to right, #9b6666 0 70%, #6d6d6d 70% 100%);
@@ -359,8 +359,8 @@ body {
 
 .character {
   position: absolute;
-  left: 8%; 
-  bottom: 20.2%;
+  left: 0;
+  top: 0;
   width: calc(42 * var(--cw));
   height: calc(80 * var(--cw));
   background: #222;
@@ -371,6 +371,37 @@ body {
   flex-direction: column;
   align-items: center;
   z-index: 30;
+  opacity: 0;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  transition:
+    opacity 120ms ease,
+    box-shadow 140ms ease,
+    filter 140ms ease;
+}
+
+.character.is-ready {
+  opacity: 1;
+}
+
+.character.is-moving {
+  box-shadow:
+    0 0 calc(24 * var(--cw)) rgba(0, 255, 255, 0.7),
+    0 0 calc(32 * var(--cw)) rgba(0, 255, 255, 0.22);
+}
+
+.character.is-jumping {
+  filter: brightness(1.15);
+}
+
+.character.is-climbing {
+  box-shadow:
+    0 0 calc(18 * var(--cw)) rgba(132, 255, 255, 0.85),
+    0 0 calc(28 * var(--cw)) rgba(0, 255, 255, 0.28);
+}
+
+.character.is-facing-left .character-head {
+  transform: scaleX(-1);
 }
 
 .character-head {
@@ -382,6 +413,7 @@ body {
   border-radius: 50%;
   background: #111;
   box-shadow: 0 0 calc(15 * var(--cw)) rgba(0, 255, 255, 0.5);
+  transition: transform 120ms ease;
 }
 
 .character-eye {
