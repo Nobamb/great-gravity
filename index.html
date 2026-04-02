@@ -16,14 +16,14 @@
 
         <div class="timer-ui">00:00:00</div>
 
-        <div class="spawn-pad"></div>
+        <div class="spawn-pad" data-collider="solid" data-spawn="player"></div>
 
-        <div class="stone-bridge"></div>
-        <div class="ladder"></div>
-        <div class="main-support"></div>
-        <div class="top-beam"></div>
-        <div class="mid-ledge">
-          <div class="goal-location"></div>
+        <div class="stone-bridge" data-collider="solid"></div>
+        <div class="ladder" data-collider="ladder"></div>
+        <div class="main-support" data-collider="solid"></div>
+        <div class="top-beam" data-collider="solid"></div>
+        <div class="mid-ledge" data-collider="solid">
+          <div class="goal-location" data-collider="solid"></div>
         </div>
         <div class="treasure-pile">
           <div class="sword">
@@ -35,13 +35,13 @@
             <div class="coins"></div>
           </div>
         </div>
-        <div class="right-frame"></div>
+        <div class="right-frame" data-collider="solid"></div>
 
         <div class="lava-fall"></div>
         <div class="ice-water"></div>
-        <div class="bottom-bar"></div>
+        <div class="bottom-bar" data-collider="solid"></div>
 
-        <div class="goal-ledge"></div>
+        <div class="goal-ledge" data-collider="solid"></div>
 
         <div class="character">
           <div class="character-head">
@@ -52,5 +52,6 @@
         <div class="vignette"></div>
       </div>
     </div>
+    <script type="module" src="mvc/main.js"></script>
   </body>
 </html>
