@@ -1,5 +1,9 @@
 @charset "UTF-8";
 
+:root {
+  --cw: calc(100cqw / 1280);
+}
+
 body {
   margin: 0;
   overflow: hidden;
@@ -7,12 +11,35 @@ body {
   color: white;
   user-select: none;
   font-family: "Inter", "Roboto", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+#screen {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  container-type: size;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+@media (min-width: 1280px) {
+  #screen { width: 1280px; }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  #screen { width: 1024px; }
+}
+@media (max-width: 1023px) {
+  #screen { width: 600px; }
 }
 
 #game-container {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   background:
     radial-gradient(
@@ -35,7 +62,7 @@ body {
     radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.03), transparent 30%);
   background-size:
-    24px 24px,
+    calc(24 * var(--cw)) calc(24 * var(--cw)),
     100% 100%;
   opacity: 0.45;
 }
@@ -43,79 +70,79 @@ body {
 .ambient-glow {
   position: absolute;
   border-radius: 999px;
-  filter: blur(60px);
+  filter: blur(calc(60 * var(--cw)));
   pointer-events: none;
 }
 
 .ambient-glow.cyan {
-  left: -8vw;
-  bottom: 8vh;
-  width: 24vw;
-  height: 24vw;
+  left: -8%;
+  bottom: 8%;
+  width: 24%;
+  height: 24%;
   background: rgba(0, 255, 255, 0.18);
 }
 
 .ambient-glow.orange {
-  right: 8vw;
-  top: 8vh;
-  width: 28vw;
-  height: 28vw;
+  right: 8%;
+  top: 8%;
+  width: 28%;
+  height: 28%;
   background: rgba(255, 85, 0, 0.12);
 }
 
 /* Timer UI */
 .timer-ui {
   position: absolute;
-  left: 2vw;
-  top: 2vh;
-  width: 200px;
-  padding: 12px 20px;
+  left: 2%;
+  top: 2%;
+  width: calc(200 * var(--cw));
+  padding: calc(12 * var(--cw)) calc(20 * var(--cw));
   background: rgba(10, 15, 30, 0.6);
   border: 1px solid rgba(0, 255, 255, 0.3);
-  border-radius: 8px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
+  border-radius: calc(8 * var(--cw));
+  backdrop-filter: blur(calc(8 * var(--cw)));
+  box-shadow: 0 0 calc(15 * var(--cw)) rgba(0, 255, 255, 0.15);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 24px;
+  font-size: calc(24 * var(--cw));
   font-weight: bold;
   color: #00ffff;
-  text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
-  letter-spacing: 2px;
+  text-shadow: 0 0 calc(8 * var(--cw)) rgba(0, 255, 255, 0.6);
+  letter-spacing: calc(2 * var(--cw));
 }
 
 .spawn-pad {
   position: absolute;
   left: 0;
-  bottom: 17vh;
-  width: 18vw;
-  min-width: 180px;
-  height: 3.2vh;
-  min-height: 22px;
+  bottom: 17%;
+  width: 18%;
+  min-width: calc(180 * var(--cw));
+  height: 3.2%;
+  min-height: calc(22 * var(--cw));
   background: linear-gradient(to right, #18d7ff, #18a8ff);
-  box-shadow: 0 0 28px rgba(24, 215, 255, 0.45);
+  box-shadow: 0 0 calc(28 * var(--cw)) rgba(24, 215, 255, 0.45);
 }
 
 .stone-bridge {
   position: absolute;
-  left: 43vw;
-  top: 73vh;
-  width: 21vw;
-  min-width: 220px;
-  height: 2.8vh;
-  min-height: 20px;
+  left: 43%;
+  top: 73%;
+  width: 21%;
+  min-width: calc(220 * var(--cw));
+  height: 2.8%;
+  min-height: calc(20 * var(--cw));
   background: #9b6666;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 calc(10 * var(--cw)) calc(22 * var(--cw)) rgba(0, 0, 0, 0.35);
   z-index: 10;
 }
 
 .main-support {
   position: absolute;
-  left: 62.8vw;
-  top: 24vh;
-  width: 15px;
-  height: 60vh;
+  left: 62.8%;
+  top: 24%;
+  width: calc(15 * var(--cw));
+  height: 60%;
   background: #9b6666;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
@@ -124,19 +151,19 @@ body {
   content: "";
   position: absolute;
   left: 0;
-  top: -30px;
+  top: calc(-30 * var(--cw));
   width: 100%;
-  height: 30px;
+  height: calc(30 * var(--cw));
   background: #ff180d;
-  box-shadow: 0 0 12px rgba(255, 24, 13, 0.35);
+  box-shadow: 0 0 calc(12 * var(--cw)) rgba(255, 24, 13, 0.35);
 }
 
 .right-frame {
   position: absolute;
-  left: 77vw;
-  top: 24vh;
-  width: 15px;
-  height: 60vh;
+  left: 77%;
+  top: 24%;
+  width: calc(15 * var(--cw));
+  height: 60%;
   background: #6d6d6d;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
@@ -145,30 +172,30 @@ body {
   content: "";
   position: absolute;
   left: 0;
-  top: -30px;
+  top: calc(-30 * var(--cw));
   width: 100%;
-  height: 30px;
+  height: calc(30 * var(--cw));
   background: #ff180d;
-  box-shadow: 0 0 12px rgba(255, 24, 13, 0.35);
+  box-shadow: 0 0 calc(12 * var(--cw)) rgba(255, 24, 13, 0.35);
 }
 
 .top-beam {
   position: absolute;
-  left: calc(62.8vw + 15px);
-  top: 24vh;
-  width: calc(14.2vw - 15px); /* between main-support and right-frame */
-  height: 1.9vh;
-  min-height: 14px;
+  left: calc(62.8% + calc(15 * var(--cw)));
+  top: 24%;
+  width: calc(14.2% - calc(15 * var(--cw)));
+  height: 1.9%;
+  min-height: calc(14 * var(--cw));
   background: linear-gradient(to right, #9b6666 0 70%, #6d6d6d 70% 100%);
 }
 
 .mid-ledge {
   position: absolute;
-  left: 62.8vw;
-  top: 58vh;
-  width: calc(14.2vw + 15px);
-  height: 1.9vh;
-  min-height: 14px;
+  left: 62.8%;
+  top: 58%;
+  width: calc(14.2% + calc(15 * var(--cw)));
+  height: 1.9%;
+  min-height: calc(14 * var(--cw));
   background: linear-gradient(to right, #9b6666 0 68%, #6d6d6d 68% 100%);
 }
 
@@ -176,29 +203,29 @@ body {
 .mid-ledge::before {
   content: "";
   position: absolute;
-  left: -30px;
+  left: calc(-30 * var(--cw));
   top: 0;
-  width: 30px;
+  width: calc(30 * var(--cw));
   height: 100%;
   background: linear-gradient(to right, #ff180d 0 78%, #cb2c2c 78% 100%);
-  box-shadow: 0 0 10px rgba(255, 24, 13, 0.3);
-  z-index: 20; /* 사다리보다 앞에 오도록 */
+  box-shadow: 0 0 calc(10 * var(--cw)) rgba(255, 24, 13, 0.3);
+  z-index: 20; 
 }
 
 .ladder {
   position: absolute;
-  right: 37.2vw; /* Flush against main-support at 62.8vw */
-  top: 24vh;
-  width: 4.2vw;
-  min-width: 44px;
-  height: 49vh; /* extends down to stone-bridge 73vh */
+  right: 37.2%; 
+  top: 24%;
+  width: 4.2%;
+  min-width: calc(44 * var(--cw));
+  height: 49%; 
   background:
     repeating-linear-gradient(
       to bottom,
       transparent 0,
-      transparent 4.3vh,
-      rgba(0, 0, 0, 0.45) 4.3vh,
-      rgba(0, 0, 0, 0.45) 4.55vh
+      transparent 4.3%,
+      rgba(0, 0, 0, 0.45) 4.3%,
+      rgba(0, 0, 0, 0.45) 4.55%
     ),
     rgba(220, 220, 220, 0.88);
   box-shadow:
@@ -210,85 +237,82 @@ body {
 .lava-fall,
 .ice-water {
   position: absolute;
-  left: calc(62.8vw + 15px);
-  width: calc(14.2vw - 15px);
+  left: calc(62.8% + calc(15 * var(--cw)));
+  width: calc(14.2% - calc(15 * var(--cw)));
 }
 
 .lava-fall {
-  top: 25.9vh; /* just under top-beam */
-  height: 32.1vh; /* until mid-ledge 58vh */
+  top: 25.9%; 
+  height: 32.1%; 
   background: linear-gradient(to bottom, #ff8768, #ff6248);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .ice-water {
-  top: 59.9vh; /* just under mid-ledge */
-  height: 24vh; /* until 83.9vh */
+  top: 59.9%; 
+  height: 24%; 
   background: linear-gradient(to bottom, #4f88e8, #3c78de);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .bottom-bar {
   position: absolute;
-  left: 62.8vw; /* aligns with main-support */
-  top: 83.9vh;
-  width: calc(14.2vw + 15px); /* aligns with mid-ledge and goal-ledge */
-  height: 2.8vh;
+  left: 62.8%; 
+  top: 83.9%;
+  width: calc(14.2% + calc(15 * var(--cw))); 
+  height: 2.8%;
   background: #5a5a5a;
-  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.25);
-  border-top: 2px solid #3c78de;
+  box-shadow: 0 calc(-5 * var(--cw)) calc(15 * var(--cw)) rgba(0, 0, 0, 0.25);
+  border-top: calc(2 * var(--cw)) solid #3c78de;
 }
 
-/* Goal ledge at aligned bottom with ice-water! 
-   "ice-water 요소의 bottom위치와 동일한 위치에 있도록 하였으면 좋겠어 (coin, sword가 떨어질 때 바쳐줄 수 있는 레이아웃 형태)"
- */
 .goal-ledge {
   position: absolute;
   right: 0;
-  top: 83.9vh; /* same height as bottom-bar / bottom of ice-water */
-  width: calc(23vw - 15px);
-  height: 1.9vh;
-  min-height: 14px;
+  top: 83.9%; 
+  width: calc(23% - calc(15 * var(--cw)));
+  height: 1.9%;
+  min-height: calc(14 * var(--cw));
   background: #6d6d6d;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 calc(10 * var(--cw)) calc(20 * var(--cw)) rgba(0, 0, 0, 0.32);
 }
 
 .goal-location {
   position: absolute;
   left: 100%;
   top: 0;
-  width: calc(23vw - 15px);
+  width: calc(23% - calc(15 * var(--cw)));
   height: 100%;
   background: #6d6d6d;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 calc(10 * var(--cw)) calc(20 * var(--cw)) rgba(0, 0, 0, 0.32);
 }
 
 .treasure-pile {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 100%; /* goal-location의 바로 윗상단에 안착 */
-  width: 100px;
-  height: 60px;
+  bottom: 100%; 
+  width: calc(100 * var(--cw));
+  height: calc(60 * var(--cw));
   z-index: 20;
 }
 
 .coins-container {
   position: absolute;
   bottom: 0px;
-  left: 10px;
-  width: 80px;
-  height: 38px; /* 절반 잘린 형태 구현 */
+  left: calc(10 * var(--cw));
+  width: calc(80 * var(--cw));
+  height: calc(38 * var(--cw)); 
   overflow: hidden;
-  z-index: 21; /* higher than sword */
+  z-index: 21; 
 }
 
 .coins {
   position: absolute;
-  left: 2px;
-  bottom: -38px; /* hide bottom half */
-  width: 76px;
-  height: 76px;
+  left: calc(2 * var(--cw));
+  bottom: calc(-38 * var(--cw)); 
+  width: calc(76 * var(--cw));
+  height: calc(76 * var(--cw));
   border-radius: 50%;
   background: radial-gradient(
     circle at 35% 35%,
@@ -296,54 +320,53 @@ body {
     #f8ff00 58%,
     #c7c800 100%
   );
-  box-shadow: 0 0 24px rgba(248, 255, 0, 0.48);
+  box-shadow: 0 0 calc(24 * var(--cw)) rgba(248, 255, 0, 0.48);
 }
 
 .sword {
   position: absolute;
-  left: 48px; /* inside the coin */
-  bottom: 10px; /* half buried in coins */
-  width: 8px;
-  height: 86px;
+  left: calc(48 * var(--cw)); 
+  bottom: calc(10 * var(--cw)); 
+  width: calc(8 * var(--cw));
+  height: calc(86 * var(--cw));
   background: linear-gradient(to bottom, #f2f2f2, #a9a9a9);
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.18);
-  z-index: 19; /* behind coin container */
+  box-shadow: 0 0 calc(12 * var(--cw)) rgba(255, 255, 255, 0.18);
+  z-index: 19; 
   transform: rotate(15deg);
   transform-origin: bottom center;
 }
 
 .sword-hilt {
   position: absolute;
-  left: -11px;
-  top: 18px;
-  width: 30px;
-  height: 8px;
+  left: calc(-11 * var(--cw));
+  top: calc(18 * var(--cw));
+  width: calc(30 * var(--cw));
+  height: calc(8 * var(--cw));
   background: #ffd700;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  box-shadow: 0 0 calc(10 * var(--cw)) rgba(255, 215, 0, 0.3);
 }
 
 .gem {
   position: absolute;
-  left: 10px;
-  top: -1px;
-  width: 8px;
-  height: 8px;
+  left: calc(10 * var(--cw));
+  top: calc(-1 * var(--cw));
+  width: calc(8 * var(--cw));
+  height: calc(8 * var(--cw));
   border-radius: 50%;
   background: #00ff87;
-  box-shadow: 0 0 12px rgba(0, 255, 135, 0.4);
+  box-shadow: 0 0 calc(12 * var(--cw)) rgba(0, 255, 135, 0.4);
 }
 
-/* Character fixing position to be directly on the spawn pad. */
 .character {
   position: absolute;
-  left: 8vw; /* centered on spawn-pad */
-  bottom: 20.2vh;
-  width: 42px;
-  height: 80px;
+  left: 8%; 
+  bottom: 20.2%;
+  width: calc(42 * var(--cw));
+  height: calc(80 * var(--cw));
   background: #222;
-  border: 2px solid #00ffff;
-  border-radius: 20px 20px 10px 10px;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  border: calc(2 * var(--cw)) solid #00ffff;
+  border-radius: calc(20 * var(--cw)) calc(20 * var(--cw)) calc(10 * var(--cw)) calc(10 * var(--cw));
+  box-shadow: 0 0 calc(20 * var(--cw)) rgba(0, 255, 255, 0.5);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -352,26 +375,26 @@ body {
 
 .character-head {
   position: relative;
-  width: 30px;
-  height: 30px;
-  margin-top: -15px;
-  border: 2px solid #00ffff;
+  width: calc(30 * var(--cw));
+  height: calc(30 * var(--cw));
+  margin-top: calc(-15 * var(--cw));
+  border: calc(2 * var(--cw)) solid #00ffff;
   border-radius: 50%;
   background: #111;
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+  box-shadow: 0 0 calc(15 * var(--cw)) rgba(0, 255, 255, 0.5);
 }
 
 .character-eye {
   position: absolute;
-  top: 10px;
-  right: 5px;
-  width: 8px;
-  height: 4px;
+  top: calc(10 * var(--cw));
+  right: calc(5 * var(--cw));
+  width: calc(8 * var(--cw));
+  height: calc(4 * var(--cw));
   border-radius: 50%;
   background: #fff;
   box-shadow:
-    0 0 10px #fff,
-    0 0 18px #00ffff;
+    0 0 calc(10 * var(--cw)) #fff,
+    0 0 calc(18 * var(--cw)) #00ffff;
 }
 
 .vignette {
@@ -384,75 +407,4 @@ body {
   );
   pointer-events: none;
   z-index: 100;
-}
-
-@media (max-width: 960px) {
-  .timer-ui {
-    top: 1vh;
-    left: 1vw;
-    padding: 8px 12px;
-    font-size: 18px;
-  }
-
-  .spawn-pad {
-    width: 28vw;
-    bottom: 20vh;
-  }
-
-  .character {
-    left: 14vw;
-    bottom: 23.2vh; /* adjusted for spawn pad */
-  }
-
-  .stone-bridge {
-    left: 39vw;
-    top: 73vh;
-    width: 28vw;
-  }
-
-  .ladder {
-    left: auto;
-    right: 34vw;
-    height: 49vh;
-  }
-
-  .main-support {
-    left: 66vw;
-    height: 62vh;
-  }
-
-  .right-frame {
-    left: 83vw;
-    height: 62vh;
-  }
-
-  .top-beam {
-    left: calc(66vw + 15px);
-    width: calc(17vw - 15px);
-  }
-
-  .mid-ledge {
-    left: 66vw;
-    width: calc(17vw + 15px);
-  }
-
-  .lava-fall,
-  .ice-water {
-    left: calc(66vw + 15px);
-    width: calc(17vw - 15px);
-  }
-
-  .bottom-bar {
-    left: 66vw;
-    width: calc(17vw + 15px);
-  }
-
-  .goal-location,
-  .goal-ledge {
-    width: calc(17vw - 15px);
-  }
-
-  .goal-ledge {
-    top: 83.9vh;
-  }
 }
