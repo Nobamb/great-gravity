@@ -32,22 +32,27 @@ function intersects(a, b) {
  */
 export class CharacterModel {
     constructor(size = {}) {
-        // 기본 물리 설정값 (단위: px, px/s)
+        // 기준 해상도 (1280px). 이 너비일 때 물리 배율은 1.0이 됩니다.
+        this.baseWidth = 1280;
+        // 현재 화면 너비에 따른 물리 배율
+        this.physicsScale = 1;
+
+        // 기본 물리 설정값 (기준 해상도 1280px 기준)
         this.width = size.width ?? 0;
         this.height = size.height ?? 0;
-        this.spawn = { x: 0, y: 0 }; // 스폰(재시작) 위치
-        this.facing = 1;             // 1: 오른쪽, -1: 왼쪽
+        this.spawn = { x: 0, y: 0 };
+        this.facing = 1;
 
-        this.maxMoveSpeed = 260;     // 최대 이동 속도
+        this.maxMoveSpeed = 260;        // 최대 이동 속도
         this.groundAcceleration = 2200; // 지상 가속도
         this.airAcceleration = 1400;    // 공중 가속도
         this.groundDeceleration = 2600; // 지상 감속도
         this.airDeceleration = 600;     // 공중 감속도
         this.gravity = 1800;            // 중력 가속도
-        this.maxFallSpeed = 1000;    // 최대 추락 속도
-        this.jumpVelocity = -640;    // 점프 시 위쪽으로 가해지는 속도
-        this.climbSpeed = 190;       // 사다리 오르기 속도
-        this.fallResetMargin = 160;  // 스테이지 밖으로 얼마나 떨어졌을 때 리셋할지 (px)
+        this.maxFallSpeed = 1000;       // 최대 추락 속도
+        this.jumpVelocity = -640;       // 점프 속도
+        this.climbSpeed = 190;          // 사다리 오르기 속도
+        this.fallResetMargin = 160;     // 추락 리셋 여유분
 
         this.resetState();
     }
@@ -58,12 +63,22 @@ export class CharacterModel {
     resetState() {
         this.x = 0;
         this.y = 0;
-        this.vx = 0; // 수평 속도
-        this.vy = 0; // 수직 속도
-        this.moveIntent = 0;     // 이전 입력된 이동 방향
-        this.onGround = false;   // 지면 접촉 여부
-        this.onLadder = false;   // 사다리 영역 내 존재 여부
-        this.isClimbing = false; // 현재 사다리를 타고 있는 상태인지 여부
+        this.vx = 0;
+        this.vy = 0;
+        this.moveIntent = 0;
+        this.onGround = false;
+        this.onLadder = false;
+        this.isClimbing = false;
+    }
+
+    /**
+     * 화면 너비에 따라 물리 배율을 업데이트합니다.
+     * @param {number} stageWidth 현재 스테이지의 너비
+     */
+    syncPhysics(stageWidth) {
+        if (stageWidth > 0) {
+            this.physicsScale = stageWidth / this.baseWidth;
+        }
     }
 
     /**
@@ -132,7 +147,6 @@ export class CharacterModel {
      * 매 프레임 캐릭터의 상태를 업데이트하는 핵심 함수입니다.
      */
     update(dt, stage, input) {
-        // 사다리 충돌 감지를 위한 여백 계산
         const ladderPadding = Math.max(8, stage.bounds.width * 0.008);
         const currentBounds = this.getBounds();
         const ladder = stage.getLadderForBounds(currentBounds, ladderPadding);
@@ -140,25 +154,22 @@ export class CharacterModel {
         this.moveIntent = input.horizontal;
         this.onLadder = Boolean(ladder);
 
-        // 캐릭터가 바라보는 방향 결정
         if (input.horizontal !== 0) {
             this.facing = input.horizontal;
         }
 
-        // 1. 사다리에서 점프하여 뛰어내리기
         if (this.isClimbing && input.jump) {
             this.isClimbing = false;
             this.onLadder = false;
-            this.vy = this.jumpVelocity;
+            // 배율이 적용된 점프 속도 사용
+            this.vy = this.jumpVelocity * this.physicsScale;
         }
 
-        // 2. 사다리 주행 중 좌우 입력 시 사다리에서 내리기
         if (this.isClimbing && input.horizontal !== 0 && input.vertical === 0) {
             this.isClimbing = false;
             this.onLadder = false;
         }
 
-        // 3. 사다리 근처에서 위/아래 입력 시 타기 시작
         if (!this.isClimbing && ladder && input.vertical !== 0 && !input.jump) {
             this.isClimbing = true;
             this.onGround = false;
@@ -166,18 +177,17 @@ export class CharacterModel {
             this.vy = 0;
         }
 
-        // 상태에 따라 다른 물리 로직 적용
         if (this.isClimbing) {
             this.updateClimbing(dt, stage, input);
         } else {
             this.updatePlatforming(dt, stage, input);
         }
 
-        // 화면 밖으로 나가지 않도록 제한 (좌우)
         this.x = clamp(this.x, 0, Math.max(0, stage.bounds.width - this.width));
 
-        // 화면 아래로 추락 시 스폰 위치로 리셋
-        if (this.y > stage.bounds.height + this.fallResetMargin) {
+        // 추락 리셋 여유분도 배율 적용
+        const resetLimit = stage.bounds.height + (this.fallResetMargin * this.physicsScale);
+        if (this.y > resetLimit) {
             this.resetToSpawn();
         }
     }
@@ -186,33 +196,43 @@ export class CharacterModel {
      * 일반적인 플랫폼 이동(걷기, 점프, 중력) 로직입니다.
      */
     updatePlatforming(dt, stage, input) {
+        // 모든 물리 상수의 배율 적용
+        const s = this.physicsScale;
+        const maxMoveSpeed = this.maxMoveSpeed * s;
+        const groundAcceleration = this.groundAcceleration * s;
+        const airAcceleration = this.airAcceleration * s;
+        const groundDeceleration = this.groundDeceleration * s;
+        const airDeceleration = this.airDeceleration * s;
+        const gravity = this.gravity * s;
+        const maxFallSpeed = this.maxFallSpeed * s;
+        const jumpVelocity = this.jumpVelocity * s;
+
         // 수평 가속/감속 처리
         if (input.horizontal !== 0) {
-            const targetVelocity = input.horizontal * this.maxMoveSpeed;
-            const acceleration = this.onGround ? this.groundAcceleration : this.airAcceleration;
+            const targetVelocity = input.horizontal * maxMoveSpeed;
+            const acceleration = this.onGround ? groundAcceleration : airAcceleration;
             const maxVelocityChange = acceleration * dt;
             const velocityDelta = clamp(targetVelocity - this.vx, -maxVelocityChange, maxVelocityChange);
 
             this.vx += velocityDelta;
         } else {
-            const deceleration = this.onGround ? this.groundDeceleration : this.airDeceleration;
+            const deceleration = this.onGround ? groundDeceleration : airDeceleration;
             this.vx = approach(this.vx, 0, deceleration * dt);
         }
 
         // 지상에서 점프 처리
         if (input.jump && this.onGround) {
-            this.vy = this.jumpVelocity;
+            this.vy = jumpVelocity;
             this.onGround = false;
         }
 
         // 중력 적용
-        this.vy = Math.min(this.vy + this.gravity * dt, this.maxFallSpeed);
+        this.vy = Math.min(this.vy + gravity * dt, maxFallSpeed);
 
-        // X축 이동 및 지형 충돌 해결
+        // X축 및 Y축 이동
         this.x += this.vx * dt;
         this.resolveHorizontalCollisions(stage.solids);
 
-        // Y축 이동 및 지형 충돌 해결
         this.onGround = false;
         this.y += this.vy * dt;
         this.resolveVerticalCollisions(stage.solids);
@@ -225,7 +245,6 @@ export class CharacterModel {
         const ladderPadding = Math.max(6, stage.bounds.width * 0.006);
         const ladder = stage.getLadderForBounds(this.getBounds(), ladderPadding);
 
-        // 사다리를 벗어나면 자동으로 플랫폼 상태로 전환
         if (!ladder) {
             this.isClimbing = false;
             this.onLadder = false;
@@ -236,15 +255,13 @@ export class CharacterModel {
         this.onGround = false;
         this.onLadder = true;
         this.vx = 0;
-        this.vy = input.vertical * this.climbSpeed;
-        // 사다리를 탈 때는 사다리 중앙에 자석처럼 붙게 합니다.
+        // 사다리 오르기 속도 배율 적용
+        this.vy = input.vertical * this.climbSpeed * this.physicsScale;
         this.x = clamp(ladder.left + (ladder.width - this.width) / 2, 0, Math.max(0, stage.bounds.width - this.width));
         this.y += this.vy * dt;
 
-        // 사다리 탑승 중에도 고체 지형(벽/바닥)과의 충돌은 체크합니다.
         this.resolveVerticalCollisions(stage.solids);
 
-        // 끝까지 올랐거나 내려갔을 때 사다리 판정 재확인
         if (!stage.getLadderForBounds(this.getBounds(), ladderPadding)) {
             this.isClimbing = false;
             this.onLadder = false;
@@ -252,7 +269,7 @@ export class CharacterModel {
     }
 
     /**
-     * 수평 방향 지형 충돌을 체크하고 위치를 보정합니다. (벽 뚫기 방지)
+     * 수평 방향 지형 충돌을 체크하고 위치를 보정합니다.
      */
     resolveHorizontalCollisions(solids) {
         let bounds = this.getBounds();
@@ -263,10 +280,8 @@ export class CharacterModel {
             }
 
             if (this.vx > 0) {
-                // 오른쪽으로 이동 중 벽에 부딪힘
                 this.x = solid.left - this.width;
             } else if (this.vx < 0) {
-                // 왼쪽으로 이동 중 벽에 부딪힘
                 this.x = solid.right;
             }
 
@@ -276,7 +291,7 @@ export class CharacterModel {
     }
 
     /**
-     * 수직 방향 지형 충돌을 체크하고 위치를 보정합니다. (바닥 착지 및 천장 충돌)
+     * 수직 방향 지형 충돌을 체크하고 위치를 보정합니다.
      */
     resolveVerticalCollisions(solids) {
         let bounds = this.getBounds();
@@ -287,11 +302,9 @@ export class CharacterModel {
             }
 
             if (this.vy > 0) {
-                // 아래로 추락 중 바닥에 착지
                 this.y = solid.top - this.height;
                 this.onGround = true;
             } else if (this.vy < 0) {
-                // 점프 중 천장에 부딪힘
                 this.y = solid.bottom;
             }
 
