@@ -96,7 +96,11 @@ export class StageModel {
 
         // 지면/벽 요소 탐색 후 상대 좌표 변환
         this.solids = Array.from(this.container.querySelectorAll(this.solidSelector)).map((element) => {
-            return createRelativeRect(element.getBoundingClientRect(), containerRect);
+            const rect = createRelativeRect(element.getBoundingClientRect(), containerRect);
+            return {
+                ...rect,
+                effect: element.dataset.effect || null,
+            };
         });
 
         // 사다리 요소 탐색 후 상대 좌표 변환
