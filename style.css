@@ -124,6 +124,22 @@ body {
   box-shadow: 0 0 calc(28 * var(--cw)) rgba(24, 215, 255, 0.45);
 }
 
+.jump-block {
+  position: absolute;
+  left: 24%;
+  bottom: 22%;
+  width: 10%;
+  min-width: calc(100 * var(--cw));
+  height: 2.5%;
+  min-height: calc(18 * var(--cw));
+  background: linear-gradient(to right, #ffcc00, #ffaa00);
+  box-shadow: 
+    0 0 calc(20 * var(--cw)) rgba(255, 204, 0, 0.6),
+    inset 0 0 calc(10 * var(--cw)) rgba(255, 255, 255, 0.4);
+  z-index: 10;
+  border-radius: calc(4 * var(--cw));
+}
+
 .stone-bridge {
   position: absolute;
   left: 43%;
