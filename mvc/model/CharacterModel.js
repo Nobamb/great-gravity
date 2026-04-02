@@ -69,6 +69,7 @@ export class CharacterModel {
         this.onGround = false;
         this.onLadder = false;
         this.isClimbing = false;
+        this.groundEffect = null; // 현재 밟고 있는 지형의 특수 효과
     }
 
     /**
@@ -222,7 +223,10 @@ export class CharacterModel {
 
         // 지상에서 점프 처리
         if (input.jump && this.onGround) {
-            this.vy = jumpVelocity;
+            // 점프 높이를 2배로 만들기 위해 점프 속도에 Math.sqrt(2)를 곱합니다.
+            // (에너지 보존 법칙에 의해 높이는 속도의 제곱에 비례하기 때문입니다.)
+            const jumpMultiplier = this.groundEffect === "jump-boost" ? Math.sqrt(2) : 1;
+            this.vy = jumpVelocity * jumpMultiplier;
             this.onGround = false;
         }
 
@@ -295,6 +299,7 @@ export class CharacterModel {
      */
     resolveVerticalCollisions(solids) {
         let bounds = this.getBounds();
+        this.groundEffect = null;
 
         for (const solid of solids) {
             if (!intersects(bounds, solid)) {
@@ -304,6 +309,7 @@ export class CharacterModel {
             if (this.vy > 0) {
                 this.y = solid.top - this.height;
                 this.onGround = true;
+                this.groundEffect = solid.effect;
             } else if (this.vy < 0) {
                 this.y = solid.bottom;
             }
