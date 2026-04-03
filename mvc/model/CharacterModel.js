@@ -186,6 +186,10 @@ export class CharacterModel {
 
         this.x = clamp(this.x, 0, Math.max(0, stage.bounds.width - this.width));
 
+        if (this.isTouchingHazard(stage.hazards)) {
+            return true;
+        }
+
         // 추락 리셋 여유분도 배율 적용
         const resetLimit = stage.bounds.height + (this.fallResetMargin * this.physicsScale);
         if (this.y > resetLimit) {
@@ -193,6 +197,12 @@ export class CharacterModel {
         }
 
         return false;
+    }
+
+    isTouchingHazard(hazards = []) {
+        const bounds = this.getBounds();
+
+        return hazards.some((hazard) => intersects(bounds, hazard));
     }
 
     /**
