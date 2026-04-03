@@ -58,4 +58,12 @@ export class PhysicsController {
 
         return this.physicsModel.getSolidifiedRects();
     }
+
+    getLavaHazards() {
+        if (!this.physicsModel.enabled) {
+            return [];
+        }
+
+        return this.physicsModel.getLavaHazards();
+    }
 }
