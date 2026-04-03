@@ -207,6 +207,7 @@ export class PhysicsModel {
 
   rebuildStaticBodies(stageModel) {
     this.removeBodies(this.staticBodies);
+    const physicsSolids = stageModel.domSolids ?? stageModel.solids;
 
     const boundaryThickness = Math.max(48, stageModel.bounds.width * 0.05);
     const minSolidThickness = Math.max(12, stageModel.bounds.width * 0.012);
@@ -234,20 +235,20 @@ export class PhysicsModel {
       { isStatic: true },
     );
 
-    this.renderObstacles = stageModel.solids.map((solid) =>
+    this.renderObstacles = physicsSolids.map((solid) =>
       this.createObstacleRect(solid, {
         padding: this.renderObstaclePadding,
       }),
     );
 
     // 유체 containment 영역을 현재 배치된 고체 블록들 기준으로 재계산
-    this._updateFluidContainment(stageModel.solids);
+    this._updateFluidContainment(physicsSolids);
 
     this.staticBodies = [
       leftWall,
       rightWall,
       topWall,
-      ...stageModel.solids.map((solid) => {
+      ...physicsSolids.map((solid) => {
         const obstacleRect = this.createObstacleRect(solid, {
           padding: solidCollisionPadding,
           minThickness: minSolidThickness,
@@ -344,19 +345,6 @@ export class PhysicsModel {
     });
   }
 
-  createSolidifiedBody(rect) {
-    return this.Bodies.rectangle(
-      rect.left + rect.width / 2,
-      rect.top + rect.height / 2,
-      rect.width,
-      rect.height,
-      {
-        isStatic: true,
-        friction: this.solidifyConfig.friction,
-      },
-    );
-  }
-
   removeFluidBodiesNearRect(rect) {
     const padding =
       Math.max(rect.width, rect.height) * this.solidifyConfig.removalPaddingRatio;
@@ -392,17 +380,8 @@ export class PhysicsModel {
       return false;
     }
 
-    const body = this.createSolidifiedBody(rect);
-    this.staticBodies.push(body);
-    this.addBodies([body]);
     this.solidifiedRects.push(rect);
     this.solidifiedCellKeys.add(rect.id);
-    this.renderObstacles.push({
-      x: rect.left,
-      y: rect.top,
-      width: rect.width,
-      height: rect.height,
-    });
     this.removeFluidBodiesNearRect(rect);
 
     return true;
