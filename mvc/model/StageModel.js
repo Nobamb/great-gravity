@@ -55,6 +55,7 @@ export class StageModel {
       width: 0,
       height: 0,
     };
+    this.initialTriggerStates = null;
     this.dirty = true;
     this.containerRect = container.getBoundingClientRect();
 
@@ -156,6 +157,23 @@ export class StageModel {
         };
       })
       .filter(Boolean);
+
+    if (!this.initialTriggerStates) {
+      this.initialTriggerStates = this.triggers.map((trigger) => ({
+        id: trigger.id,
+        blockElement: trigger.blockElement,
+        triggerElement: trigger.element,
+        blockCollider: trigger.blockElement.dataset.collider || null,
+        triggerUsed: trigger.element.dataset.triggerUsed || null,
+        collapseState: trigger.blockElement.dataset.collapseState || null,
+        nestedSolidStates: Array.from(
+          trigger.blockElement.querySelectorAll(this.solidSelector),
+        ).map((element) => ({
+          element,
+          collider: element.dataset.collider || null,
+        })),
+      }));
+    }
 
     return {
       width: this.bounds.width,
@@ -274,6 +292,43 @@ export class StageModel {
       y,
       durationMs: 300,
     };
+  }
+
+  resetStage() {
+    if (!this.initialTriggerStates) {
+      return;
+    }
+
+    this.initialTriggerStates.forEach((state) => {
+      if (state.blockCollider === null) {
+        delete state.blockElement.dataset.collider;
+      } else {
+        state.blockElement.dataset.collider = state.blockCollider;
+      }
+
+      if (state.triggerUsed === null) {
+        delete state.triggerElement.dataset.triggerUsed;
+      } else {
+        state.triggerElement.dataset.triggerUsed = state.triggerUsed;
+      }
+
+      if (state.collapseState === null) {
+        delete state.blockElement.dataset.collapseState;
+      } else {
+        state.blockElement.dataset.collapseState = state.collapseState;
+      }
+
+      state.nestedSolidStates.forEach(({ element, collider }) => {
+        if (collider === null) {
+          delete element.dataset.collider;
+        } else {
+          element.dataset.collider = collider;
+        }
+      });
+    });
+
+    this.markDirty();
+    this.refresh();
   }
 
   getCollapseOffset(trigger) {
