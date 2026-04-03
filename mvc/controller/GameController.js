@@ -122,15 +122,20 @@ export class GameController {
 
     handlePlayerDeath() {
         this.gameView.resetStageState();
+        this.inputController.resetTransientActions?.();
         this.stageModel.resetStage();
+        const resetStageState = this.stageModel.refresh();
 
         const characterSize = this.gameView.measureCharacter();
         this.characterModel.syncSize(characterSize);
-        this.characterModel.syncPhysics(this.stageModel.bounds.width);
+        this.characterModel.syncPhysics(
+            resetStageState?.width ?? this.stageModel.bounds.width,
+        );
         this.characterModel.updateSpawn(this.stageModel.getSpawnPoint(characterSize));
         this.characterModel.resetToSpawn();
 
         this.physicsController?.reset(this.stageModel);
+        this.activeTrigger = null;
         this.updateActiveTrigger();
     }
 }
