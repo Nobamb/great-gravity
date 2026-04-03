@@ -299,6 +299,10 @@ export class StageModel {
       return;
     }
 
+    this.triggers?.forEach((trigger) => {
+      trigger.isUsed = false;
+    });
+
     this.initialTriggerStates.forEach((state) => {
       if (state.blockCollider === null) {
         delete state.blockElement.dataset.collider;
@@ -328,7 +332,6 @@ export class StageModel {
     });
 
     this.markDirty();
-    this.refresh();
   }
 
   getCollapseOffset(trigger) {
