@@ -281,7 +281,7 @@ body {
   position: absolute;
   left: calc(62.8% + calc(15 * var(--cw)));
   width: calc(14.2% - calc(15 * var(--cw)));
-  overflow: visible;
+  overflow: hidden;
   pointer-events: none;
   z-index: 8;
 }
