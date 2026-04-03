@@ -31,6 +31,7 @@ export class GameController {
 
         this.updateActiveTrigger();
         this.physicsController?.start(this.stageModel);
+        this.syncSolidifiedTerrain();
         this.physicsController?.render();
         this.gameView.render(this.characterModel, {
             activeTriggerElement: this.activeTrigger?.element ?? null,
@@ -71,6 +72,7 @@ export class GameController {
 
             this.handleTriggerInteraction(input);
             this.physicsController?.step(this.fixedDeltaTime);
+            this.syncSolidifiedTerrain();
             this.accumulator -= this.fixedDeltaTime;
         }
 
@@ -135,7 +137,14 @@ export class GameController {
         this.characterModel.resetToSpawn();
 
         this.physicsController?.reset(this.stageModel);
+        this.syncSolidifiedTerrain();
         this.activeTrigger = null;
         this.updateActiveTrigger();
+    }
+
+    syncSolidifiedTerrain() {
+        this.stageModel.setRuntimeSolids(
+            this.physicsController?.getSolidifiedBlocks?.() ?? [],
+        );
     }
 }
