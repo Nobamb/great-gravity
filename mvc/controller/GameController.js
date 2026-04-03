@@ -61,7 +61,14 @@ export class GameController {
 
         while (this.accumulator >= this.fixedDeltaTime) {
             const input = this.inputController.getSnapshot();
-            this.characterModel.update(this.fixedDeltaTime, this.stageModel, input);
+            const didDie = this.characterModel.update(this.fixedDeltaTime, this.stageModel, input);
+
+            if (didDie) {
+                this.handlePlayerDeath();
+                this.accumulator = 0;
+                break;
+            }
+
             this.handleTriggerInteraction(input);
             this.physicsController?.step(this.fixedDeltaTime);
             this.accumulator -= this.fixedDeltaTime;
@@ -111,5 +118,19 @@ export class GameController {
 
         this.gameView.animateBlockCollapse(collapseState);
         this.activeTrigger = null;
+    }
+
+    handlePlayerDeath() {
+        this.gameView.resetStageState();
+        this.stageModel.resetStage();
+
+        const characterSize = this.gameView.measureCharacter();
+        this.characterModel.syncSize(characterSize);
+        this.characterModel.syncPhysics(this.stageModel.bounds.width);
+        this.characterModel.updateSpawn(this.stageModel.getSpawnPoint(characterSize));
+        this.characterModel.resetToSpawn();
+
+        this.physicsController?.reset(this.stageModel);
+        this.updateActiveTrigger();
     }
 }
