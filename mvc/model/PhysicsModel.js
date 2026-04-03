@@ -46,9 +46,9 @@ export class PhysicsModel {
     this.solidifiedRects = [];
     this.solidifiedCellKeys = new Set();
     this.solidifyConfig = {
-      maxBlocksPerStep: 3,
-      contactRatio: 0.92,
-      removalPaddingRatio: 0.42,
+      maxBlocksPerStep: 6,
+      contactRatio: 1.08,
+      removalPaddingRatio: 0.58,
       friction: 0.92,
     };
 
@@ -376,7 +376,12 @@ export class PhysicsModel {
   }
 
   addSolidifiedBlock(rect) {
-    if (this.solidifiedCellKeys.has(rect.id) || this.isRectBlocked(rect)) {
+    if (this.solidifiedCellKeys.has(rect.id)) {
+      this.removeFluidBodiesNearRect(rect);
+      return false;
+    }
+
+    if (this.isRectBlocked(rect)) {
       return false;
     }
 
