@@ -114,4 +114,9 @@ export class InputController {
 
         return snapshot;
     }
+
+    resetTransientActions() {
+        this.jumpQueued = false;
+        this.interactQueued = false;
+    }
 }
