@@ -43,6 +43,14 @@ export class PhysicsModel {
     this.renderObstacles = [];
     this.elapsed = 0;
     this.renderObstaclePadding = 2;
+    this.solidifiedRects = [];
+    this.solidifiedCellKeys = new Set();
+    this.solidifyConfig = {
+      maxBlocksPerStep: 3,
+      contactRatio: 0.92,
+      removalPaddingRatio: 0.42,
+      friction: 0.92,
+    };
 
     this.fluidConfigs = {
       water: {
@@ -122,12 +130,15 @@ export class PhysicsModel {
     };
     this.renderObstacles = [];
     this.elapsed = 0;
+    this.solidifiedRects = [];
+    this.solidifiedCellKeys = new Set();
   }
 
   initialize(stageModel) {
     if (!this.enabled) return;
     this.rebuildDynamicBodies();
     this.rebuildStaticBodies(stageModel);
+    this.syncSolidifiedState(stageModel.runtimeSolids);
     this.initialized = true;
   }
 
@@ -137,6 +148,7 @@ export class PhysicsModel {
       this.resetEngine();
       this.rebuildDynamicBodies();
       this.rebuildStaticBodies(stageModel);
+      this.syncSolidifiedState(stageModel.runtimeSolids);
       this.initialized = true;
       return;
     }
@@ -144,6 +156,7 @@ export class PhysicsModel {
       this.rebuildDynamicBodies();
     }
     this.rebuildStaticBodies(stageModel);
+    this.syncSolidifiedState(stageModel.runtimeSolids);
     this.initialized = true;
   }
 
@@ -256,6 +269,22 @@ export class PhysicsModel {
     this.addBodies(this.staticBodies);
   }
 
+  syncSolidifiedState(runtimeSolids = []) {
+    this.solidifiedRects = runtimeSolids.map((solid) => ({
+      id: solid.id || this.getSolidifiedCellKey(solid),
+      left: solid.left,
+      top: solid.top,
+      width: solid.width,
+      height: solid.height,
+      right: solid.left + solid.width,
+      bottom: solid.top + solid.height,
+      effect: solid.effect || null,
+    }));
+    this.solidifiedCellKeys = new Set(
+      this.solidifiedRects.map((solid) => solid.id),
+    );
+  }
+
   createObstacleRect(rect, { padding = 0, minThickness = 0 } = {}) {
     const paddedWidth = rect.width + padding * 2;
     const paddedHeight = rect.height + padding * 2;
@@ -270,6 +299,113 @@ export class PhysicsModel {
       width,
       height,
     };
+  }
+
+  getSolidifyCellSize() {
+    return clamp(this.container.clientWidth * 0.022, 18, 30);
+  }
+
+  getSolidifiedCellKey(rect) {
+    const cellSize = this.getSolidifyCellSize();
+    return `${Math.round(rect.left / cellSize)}:${Math.round(rect.top / cellSize)}`;
+  }
+
+  getSolidifiedRectForPoint(x, y) {
+    const cellSize = this.getSolidifyCellSize();
+    const maxLeft = Math.max(0, this.container.clientWidth - cellSize);
+    const maxTop = Math.max(0, this.container.clientHeight - cellSize);
+    const left = clamp(Math.floor(x / cellSize) * cellSize, 0, maxLeft);
+    const top = clamp(Math.floor(y / cellSize) * cellSize, 0, maxTop);
+    const id = `${Math.round(left / cellSize)}:${Math.round(top / cellSize)}`;
+
+    return {
+      id,
+      left,
+      top,
+      width: cellSize,
+      height: cellSize,
+      right: left + cellSize,
+      bottom: top + cellSize,
+      effect: null,
+    };
+  }
+
+  isRectBlocked(rect) {
+    return this.renderObstacles.some((obstacle) => {
+      const obstacleRight = obstacle.x + obstacle.width;
+      const obstacleBottom = obstacle.y + obstacle.height;
+
+      return !(
+        rect.right <= obstacle.x ||
+        rect.left >= obstacleRight ||
+        rect.bottom <= obstacle.y ||
+        rect.top >= obstacleBottom
+      );
+    });
+  }
+
+  createSolidifiedBody(rect) {
+    return this.Bodies.rectangle(
+      rect.left + rect.width / 2,
+      rect.top + rect.height / 2,
+      rect.width,
+      rect.height,
+      {
+        isStatic: true,
+        friction: this.solidifyConfig.friction,
+      },
+    );
+  }
+
+  removeFluidBodiesNearRect(rect) {
+    const padding =
+      Math.max(rect.width, rect.height) * this.solidifyConfig.removalPaddingRatio;
+
+    ["water", "lava"].forEach((key) => {
+      const remainingBodies = [];
+      const removedBodies = [];
+
+      this.dynamicBodies[key].forEach((body) => {
+        const radius = body.circleRadius;
+        const overlapsRect = !(
+          body.position.x + radius < rect.left - padding ||
+          body.position.x - radius > rect.right + padding ||
+          body.position.y + radius < rect.top - padding ||
+          body.position.y - radius > rect.bottom + padding
+        );
+
+        if (overlapsRect) {
+          removedBodies.push(body);
+          return;
+        }
+
+        remainingBodies.push(body);
+      });
+
+      this.removeBodies(removedBodies);
+      this.dynamicBodies[key] = remainingBodies;
+    });
+  }
+
+  addSolidifiedBlock(rect) {
+    if (this.solidifiedCellKeys.has(rect.id) || this.isRectBlocked(rect)) {
+      return false;
+    }
+
+    const body = this.createSolidifiedBody(rect);
+    this.staticBodies.push(body);
+    this.addBodies([body]);
+    this.solidifiedRects.push(rect);
+    this.solidifiedCellKeys.add(rect.id);
+    this.renderObstacles.push({
+      x: rect.left,
+      y: rect.top,
+      width: rect.width,
+      height: rect.height,
+    });
+    this.removeFluidBodiesNearRect(rect);
+
+    return true;
   }
 
   /**
@@ -420,8 +556,57 @@ export class PhysicsModel {
       this.fluidConfigs.lava,
     );
     this.Engine.update(this.engine, dt * 1000);
+    this.solidifyFluidContacts();
     this._clampFluidVelocities();
     this._removeOffscreenFluidBodies();
+  }
+
+  solidifyFluidContacts() {
+    if (
+      this.dynamicBodies.water.length === 0 ||
+      this.dynamicBodies.lava.length === 0
+    ) {
+      return;
+    }
+
+    let createdBlocks = 0;
+
+    for (const waterBody of this.dynamicBodies.water) {
+      for (const lavaBody of this.dynamicBodies.lava) {
+        const dx = lavaBody.position.x - waterBody.position.x;
+        const dy = lavaBody.position.y - waterBody.position.y;
+        const contactDistance =
+          (waterBody.circleRadius + lavaBody.circleRadius) *
+          this.solidifyConfig.contactRatio;
+
+        if (dx * dx + dy * dy > contactDistance * contactDistance) {
+          continue;
+        }
+
+        const centerX = (waterBody.position.x + lavaBody.position.x) / 2;
+        const centerY = (waterBody.position.y + lavaBody.position.y) / 2;
+        const solidRect = this.getSolidifiedRectForPoint(centerX, centerY);
+
+        if (this.addSolidifiedBlock(solidRect)) {
+          createdBlocks += 1;
+        }
+
+        if (createdBlocks >= this.solidifyConfig.maxBlocksPerStep) {
+          return;
+        }
+      }
+    }
+  }
+
+  getSolidifiedRects() {
+    return this.solidifiedRects.map((solid) => ({
+      id: solid.id,
+      left: solid.left,
+      top: solid.top,
+      width: solid.width,
+      height: solid.height,
+      effect: solid.effect || null,
+    }));
   }
 
   /**
