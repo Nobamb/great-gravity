@@ -297,6 +297,7 @@ export class PhysicsView {
             lava: null,
             water: null,
         };
+        this.solidifiedBlockPool = [];
         this.particlePools = {
             lava: [],
             water: [],
@@ -349,7 +350,39 @@ export class PhysicsView {
 
         this.renderFluid("lava", physicsModel);
         this.renderFluid("water", physicsModel);
+        this.renderSolidifiedBlocks(physicsModel);
         this.renderTreasure(physicsModel);
+    }
+
+    ensureSolidifiedBlockPool(size) {
+        while (this.solidifiedBlockPool.length < size) {
+            const blockElement = document.createElement("span");
+            blockElement.className = "solidified-block";
+            this.containerElement.appendChild(blockElement);
+            this.solidifiedBlockPool.push(blockElement);
+        }
+
+        while (this.solidifiedBlockPool.length > size) {
+            const blockElement = this.solidifiedBlockPool.pop();
+            blockElement?.remove();
+        }
+    }
+
+    renderSolidifiedBlocks(physicsModel) {
+        const blocks = physicsModel.solidifiedRects;
+        this.ensureSolidifiedBlockPool(blocks.length);
+
+        blocks.forEach((block, index) => {
+            const blockElement = this.solidifiedBlockPool[index];
+
+            if (!blockElement) {
+                return;
+            }
+
+            blockElement.style.width = `${block.width}px`;
+            blockElement.style.height = `${block.height}px`;
+            blockElement.style.transform = `translate3d(${block.left}px, ${block.top}px, 0)`;
+        });
     }
 
     renderFluid(key, physicsModel) {
