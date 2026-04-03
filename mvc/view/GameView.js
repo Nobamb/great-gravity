@@ -76,18 +76,28 @@ export class GameView {
             return;
         }
 
-        this.containerElement
-            .querySelectorAll(".is-collapsing, .is-collapsed")
-            .forEach((element) => {
-                element.classList.remove("is-collapsing", "is-collapsed");
-                element.style.removeProperty("--collapse-x");
-                element.style.removeProperty("--collapse-y");
-            });
+        const triggerableElements = Array.from(
+            this.containerElement.querySelectorAll('[data-triggerable="true"]'),
+        );
+
+        triggerableElements.forEach((element) => {
+            element.classList.add("is-resetting");
+            element.classList.remove("is-collapsing", "is-collapsed");
+            element.style.removeProperty("--collapse-x");
+            element.style.removeProperty("--collapse-y");
+        });
 
         this.containerElement
             .querySelectorAll(".trigger-block.is-used, .trigger-block.is-interactable")
             .forEach((element) => {
                 element.classList.remove("is-used", "is-interactable");
             });
+
+        // Trigger 블록이 죽은 직후에도 완전히 초기 위치/상태로 되돌아오도록 레이아웃을 확정합니다.
+        void this.containerElement.offsetWidth;
+
+        triggerableElements.forEach((element) => {
+            element.classList.remove("is-resetting");
+        });
     }
 }
