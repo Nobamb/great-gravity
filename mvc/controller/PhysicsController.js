@@ -24,10 +24,11 @@ export class PhysicsController {
 
     step(dt) {
         if (!this.physicsModel.enabled) {
-            return;
+            return [];
         }
 
         this.physicsModel.step(dt);
+        return this.physicsModel.getSolidifiedRects();
     }
 
     render() {
@@ -48,5 +49,13 @@ export class PhysicsController {
             hardReset: true,
         });
         this.physicsView.initialize(this.physicsModel);
+    }
+
+    getSolidifiedBlocks() {
+        if (!this.physicsModel.enabled) {
+            return [];
+        }
+
+        return this.physicsModel.getSolidifiedRects();
     }
 }
