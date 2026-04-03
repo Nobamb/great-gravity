@@ -593,6 +593,21 @@ export class PhysicsModel {
     }));
   }
 
+  getLavaHazards() {
+    return this.dynamicBodies.lava.map((body, index) => {
+      const radius = body.circleRadius;
+
+      return {
+        id: `lava-${index}`,
+        left: body.position.x - radius,
+        top: body.position.y - radius,
+        width: radius * 2,
+        height: radius * 2,
+        type: "lava",
+      };
+    });
+  }
+
   /**
    * 유체에 퍼짐 힘과 아래 방향 바이어스를 적용합니다.
    * - 물: 빠르게 퍼지고 빠르게 흐름
