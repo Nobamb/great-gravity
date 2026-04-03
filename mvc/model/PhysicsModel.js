@@ -41,9 +41,9 @@ export class PhysicsModel {
     this.fluidConfigs = {
       water: {
         key: "water",
-        radiusScale: 0.105,
-        maxCols: 12,
-        maxRows: 7,
+        radiusScale: 0.088,
+        maxCols: 14,
+        maxRows: 8,
         density: 0.001,
         friction: 0.005,
         frictionAir: 0.015,
@@ -57,9 +57,9 @@ export class PhysicsModel {
       },
       lava: {
         key: "lava",
-        radiusScale: 0.125,
-        maxCols: 8,
-        maxRows: 6,
+        radiusScale: 0.102,
+        maxCols: 10,
+        maxRows: 7,
         density: 0.004,
         friction: 0.4,
         frictionAir: 0.08,
@@ -279,6 +279,7 @@ export class PhysicsModel {
     );
     this.Engine.update(this.engine, dt * 1000);
     this._clampFluidVelocities();
+    this._removeOffscreenFluidBodies();
   }
 
   /**
@@ -387,12 +388,31 @@ export class PhysicsModel {
         // 게임 컨테이너 밖으로 나가지 않도록
         const r = body.circleRadius;
         const bx = clamp(body.position.x, r, containerW - r);
-        const by = clamp(body.position.y, r, containerH - r);
+        const by = Math.max(body.position.y, r);
         if (bx !== body.position.x || by !== body.position.y) {
           this.Body.setPosition(body, { x: bx, y: by });
         }
       });
     }
+  }
+
+  _removeOffscreenFluidBodies() {
+    const removalLine = this.container.clientHeight + 120;
+
+    ["water", "lava"].forEach((key) => {
+      const remainingBodies = [];
+
+      this.dynamicBodies[key].forEach((body) => {
+        if (body.position.y - body.circleRadius > removalLine) {
+          this.removeBodies([body]);
+          return;
+        }
+
+        remainingBodies.push(body);
+      });
+
+      this.dynamicBodies[key] = remainingBodies;
+    });
   }
 
   addBodies(bodies) {
