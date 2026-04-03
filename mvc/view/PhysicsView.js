@@ -197,9 +197,9 @@ class FluidSurfaceRenderer {
                 }
 
                 // 블록 근처에서 유체 표면을 타이트하게 조여 블록 밖으로 넘치지 않게 함
-                float obstacleTightening = smoothstep(0.0, 20.0, nearestObstacle);
-                float threshold = mix(0.96, 1.14, u_variant) + ((1.0 - obstacleTightening) * 0.4);
-                float body = smoothstep(threshold - 0.12, threshold + 0.03, field);
+                float obstacleTightening = smoothstep(0.0, 12.0, nearestObstacle);
+                float threshold = mix(1.08, 1.26, u_variant) + ((1.0 - obstacleTightening) * 0.58);
+                float body = smoothstep(threshold - 0.08, threshold + 0.015, field);
 
                 if (body <= 0.01) {
                     discard;
@@ -330,11 +330,12 @@ export class PhysicsView {
 
     renderFluid(key, physicsModel) {
         const bodies = physicsModel.dynamicBodies[key];
+        const renderScale = this.getFluidRenderScale(key);
         const particles = bodies.map((body) => {
             return {
                 x: body.position.x,
                 y: body.position.y,
-                radius: body.circleRadius,
+                radius: body.circleRadius * renderScale,
             };
         });
 
@@ -349,6 +350,7 @@ export class PhysicsView {
             return;
         }
 
+        this.ensureParticlePool(key, bodies.length);
         const pool = this.particlePools[key];
         bodies.forEach((body, index) => {
             const particleElement = pool[index];
@@ -357,7 +359,7 @@ export class PhysicsView {
                 return;
             }
 
-            const radius = body.circleRadius;
+            const radius = body.circleRadius * renderScale;
             const x = body.position.x - radius;
             const y = body.position.y - radius;
             const size = radius * 2;
@@ -366,6 +368,10 @@ export class PhysicsView {
             particleElement.style.height = `${size}px`;
             particleElement.style.transform = `translate3d(${x}px, ${y}px, 0)`;
         });
+    }
+
+    getFluidRenderScale(key) {
+        return key === "lava" ? 0.68 : 0.72;
     }
 
     renderTreasure(physicsModel) {
