@@ -20,9 +20,20 @@
 
         <div class="stone-bridge" data-collider="solid"></div>
         <div class="ladder" data-collider="ladder"></div>
-        <div class="main-support" data-collider="solid"></div>
+        <div class="main-support" data-collider="solid" data-triggerable="true">
+          <div
+            class="trigger-block trigger-block--top"
+            data-trigger-id="main-support-trigger"
+            data-trigger-direction="top"
+          ></div>
+        </div>
         <div class="top-beam" data-collider="solid"></div>
-        <div class="mid-ledge" data-collider="solid">
+        <div class="mid-ledge" data-collider="solid" data-triggerable="true">
+          <div
+            class="trigger-block trigger-block--left"
+            data-trigger-id="mid-ledge-trigger"
+            data-trigger-direction="left"
+          ></div>
           <div class="goal-location" data-collider="solid"></div>
         </div>
         <div class="treasure-pile">
@@ -35,7 +46,13 @@
             <div class="coins"></div>
           </div>
         </div>
-        <div class="right-frame" data-collider="solid"></div>
+        <div class="right-frame" data-collider="solid" data-triggerable="true">
+          <div
+            class="trigger-block trigger-block--top"
+            data-trigger-id="right-frame-trigger"
+            data-trigger-direction="top"
+          ></div>
+        </div>
 
         <div class="lava-fall"></div>
         <div class="ice-water"></div>
