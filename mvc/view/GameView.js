@@ -1,8 +1,9 @@
 export class GameView {
     constructor(characterElement) {
+        this.containerElement = characterElement.parentElement;
         this.characterElement = characterElement;
         this.activeTriggerElement = null;
-        this.collapseTimers = new WeakMap();
+        this.collapseTimers = new Map();
     }
 
     measureCharacter() {
@@ -60,5 +61,33 @@ export class GameView {
         }, durationMs);
 
         this.collapseTimers.set(blockElement, timerId);
+    }
+
+    resetStageState() {
+        for (const timerId of this.collapseTimers.values()) {
+            window.clearTimeout(timerId);
+        }
+        this.collapseTimers.clear();
+
+        this.activeTriggerElement?.classList.remove("is-interactable");
+        this.activeTriggerElement = null;
+
+        if (!this.containerElement) {
+            return;
+        }
+
+        this.containerElement
+            .querySelectorAll(".is-collapsing, .is-collapsed")
+            .forEach((element) => {
+                element.classList.remove("is-collapsing", "is-collapsed");
+                element.style.removeProperty("--collapse-x");
+                element.style.removeProperty("--collapse-y");
+            });
+
+        this.containerElement
+            .querySelectorAll(".trigger-block.is-used, .trigger-block.is-interactable")
+            .forEach((element) => {
+                element.classList.remove("is-used", "is-interactable");
+            });
     }
 }
