@@ -1,3 +1,12 @@
+function intersects(a, b) {
+    return (
+        a.left < b.right &&
+        a.right > b.left &&
+        a.top < b.bottom &&
+        a.bottom > b.top
+    );
+}
+
 export class GameController {
     constructor({
         characterModel,
@@ -17,6 +26,8 @@ export class GameController {
         this.lastTimestamp = 0;
         this.frameHandle = null;
         this.activeTrigger = null;
+        this.elapsedTimeMs = 0;
+        this.isStageCleared = false;
         this.tick = this.tick.bind(this);
     }
 
@@ -28,6 +39,15 @@ export class GameController {
         this.characterModel.syncPhysics(stageState.width);
         this.characterModel.updateSpawn(this.stageModel.getSpawnPoint(characterSize));
         this.characterModel.resetToSpawn();
+        this.elapsedTimeMs = 0;
+        this.isStageCleared = false;
+        this.gameView.bindControls({
+            onRetry: () => {
+                this.restartStage();
+            },
+        });
+        this.gameView.hideClearOverlay();
+        this.gameView.updateTimer(this.formatTime(this.elapsedTimeMs));
 
         this.updateActiveTrigger();
         this.physicsController?.start(this.stageModel);
@@ -60,9 +80,25 @@ export class GameController {
         this.lastTimestamp = timestamp;
         this.accumulator += frameTime;
 
+        if (this.isStageCleared) {
+            this.physicsController?.render();
+            this.gameView.render(this.characterModel, {
+                activeTriggerElement: null,
+            });
+            this.frameHandle = window.requestAnimationFrame(this.tick);
+            return;
+        }
+
         while (this.accumulator >= this.fixedDeltaTime) {
             const input = this.inputController.getSnapshot();
             const didDie = this.characterModel.update(this.fixedDeltaTime, this.stageModel, input);
+            this.elapsedTimeMs += this.fixedDeltaTime * 1000;
+
+            if (this.isTreasureCollected()) {
+                this.handleStageClear();
+                this.accumulator = 0;
+                break;
+            }
 
             if (didDie) {
                 this.handlePlayerDeath();
@@ -74,6 +110,17 @@ export class GameController {
             this.physicsController?.step(this.fixedDeltaTime);
             this.syncPhysicsRuntimeState();
             this.accumulator -= this.fixedDeltaTime;
+        }
+
+        this.gameView.updateTimer(this.formatTime(this.elapsedTimeMs));
+
+        if (this.isStageCleared) {
+            this.physicsController?.render();
+            this.gameView.render(this.characterModel, {
+                activeTriggerElement: null,
+            });
+            this.frameHandle = window.requestAnimationFrame(this.tick);
+            return;
         }
 
         this.updateActiveTrigger();
@@ -123,6 +170,10 @@ export class GameController {
     }
 
     handlePlayerDeath() {
+        this.restartStage();
+    }
+
+    restartStage() {
         this.gameView.resetStageState();
         this.inputController.resetTransientActions?.();
         this.stageModel.resetStage();
@@ -138,8 +189,49 @@ export class GameController {
 
         this.physicsController?.reset(this.stageModel);
         this.syncPhysicsRuntimeState();
+        this.elapsedTimeMs = 0;
+        this.isStageCleared = false;
+        this.gameView.hideClearOverlay();
+        this.gameView.updateTimer(this.formatTime(this.elapsedTimeMs));
+        this.accumulator = 0;
+        this.lastTimestamp = 0;
         this.activeTrigger = null;
         this.updateActiveTrigger();
+    }
+
+    isTreasureCollected() {
+        const treasureBounds = this.physicsController?.getTreasureBounds?.();
+
+        if (!treasureBounds) {
+            return false;
+        }
+
+        return intersects(this.characterModel.getBounds(), treasureBounds);
+    }
+
+    handleStageClear() {
+        this.isStageCleared = true;
+        this.inputController.resetTransientActions?.();
+        this.activeTrigger = null;
+        this.gameView.showClearOverlay({
+            timeText: this.formatTime(this.elapsedTimeMs),
+            stars: this.getStarRating(this.elapsedTimeMs),
+        });
+    }
+
+    getStarRating(timeMs) {
+        const overtimeMs = Math.max(0, timeMs - 30000);
+        const penaltySteps = Math.ceil(overtimeMs / 5000);
+        return Math.max(0, 3 - penaltySteps * 0.5);
+    }
+
+    formatTime(timeMs) {
+        const totalCentiseconds = Math.max(0, Math.floor(timeMs / 10));
+        const minutes = Math.floor(totalCentiseconds / 6000);
+        const seconds = Math.floor((totalCentiseconds % 6000) / 100);
+        const centiseconds = totalCentiseconds % 100;
+
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}:${String(centiseconds).padStart(2, "0")}`;
     }
 
     syncPhysicsRuntimeState() {
