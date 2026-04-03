@@ -51,6 +51,19 @@ function normalizeSolidRect(rect) {
   };
 }
 
+function normalizeHazardRect(rect) {
+  return {
+    id: rect.id || null,
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+    right: rect.left + rect.width,
+    bottom: rect.top + rect.height,
+    type: rect.type || "hazard",
+  };
+}
+
 export class StageModel {
   constructor(container) {
     this.container = container; // 게임 스테이지 DOM 컨테이너
@@ -63,7 +76,9 @@ export class StageModel {
 
     this.domSolids = [];
     this.runtimeSolids = [];
+    this.runtimeHazards = [];
     this.solids = []; // 고체 지형(벽, 바닥) 목록
+    this.hazards = [];
     this.ladders = []; // 사다리 지형 목록
     this.bounds = {
       // 스테이지 전체 크기
@@ -150,9 +165,21 @@ export class StageModel {
           height: solid.height * scaleY,
         }),
       );
+      this.runtimeHazards = this.runtimeHazards.map((hazard) =>
+        normalizeHazardRect({
+          ...hazard,
+          left: hazard.left * scaleX,
+          top: hazard.top * scaleY,
+          width: hazard.width * scaleX,
+          height: hazard.height * scaleY,
+          type: hazard.type,
+          id: hazard.id,
+        }),
+      );
     }
 
     this.rebuildSolidList();
+    this.hazards = [...this.runtimeHazards];
 
     // 사다리 요소 탐색 후 상대 좌표 변환
     this.ladders = Array.from(
@@ -336,6 +363,7 @@ export class StageModel {
     }
 
     this.clearRuntimeSolids();
+    this.clearRuntimeHazards();
 
     this.triggers?.forEach((trigger) => {
       trigger.isUsed = false;
@@ -380,6 +408,16 @@ export class StageModel {
   clearRuntimeSolids() {
     this.runtimeSolids = [];
     this.rebuildSolidList();
+  }
+
+  setRuntimeHazards(hazards = []) {
+    this.runtimeHazards = hazards.map((hazard) => normalizeHazardRect(hazard));
+    this.hazards = [...this.runtimeHazards];
+  }
+
+  clearRuntimeHazards() {
+    this.runtimeHazards = [];
+    this.hazards = [];
   }
 
   rebuildSolidList() {
