@@ -26,13 +26,19 @@ body {
 }
 
 @media (min-width: 1280px) {
-  #screen { width: 1280px; }
+  #screen {
+    width: 1280px;
+  }
 }
 @media (min-width: 1024px) and (max-width: 1279px) {
-  #screen { width: 1024px; }
+  #screen {
+    width: 1024px;
+  }
 }
 @media (max-width: 1023px) {
-  #screen { width: 600px; }
+  #screen {
+    width: 600px;
+  }
 }
 
 #game-container {
@@ -47,11 +53,7 @@ body {
       rgba(0, 255, 255, 0.12),
       transparent 26%
     ),
-    radial-gradient(
-      circle at 72% 40%,
-      rgba(255, 90, 0, 0.16),
-      transparent 28%
-    ),
+    radial-gradient(circle at 72% 40%, rgba(255, 90, 0, 0.16), transparent 28%),
     radial-gradient(circle at 50% 100%, #2d112d 0%, #090912 74%);
 }
 
@@ -133,7 +135,7 @@ body {
   height: 2.5%;
   min-height: calc(18 * var(--cw));
   background: linear-gradient(to right, #ffcc00, #ffaa00);
-  box-shadow: 
+  box-shadow:
     0 0 calc(20 * var(--cw)) rgba(255, 204, 0, 0.6),
     inset 0 0 calc(10 * var(--cw)) rgba(255, 255, 255, 0.4);
   z-index: 10;
@@ -216,6 +218,10 @@ body {
   pointer-events: none;
 }
 
+[data-triggerable="true"].is-resetting {
+  transition: none;
+}
+
 .trigger-block {
   position: absolute;
   background: linear-gradient(to right, #ff180d 0 78%, #cb2c2c 78% 100%);
@@ -256,11 +262,11 @@ body {
 
 .ladder {
   position: absolute;
-  right: 37.2%; 
+  right: 37.2%;
   top: 24%;
   width: 4.2%;
   min-width: calc(44 * var(--cw));
-  height: 49%; 
+  height: 49%;
   background:
     repeating-linear-gradient(
       to bottom,
@@ -287,24 +293,24 @@ body {
 }
 
 .lava-fall {
-  top: 25.9%; 
-  height: 32.1%; 
+  top: 25.9%;
+  height: 32.1%;
   background: linear-gradient(to bottom, #ff8768, #ff6248);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .ice-water {
-  top: 59.9%; 
-  height: 24%; 
+  top: 59.9%;
+  height: 24%;
   background: linear-gradient(to bottom, #4f88e8, #3c78de);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .bottom-bar {
   position: absolute;
-  left: 62.8%; 
+  left: 62.8%;
   top: 83.9%;
-  width: calc(14.2% + calc(15 * var(--cw))); 
+  width: calc(14.2% + calc(15 * var(--cw)));
   height: 2.8%;
   background: #5a5a5a;
   box-shadow: 0 calc(-5 * var(--cw)) calc(15 * var(--cw)) rgba(0, 0, 0, 0.25);
@@ -314,7 +320,7 @@ body {
 .goal-ledge {
   position: absolute;
   right: 0;
-  top: 83.9%; 
+  top: 83.9%;
   width: calc(23% - calc(15 * var(--cw)));
   height: 1.9%;
   min-height: calc(14 * var(--cw));
@@ -384,7 +390,12 @@ body {
 }
 
 .water-particle {
-  background: radial-gradient(circle at 35% 30%, rgba(214, 247, 255, 0.95), #67b7ff 60%, #2d66da 100%);
+  background: radial-gradient(
+    circle at 35% 30%,
+    rgba(214, 247, 255, 0.95),
+    #67b7ff 60%,
+    #2d66da 100%
+  );
   box-shadow:
     0 0 calc(10 * var(--cw)) rgba(115, 199, 255, 0.45),
     inset 0 0 calc(6 * var(--cw)) rgba(255, 255, 255, 0.22);
@@ -392,7 +403,13 @@ body {
 }
 
 .lava-particle {
-  background: radial-gradient(circle at 35% 30%, #ffe6a8 0, #ff8f52 42%, #ff4e2e 75%, #b91f15 100%);
+  background: radial-gradient(
+    circle at 35% 30%,
+    #ffe6a8 0,
+    #ff8f52 42%,
+    #ff4e2e 75%,
+    #b91f15 100%
+  );
   box-shadow:
     0 0 calc(12 * var(--cw)) rgba(255, 120, 64, 0.42),
     0 0 calc(18 * var(--cw)) rgba(255, 74, 24, 0.18);
@@ -412,15 +429,15 @@ body {
   bottom: 0px;
   left: calc(10 * var(--cw));
   width: calc(80 * var(--cw));
-  height: calc(38 * var(--cw)); 
+  height: calc(38 * var(--cw));
   overflow: hidden;
-  z-index: 21; 
+  z-index: 21;
 }
 
 .coins {
   position: absolute;
   left: calc(2 * var(--cw));
-  bottom: calc(-38 * var(--cw)); 
+  bottom: calc(-38 * var(--cw));
   width: calc(76 * var(--cw));
   height: calc(76 * var(--cw));
   border-radius: 50%;
@@ -435,13 +452,13 @@ body {
 
 .sword {
   position: absolute;
-  left: calc(48 * var(--cw)); 
-  bottom: calc(10 * var(--cw)); 
+  left: calc(48 * var(--cw));
+  bottom: calc(10 * var(--cw));
   width: calc(8 * var(--cw));
   height: calc(86 * var(--cw));
   background: linear-gradient(to bottom, #f2f2f2, #a9a9a9);
   box-shadow: 0 0 calc(12 * var(--cw)) rgba(255, 255, 255, 0.18);
-  z-index: 19; 
+  z-index: 19;
   transform: rotate(15deg);
   transform-origin: bottom center;
 }
@@ -475,7 +492,8 @@ body {
   height: calc(80 * var(--cw));
   background: #222;
   border: calc(2 * var(--cw)) solid #00ffff;
-  border-radius: calc(20 * var(--cw)) calc(20 * var(--cw)) calc(10 * var(--cw)) calc(10 * var(--cw));
+  border-radius: calc(20 * var(--cw)) calc(20 * var(--cw)) calc(10 * var(--cw))
+    calc(10 * var(--cw));
   box-shadow: 0 0 calc(20 * var(--cw)) rgba(0, 255, 255, 0.5);
   display: flex;
   flex-direction: column;
@@ -551,12 +569,8 @@ body {
   z-index: 100;
 }
 
-
-
 /* z-index 100 */
 
-.zIndex100{
-
+.zIndex100 {
   z-index: 100;
-
 }
