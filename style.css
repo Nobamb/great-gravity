@@ -357,6 +357,14 @@ body {
   pointer-events: none;
 }
 
+.physics-fluid-canvas--water {
+  z-index: 6;
+}
+
+.physics-fluid-canvas--lava {
+  z-index: 7;
+}
+
 .physics-particle {
   position: absolute;
   left: 0;
@@ -364,6 +372,15 @@ body {
   border-radius: 999px;
   will-change: transform;
   transform: translate3d(-9999px, -9999px, 0);
+  pointer-events: none;
+}
+
+.physics-particle--water {
+  z-index: 6;
+}
+
+.physics-particle--lava {
+  z-index: 7;
 }
 
 .water-particle {
