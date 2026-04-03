@@ -162,17 +162,6 @@ body {
   background: #9b6666;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
-/* Red pin on main-support */
-.main-support::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: calc(-30 * var(--cw));
-  width: 100%;
-  height: calc(30 * var(--cw));
-  background: #ff180d;
-  box-shadow: 0 0 calc(12 * var(--cw)) rgba(255, 24, 13, 0.35);
-}
 
 .right-frame {
   position: absolute;
@@ -182,17 +171,6 @@ body {
   height: 60%;
   background: #6d6d6d;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
-}
-/* Red pin on right-frame */
-.right-frame::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: calc(-30 * var(--cw));
-  width: 100%;
-  height: calc(30 * var(--cw));
-  background: #ff180d;
-  box-shadow: 0 0 calc(12 * var(--cw)) rgba(255, 24, 13, 0.35);
 }
 
 .top-beam {
@@ -215,17 +193,65 @@ body {
   background: linear-gradient(to right, #9b6666 0 68%, #6d6d6d 68% 100%);
 }
 
-/* Red pin on mid-ledge protruding from left edge */
-.mid-ledge::before {
-  content: "";
+[data-triggerable="true"] {
+  --collapse-x: 0px;
+  --collapse-y: 0px;
+  transform: translate3d(0, 0, 0);
+  transform-origin: center;
+  transition:
+    transform 300ms ease,
+    opacity 300ms ease,
+    filter 300ms ease;
+  will-change: transform, opacity;
+}
+
+[data-triggerable="true"].is-collapsing {
+  transform: translate3d(var(--collapse-x), var(--collapse-y), 0);
+  opacity: 0;
+  filter: blur(calc(2 * var(--cw)));
+}
+
+[data-triggerable="true"].is-collapsed {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.trigger-block {
   position: absolute;
+  background: linear-gradient(to right, #ff180d 0 78%, #cb2c2c 78% 100%);
+  box-shadow: 0 0 calc(10 * var(--cw)) rgba(255, 24, 13, 0.3);
+  pointer-events: none;
+  z-index: 20;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    filter 140ms ease,
+    opacity 180ms ease;
+}
+
+.trigger-block--top {
+  left: 0;
+  top: calc(-30 * var(--cw));
+  width: 100%;
+  height: calc(30 * var(--cw));
+}
+
+.trigger-block--left {
   left: calc(-30 * var(--cw));
   top: 0;
   width: calc(30 * var(--cw));
   height: 100%;
-  background: linear-gradient(to right, #ff180d 0 78%, #cb2c2c 78% 100%);
-  box-shadow: 0 0 calc(10 * var(--cw)) rgba(255, 24, 13, 0.3);
-  z-index: 20; 
+}
+
+.trigger-block.is-interactable {
+  filter: brightness(1.14);
+  box-shadow:
+    0 0 calc(14 * var(--cw)) rgba(255, 24, 13, 0.48),
+    0 0 calc(24 * var(--cw)) rgba(255, 110, 64, 0.22);
+}
+
+.trigger-block.is-used {
+  opacity: 0;
 }
 
 .ladder {
