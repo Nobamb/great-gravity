@@ -37,6 +37,7 @@ class FluidSurfaceRenderer {
         this.countLocation = this.gl.getUniformLocation(this.program, "u_count");
         this.pointsLocation = this.gl.getUniformLocation(this.program, "u_points[0]");
         this.variantLocation = this.gl.getUniformLocation(this.program, "u_variant");
+        this.clipRectLocation = this.gl.getUniformLocation(this.program, "u_clipRect");
         this.obstacleCountLocation = this.gl.getUniformLocation(this.program, "u_obstacleCount");
         this.obstaclesLocation = this.gl.getUniformLocation(this.program, "u_obstacles[0]");
 
@@ -74,30 +75,33 @@ class FluidSurfaceRenderer {
         }
     }
 
-    render(particles, obstacles, time) {
+    render(particles, obstacles, clipRect, time) {
         if (!this.ready) {
             return false;
         }
 
         this.resize();
+        const scaleX = this.canvas.width / Math.max(this.containerElement.clientWidth, 1);
+        const scaleY = this.canvas.height / Math.max(this.containerElement.clientHeight, 1);
+        const radiusScale = Math.min(scaleX, scaleY);
 
         const packedParticles = new Float32Array(MAX_FLUID_PARTICLES * 3);
         const particleCount = Math.min(particles.length, MAX_FLUID_PARTICLES);
         for (let index = 0; index < particleCount; index += 1) {
             const particle = particles[index];
-            packedParticles[(index * 3)] = particle.x;
-            packedParticles[(index * 3) + 1] = particle.y;
-            packedParticles[(index * 3) + 2] = particle.radius;
+            packedParticles[(index * 3)] = particle.x * scaleX;
+            packedParticles[(index * 3) + 1] = particle.y * scaleY;
+            packedParticles[(index * 3) + 2] = particle.radius * radiusScale;
         }
 
         const packedObstacles = new Float32Array(MAX_OBSTACLES * 4);
         const obstacleCount = Math.min(obstacles.length, MAX_OBSTACLES);
         for (let index = 0; index < obstacleCount; index += 1) {
             const obstacle = obstacles[index];
-            packedObstacles[(index * 4)] = obstacle.x;
-            packedObstacles[(index * 4) + 1] = obstacle.y;
-            packedObstacles[(index * 4) + 2] = obstacle.width;
-            packedObstacles[(index * 4) + 3] = obstacle.height;
+            packedObstacles[(index * 4)] = obstacle.x * scaleX;
+            packedObstacles[(index * 4) + 1] = obstacle.y * scaleY;
+            packedObstacles[(index * 4) + 2] = obstacle.width * scaleX;
+            packedObstacles[(index * 4) + 3] = obstacle.height * scaleY;
         }
 
         this.gl.useProgram(this.program);
@@ -111,6 +115,13 @@ class FluidSurfaceRenderer {
         this.gl.uniform1i(this.countLocation, particleCount);
         this.gl.uniform3fv(this.pointsLocation, packedParticles);
         this.gl.uniform1f(this.variantLocation, this.variant === "lava" ? 1 : 0);
+        this.gl.uniform4f(
+            this.clipRectLocation,
+            (clipRect?.left ?? 0) * scaleX,
+            (clipRect?.top ?? 0) * scaleY,
+            (clipRect?.width ?? this.containerElement.clientWidth) * scaleX,
+            (clipRect?.height ?? this.containerElement.clientHeight) * scaleY,
+        );
         this.gl.uniform1i(this.obstacleCountLocation, obstacleCount);
         this.gl.uniform4fv(this.obstaclesLocation, packedObstacles);
         this.gl.clearColor(0, 0, 0, 0);
@@ -143,6 +154,7 @@ class FluidSurfaceRenderer {
             uniform int u_count;
             uniform vec3 u_points[MAX_PARTICLES];
             uniform float u_variant;
+            uniform vec4 u_clipRect;
             uniform int u_obstacleCount;
             uniform vec4 u_obstacles[MAX_OBSTACLES];
 
@@ -163,6 +175,18 @@ class FluidSurfaceRenderer {
 
             void main() {
                 vec2 pixel = vec2(v_uv.x, 1.0 - v_uv.y) * u_resolution;
+                vec2 clipMin = u_clipRect.xy;
+                vec2 clipMax = u_clipRect.xy + u_clipRect.zw;
+
+                if (
+                    pixel.x < clipMin.x ||
+                    pixel.x > clipMax.x ||
+                    pixel.y < clipMin.y ||
+                    pixel.y > clipMax.y
+                ) {
+                    discard;
+                }
+
                 float field = 0.0;
                 float nearestObstacle = 99999.0;
 
@@ -340,9 +364,11 @@ export class PhysicsView {
         });
 
         const renderer = this.fluidRenderers[key];
+        const clipRect = physicsModel.fluidContainment[key];
         const renderedByWebGL = renderer?.render(
             particles,
             physicsModel.renderObstacles,
+            clipRect,
             physicsModel.elapsed,
         );
 
@@ -371,7 +397,7 @@ export class PhysicsView {
     }
 
     getFluidRenderScale(key) {
-        return key === "lava" ? 0.68 : 0.72;
+        return key === "lava" ? 0.62 : 0.66;
     }
 
     renderTreasure(physicsModel) {
