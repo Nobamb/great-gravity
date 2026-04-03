@@ -608,6 +608,26 @@ export class PhysicsModel {
     });
   }
 
+  getTreasureBounds() {
+    const treasureBody = this.dynamicBodies.treasure;
+
+    if (!treasureBody) {
+      return null;
+    }
+
+    const width = treasureBody.plugin.renderWidth;
+    const height = treasureBody.plugin.renderHeight;
+
+    return {
+      left: treasureBody.position.x - width / 2,
+      top: treasureBody.position.y - height / 2,
+      right: treasureBody.position.x + width / 2,
+      bottom: treasureBody.position.y + height / 2,
+      width,
+      height,
+    };
+  }
+
   /**
    * 유체에 퍼짐 힘과 아래 방향 바이어스를 적용합니다.
    * - 물: 빠르게 퍼지고 빠르게 흐름
