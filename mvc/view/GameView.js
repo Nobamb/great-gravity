@@ -2,8 +2,17 @@ export class GameView {
     constructor(characterElement) {
         this.containerElement = characterElement.parentElement;
         this.characterElement = characterElement;
+        this.timerElement = this.containerElement?.querySelector(".timer-ui") ?? null;
+        this.clearOverlayElement = this.containerElement?.querySelector(".clear-overlay") ?? null;
+        this.clearTimeElement = this.clearOverlayElement?.querySelector(".clear-time") ?? null;
+        this.clearRetryButton = this.clearOverlayElement?.querySelector(".clear-action--retry") ?? null;
+        this.clearMainButton = this.clearOverlayElement?.querySelector(".clear-action--main") ?? null;
+        this.clearStarMasks = Array.from(
+            this.clearOverlayElement?.querySelectorAll(".clear-star-mask") ?? [],
+        );
         this.activeTriggerElement = null;
         this.collapseTimers = new Map();
+        this.boundRetryClick = null;
     }
 
     measureCharacter() {
@@ -13,6 +22,47 @@ export class GameView {
             width: rect.width,
             height: rect.height,
         };
+    }
+
+    bindControls({ onRetry } = {}) {
+        if (this.clearRetryButton && this.boundRetryClick) {
+            this.clearRetryButton.removeEventListener("click", this.boundRetryClick);
+        }
+
+        this.boundRetryClick = typeof onRetry === "function" ? onRetry : null;
+
+        if (this.clearRetryButton && this.boundRetryClick) {
+            this.clearRetryButton.addEventListener("click", this.boundRetryClick);
+        }
+    }
+
+    updateTimer(timeText) {
+        if (this.timerElement) {
+            this.timerElement.textContent = timeText;
+        }
+    }
+
+    showClearOverlay({ timeText, stars }) {
+        if (!this.clearOverlayElement) {
+            return;
+        }
+
+        if (this.clearTimeElement) {
+            this.clearTimeElement.textContent = timeText;
+        }
+
+        this.clearStarMasks.forEach((maskElement, index) => {
+            const fillAmount = Math.max(0, Math.min(1, stars - index));
+            maskElement.style.width = `${fillAmount * 100}%`;
+        });
+
+        this.clearOverlayElement.hidden = false;
+    }
+
+    hideClearOverlay() {
+        if (this.clearOverlayElement) {
+            this.clearOverlayElement.hidden = true;
+        }
     }
 
     render(character, interaction = {}) {
@@ -99,5 +149,7 @@ export class GameView {
         triggerableElements.forEach((element) => {
             element.classList.remove("is-resetting");
         });
+
+        this.hideClearOverlay();
     }
 }
