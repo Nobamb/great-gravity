@@ -153,13 +153,6 @@ export class PhysicsModel {
     this.removeBodies(this.staticBodies);
 
     const boundaryThickness = Math.max(48, stageModel.bounds.width * 0.05);
-    const floor = this.Bodies.rectangle(
-      stageModel.bounds.width / 2,
-      stageModel.bounds.height + boundaryThickness / 2,
-      stageModel.bounds.width + boundaryThickness * 2,
-      boundaryThickness,
-      { isStatic: true },
-    );
     const leftWall = this.Bodies.rectangle(
       -boundaryThickness / 2,
       stageModel.bounds.height / 2,
@@ -183,7 +176,6 @@ export class PhysicsModel {
     }));
 
     this.staticBodies = [
-      floor,
       leftWall,
       rightWall,
       ...stageModel.solids.map((solid) =>
