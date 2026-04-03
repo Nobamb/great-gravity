@@ -43,7 +43,10 @@ export class PhysicsController {
             return;
         }
 
-        this.physicsModel.syncStage(stageModel, { resetDynamics: true });
+        this.physicsModel.syncStage(stageModel, {
+            resetDynamics: true,
+            hardReset: true,
+        });
         this.physicsView.initialize(this.physicsModel);
     }
 }
