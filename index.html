@@ -16,19 +16,31 @@
         <div class="timer-ui">00:00:00</div>
 
         <div class="spawn-pad" data-collider="solid" data-spawn="player"></div>
-        <div class="jump-block" data-collider="solid" data-effect="jump-boost"></div>
+        <div
+          class="jump-block"
+          data-collider="solid"
+          data-effect="jump-boost"
+        ></div>
 
         <div class="stone-bridge" data-collider="solid"></div>
         <div class="ladder" data-collider="ladder"></div>
-        <div class="main-support" data-collider="solid" data-triggerable="true">
+        <div
+          class="main-support zIndex100"
+          data-collider="solid"
+          data-triggerable="true"
+        >
           <div
             class="trigger-block trigger-block--top"
             data-trigger-id="main-support-trigger"
             data-trigger-direction="top"
           ></div>
         </div>
-        <div class="top-beam" data-collider="solid"></div>
-        <div class="mid-ledge" data-collider="solid" data-triggerable="true">
+        <div class="top-beam zIndex100" data-collider="solid"></div>
+        <div
+          class="mid-ledge zIndex100"
+          data-collider="solid"
+          data-triggerable="true"
+        >
           <div
             class="trigger-block trigger-block--left"
             data-trigger-id="mid-ledge-trigger"
@@ -46,7 +58,11 @@
             <div class="coins"></div>
           </div>
         </div>
-        <div class="right-frame" data-collider="solid" data-triggerable="true">
+        <div
+          class="right-frame zIndex100"
+          data-collider="solid"
+          data-triggerable="true"
+        >
           <div
             class="trigger-block trigger-block--top"
             data-trigger-id="right-frame-trigger"
@@ -56,7 +72,7 @@
 
         <div class="lava-fall"></div>
         <div class="ice-water"></div>
-        <div class="bottom-bar" data-collider="solid"></div>
+        <div class="bottom-bar zIndex100" data-collider="solid"></div>
 
         <div class="goal-ledge" data-collider="solid"></div>
 
