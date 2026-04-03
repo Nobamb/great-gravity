@@ -189,8 +189,10 @@ export class CharacterModel {
         // 추락 리셋 여유분도 배율 적용
         const resetLimit = stage.bounds.height + (this.fallResetMargin * this.physicsScale);
         if (this.y > resetLimit) {
-            this.resetToSpawn();
+            return true;
         }
+
+        return false;
     }
 
     /**
