@@ -38,6 +38,19 @@ function expandRect(rect, padding) {
   };
 }
 
+function normalizeSolidRect(rect) {
+  return {
+    id: rect.id || null,
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+    right: rect.left + rect.width,
+    bottom: rect.top + rect.height,
+    effect: rect.effect || null,
+  };
+}
+
 export class StageModel {
   constructor(container) {
     this.container = container; // 게임 스테이지 DOM 컨테이너
@@ -48,6 +61,8 @@ export class StageModel {
     this.spawnSelector = '[data-spawn="player"]';
     this.triggerSelector = ".trigger-block";
 
+    this.domSolids = [];
+    this.runtimeSolids = [];
     this.solids = []; // 고체 지형(벽, 바닥) 목록
     this.ladders = []; // 사다리 지형 목록
     this.bounds = {
@@ -104,7 +119,7 @@ export class StageModel {
     };
 
     // 지면/벽 요소 탐색 후 상대 좌표 변환
-    this.solids = Array.from(
+    this.domSolids = Array.from(
       this.container.querySelectorAll(this.solidSelector),
     ).map((element) => {
       const rect = createRelativeRect(
@@ -112,11 +127,32 @@ export class StageModel {
         containerRect,
       );
 
-      return {
+      return normalizeSolidRect({
         ...rect,
         effect: element.dataset.effect || null,
-      };
+      });
     });
+
+    if (
+      previousWidth > 0 &&
+      previousHeight > 0 &&
+      (previousWidth !== this.bounds.width ||
+        previousHeight !== this.bounds.height)
+    ) {
+      const scaleX = this.bounds.width / previousWidth;
+      const scaleY = this.bounds.height / previousHeight;
+      this.runtimeSolids = this.runtimeSolids.map((solid) =>
+        normalizeSolidRect({
+          ...solid,
+          left: solid.left * scaleX,
+          top: solid.top * scaleY,
+          width: solid.width * scaleX,
+          height: solid.height * scaleY,
+        }),
+      );
+    }
+
+    this.rebuildSolidList();
 
     // 사다리 요소 탐색 후 상대 좌표 변환
     this.ladders = Array.from(
@@ -299,6 +335,8 @@ export class StageModel {
       return;
     }
 
+    this.clearRuntimeSolids();
+
     this.triggers?.forEach((trigger) => {
       trigger.isUsed = false;
     });
@@ -332,6 +370,20 @@ export class StageModel {
     });
 
     this.markDirty();
+  }
+
+  setRuntimeSolids(solids = []) {
+    this.runtimeSolids = solids.map((solid) => normalizeSolidRect(solid));
+    this.rebuildSolidList();
+  }
+
+  clearRuntimeSolids() {
+    this.runtimeSolids = [];
+    this.rebuildSolidList();
+  }
+
+  rebuildSolidList() {
+    this.solids = [...this.domSolids, ...this.runtimeSolids];
   }
 
   getCollapseOffset(trigger) {
