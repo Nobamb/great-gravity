@@ -1,12 +1,12 @@
 const MAX_FLUID_PARTICLES = 64;
 
 class FluidSurfaceRenderer {
-    constructor(hostElement, variant) {
-        this.hostElement = hostElement;
+    constructor(containerElement, variant) {
+        this.containerElement = containerElement;
         this.variant = variant;
         this.canvas = document.createElement("canvas");
-        this.canvas.className = "physics-fluid-canvas";
-        this.hostElement.appendChild(this.canvas);
+        this.canvas.className = `physics-fluid-canvas physics-fluid-canvas--${variant}`;
+        this.containerElement.appendChild(this.canvas);
 
         this.gl = this.canvas.getContext("webgl", {
             alpha: true,
@@ -56,8 +56,8 @@ class FluidSurfaceRenderer {
         }
 
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        const width = Math.max(1, Math.round(this.hostElement.clientWidth * dpr));
-        const height = Math.max(1, Math.round(this.hostElement.clientHeight * dpr));
+        const width = Math.max(1, Math.round(this.containerElement.clientWidth * dpr));
+        const height = Math.max(1, Math.round(this.containerElement.clientHeight * dpr));
 
         if (this.canvas.width !== width || this.canvas.height !== height) {
             this.canvas.width = width;
@@ -221,6 +221,7 @@ class FluidSurfaceRenderer {
 
 export class PhysicsView {
     constructor({ lavaElement, waterElement, treasureElement }) {
+        this.containerElement = lavaElement.parentElement;
         this.lavaElement = lavaElement;
         this.waterElement = waterElement;
         this.treasureElement = treasureElement;
@@ -243,8 +244,8 @@ export class PhysicsView {
         this.waterElement.classList.add("physics-fluid");
         this.treasureElement.classList.add("physics-managed");
 
-        this.fluidRenderers.lava ??= new FluidSurfaceRenderer(this.lavaElement, "lava");
-        this.fluidRenderers.water ??= new FluidSurfaceRenderer(this.waterElement, "water");
+        this.fluidRenderers.lava ??= new FluidSurfaceRenderer(this.containerElement, "lava");
+        this.fluidRenderers.water ??= new FluidSurfaceRenderer(this.containerElement, "water");
 
         if (!this.fluidRenderers.lava.ready) {
             this.ensureParticlePool("lava", physicsModel.dynamicBodies.lava.length);
@@ -256,14 +257,13 @@ export class PhysicsView {
     }
 
     ensureParticlePool(key, size) {
-        const targetElement = key === "lava" ? this.lavaElement : this.waterElement;
         const className = key === "lava" ? "lava-particle" : "water-particle";
         const pool = this.particlePools[key];
 
         while (pool.length < size) {
             const particleElement = document.createElement("span");
-            particleElement.className = `physics-particle ${className}`;
-            targetElement.appendChild(particleElement);
+            particleElement.className = `physics-particle physics-particle--${key} ${className}`;
+            this.containerElement.appendChild(particleElement);
             pool.push(particleElement);
         }
 
@@ -284,17 +284,11 @@ export class PhysicsView {
     }
 
     renderFluid(key, physicsModel) {
-        const origin = physicsModel.fluidOrigins[key];
         const bodies = physicsModel.dynamicBodies[key];
-
-        if (!origin) {
-            return;
-        }
-
         const particles = bodies.map((body) => {
             return {
-                x: body.position.x - origin.left,
-                y: body.position.y - origin.top,
+                x: body.position.x,
+                y: body.position.y,
                 radius: body.circleRadius,
             };
         });
@@ -315,13 +309,13 @@ export class PhysicsView {
             }
 
             const radius = body.circleRadius;
-            const localX = body.position.x - origin.left - radius;
-            const localY = body.position.y - origin.top - radius;
+            const x = body.position.x - radius;
+            const y = body.position.y - radius;
             const size = radius * 2;
 
             particleElement.style.width = `${size}px`;
             particleElement.style.height = `${size}px`;
-            particleElement.style.transform = `translate3d(${localX}px, ${localY}px, 0)`;
+            particleElement.style.transform = `translate3d(${x}px, ${y}px, 0)`;
         });
     }
 
