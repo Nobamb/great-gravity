@@ -66,4 +66,12 @@ export class PhysicsController {
 
         return this.physicsModel.getLavaHazards();
     }
+
+    getTreasureBounds() {
+        if (!this.physicsModel.enabled) {
+            return null;
+        }
+
+        return this.physicsModel.getTreasureBounds();
+    }
 }
