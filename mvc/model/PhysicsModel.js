@@ -91,13 +91,37 @@ export class PhysicsModel {
     this.Body = Body;
     this.Engine = Engine;
     this.World = World;
-    this.engine = Engine.create({
+    this.resetEngine();
+  }
+
+  createEngine() {
+    return this.Engine.create({
       gravity: { x: 0, y: 1.0, scale: 0.001 },
       positionIterations: 10,
       velocityIterations: 8,
       constraintIterations: 4,
     });
+  }
+
+  resetEngine() {
+    this.engine = this.createEngine();
     this.world = this.engine.world;
+    this.staticBodies = [];
+    this.dynamicBodies = {
+      lava: [],
+      water: [],
+      treasure: null,
+    };
+    this.fluidOrigins = {
+      lava: null,
+      water: null,
+    };
+    this.fluidContainment = {
+      lava: null,
+      water: null,
+    };
+    this.renderObstacles = [];
+    this.elapsed = 0;
   }
 
   initialize(stageModel) {
@@ -107,8 +131,15 @@ export class PhysicsModel {
     this.initialized = true;
   }
 
-  syncStage(stageModel, { resetDynamics = false } = {}) {
+  syncStage(stageModel, { resetDynamics = false, hardReset = false } = {}) {
     if (!this.enabled) return;
+    if (hardReset) {
+      this.resetEngine();
+      this.rebuildDynamicBodies();
+      this.rebuildStaticBodies(stageModel);
+      this.initialized = true;
+      return;
+    }
     if (resetDynamics || !this.initialized) {
       this.rebuildDynamicBodies();
     }
