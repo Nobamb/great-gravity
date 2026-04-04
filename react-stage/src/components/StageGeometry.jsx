@@ -104,7 +104,7 @@ function Stage2Layout({ treasureRef, treasureAnchorRef }) {
                 data-collapse-id="stage2-left-cap"
             >
                 <TriggerBlock
-                    className="trigger-block stage2-cap-trigger stage2-cap-trigger--left"
+                    className="trigger-block stage2-side-trigger stage2-cap-trigger stage2-cap-trigger--left"
                     triggerId="stage2-left-cap-trigger"
                     triggerDirection="right"
                     triggerTargets="stage2-left-cap"
@@ -120,7 +120,7 @@ function Stage2Layout({ treasureRef, treasureAnchorRef }) {
                 data-collapse-id="stage2-right-cap"
             >
                 <TriggerBlock
-                    className="trigger-block stage2-cap-trigger stage2-cap-trigger--right"
+                    className="trigger-block stage2-side-trigger stage2-cap-trigger stage2-cap-trigger--right"
                     triggerId="stage2-right-cap-trigger"
                     triggerDirection="left"
                     triggerTargets="stage2-right-cap"
@@ -148,8 +148,32 @@ function Stage2Layout({ treasureRef, treasureAnchorRef }) {
                 data-fluid-id="stage2-right-lava"
             ></div>
 
-            <div className="stage2-fluid-divider stage2-fluid-divider--left" data-collider="solid"></div>
-            <div className="stage2-fluid-divider stage2-fluid-divider--right" data-collider="solid"></div>
+            <div
+                className="stage2-fluid-divider stage2-fluid-divider--left"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage2-left-divider"
+            >
+                <TriggerBlock
+                    className="trigger-block stage2-side-trigger stage2-divider-trigger stage2-divider-trigger--left"
+                    triggerId="stage2-left-divider-trigger"
+                    triggerDirection="left"
+                    triggerTargets="stage2-left-divider"
+                />
+            </div>
+            <div
+                className="stage2-fluid-divider stage2-fluid-divider--right"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage2-right-divider"
+            >
+                <TriggerBlock
+                    className="trigger-block stage2-side-trigger stage2-divider-trigger stage2-divider-trigger--right"
+                    triggerId="stage2-right-divider-trigger"
+                    triggerDirection="right"
+                    triggerTargets="stage2-right-divider"
+                />
+            </div>
 
             <div
                 className="stage2-white-block stage2-white-block--left zIndex100"
