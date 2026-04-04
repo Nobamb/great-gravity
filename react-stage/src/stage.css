@@ -445,21 +445,24 @@ body {
   left: 67%;
 }
 
+.stage2-side-trigger {
+  top: 50%;
+  width: calc(72 * var(--cw));
+  height: calc(28 * var(--cw));
+  border-radius: calc(4 * var(--cw));
+  transform: translateY(-50%);
+}
+
 .stage2-cap-trigger {
   top: 50%;
-  width: calc(28 * var(--cw));
-  height: calc(72 * var(--cw));
-  border-radius: calc(4 * var(--cw));
 }
 
 .stage2-cap-trigger--left {
   left: calc(100% + calc(8 * var(--cw)));
-  transform: translateY(-50%);
 }
 
 .stage2-cap-trigger--right {
   right: calc(100% + calc(8 * var(--cw)));
-  transform: translateY(-50%);
 }
 
 .stage2-fluid-divider {
@@ -475,6 +478,18 @@ body {
 
 .stage2-fluid-divider--right {
   left: 69.1%;
+}
+
+.stage2-divider-trigger {
+  top: 50%;
+}
+
+.stage2-divider-trigger--left {
+  left: calc(100% + calc(8 * var(--cw)));
+}
+
+.stage2-divider-trigger--right {
+  right: calc(100% + calc(8 * var(--cw)));
 }
 
 .stage2-fluid-zone {
