@@ -95,20 +95,37 @@ function Stage1Layout({ treasureRef }) {
 function Stage2Layout({ treasureRef }) {
     return (
         <>
-            <div className="stage2-floor" data-collider="solid"></div>
-
             <div className="stage2-left-frame stage2-post stage2-post--outer" data-collider="solid"></div>
             <div className="stage2-left-frame stage2-post stage2-post--inner" data-collider="solid"></div>
-            <div className="stage2-left-frame stage2-cap" data-collider="solid"></div>
+            <div
+                className="stage2-left-frame stage2-cap"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage2-left-cap"
+            >
+                <TriggerBlock
+                    className="trigger-block trigger-block--top stage2-cap-trigger"
+                    triggerId="stage2-left-cap-trigger"
+                    triggerDirection="top"
+                    triggerTargets="stage2-left-cap"
+                />
+            </div>
 
             <div className="stage2-right-frame stage2-post stage2-post--outer" data-collider="solid"></div>
             <div className="stage2-right-frame stage2-post stage2-post--inner" data-collider="solid"></div>
-            <div className="stage2-right-frame stage2-cap" data-collider="solid"></div>
-
-            <div className="stage2-connector stage2-connector--left-top" data-collider="solid"></div>
-            <div className="stage2-connector stage2-connector--left-mid" data-collider="solid"></div>
-            <div className="stage2-connector stage2-connector--right-top" data-collider="solid"></div>
-            <div className="stage2-connector stage2-connector--right-mid" data-collider="solid"></div>
+            <div
+                className="stage2-right-frame stage2-cap"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage2-right-cap"
+            >
+                <TriggerBlock
+                    className="trigger-block trigger-block--top stage2-cap-trigger"
+                    triggerId="stage2-right-cap-trigger"
+                    triggerDirection="top"
+                    triggerTargets="stage2-right-cap"
+                />
+            </div>
 
             <div
                 className="stage2-fluid-zone stage2-fluid-zone--left-lava fluid-zone fluid-zone--lava"
@@ -130,6 +147,9 @@ function Stage2Layout({ treasureRef }) {
                 data-fluid-type="lava"
                 data-fluid-id="stage2-right-lava"
             ></div>
+
+            <div className="stage2-fluid-divider stage2-fluid-divider--left" data-collider="solid"></div>
+            <div className="stage2-fluid-divider stage2-fluid-divider--right" data-collider="solid"></div>
 
             <div
                 className="stage2-white-block stage2-white-block--left zIndex100"
@@ -171,6 +191,7 @@ function Stage2Layout({ treasureRef }) {
 
             <div className="stage2-treasure-pocket stage2-treasure-pocket--left" data-collider="solid"></div>
             <div className="stage2-treasure-pocket stage2-treasure-pocket--right" data-collider="solid"></div>
+            <div className="stage2-treasure-base" data-collider="solid"></div>
             <div className="stage2-treasure-support" data-collider="solid"></div>
 
             <TreasurePile ref={treasureRef} className="stage2-treasure-pile" />
