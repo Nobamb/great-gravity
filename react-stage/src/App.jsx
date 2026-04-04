@@ -26,6 +26,7 @@ function useGameRuntime({
     containerRef,
     characterRef,
     treasureRef,
+    treasureAnchorRef,
     stage,
     nextStagePath,
     navigate,
@@ -34,6 +35,7 @@ function useGameRuntime({
         const container = containerRef.current;
         const characterElement = characterRef.current;
         const treasureElement = treasureRef.current;
+        const treasureAnchorElement = treasureAnchorRef.current;
 
         if (!container || !characterElement || !treasureElement) {
             return undefined;
@@ -46,6 +48,7 @@ function useGameRuntime({
         const physicsModel = new PhysicsModel({
             container,
             treasureElement,
+            treasureAnchorElement,
         });
         const physicsView = new PhysicsView({
             container,
@@ -78,6 +81,7 @@ function useGameRuntime({
         nextStagePath,
         stage,
         treasureRef,
+        treasureAnchorRef,
     ]);
 }
 
@@ -86,12 +90,14 @@ function StageRuntime({ stage }) {
     const containerRef = useRef(null);
     const characterRef = useRef(null);
     const treasureRef = useRef(null);
+    const treasureAnchorRef = useRef(null);
     const nextStagePath = stage.nextStageId ? getStagePath(stage.nextStageId) : null;
 
     useGameRuntime({
         containerRef,
         characterRef,
         treasureRef,
+        treasureAnchorRef,
         stage,
         nextStagePath,
         navigate,
@@ -105,6 +111,7 @@ function StageRuntime({ stage }) {
                     containerRef={containerRef}
                     characterRef={characterRef}
                     treasureRef={treasureRef}
+                    treasureAnchorRef={treasureAnchorRef}
                 />
             </Screen>
         </div>
