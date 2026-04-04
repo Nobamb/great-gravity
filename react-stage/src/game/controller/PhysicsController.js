@@ -75,6 +75,46 @@ export class PhysicsController {
         return this.physicsModel.getTreasureBounds();
     }
 
+    getStoneBounds() {
+        if (!this.physicsModel.enabled) {
+            return null;
+        }
+
+        return this.physicsModel.getStoneBounds();
+    }
+
+    canPickupStone(characterBounds, padding = 0) {
+        if (!this.physicsModel.enabled) {
+            return false;
+        }
+
+        return this.physicsModel.canPickupStone(characterBounds, padding);
+    }
+
+    holdStoneAt(position) {
+        if (!this.physicsModel.enabled) {
+            return false;
+        }
+
+        return this.physicsModel.holdStoneAt(position);
+    }
+
+    throwStone({ position, velocity }) {
+        if (!this.physicsModel.enabled) {
+            return false;
+        }
+
+        return this.physicsModel.throwStone({ position, velocity });
+    }
+
+    consumeTriggerHits() {
+        if (!this.physicsModel.enabled) {
+            return [];
+        }
+
+        return this.physicsModel.consumeTriggerHits();
+    }
+
     destroy() {
         this.physicsView?.destroy?.();
         this.physicsModel?.destroy?.();
