@@ -104,7 +104,7 @@ function Stage2Layout({ treasureRef }) {
                 data-collapse-id="stage2-left-cap"
             >
                 <TriggerBlock
-                    className="trigger-block trigger-block--top stage2-cap-trigger"
+                    className="trigger-block stage2-cap-trigger stage2-cap-trigger--left"
                     triggerId="stage2-left-cap-trigger"
                     triggerDirection="top"
                     triggerTargets="stage2-left-cap"
@@ -120,7 +120,7 @@ function Stage2Layout({ treasureRef }) {
                 data-collapse-id="stage2-right-cap"
             >
                 <TriggerBlock
-                    className="trigger-block trigger-block--top stage2-cap-trigger"
+                    className="trigger-block stage2-cap-trigger stage2-cap-trigger--right"
                     triggerId="stage2-right-cap-trigger"
                     triggerDirection="top"
                     triggerTargets="stage2-right-cap"
@@ -185,6 +185,11 @@ function Stage2Layout({ treasureRef }) {
             ></div>
             <div
                 className="jump-block stage2-jump-block stage2-jump-block--right"
+                data-collider="solid"
+                data-effect="jump-boost"
+            ></div>
+            <div
+                className="jump-block stage2-jump-block stage2-jump-block--upper-right"
                 data-collider="solid"
                 data-effect="jump-boost"
             ></div>
