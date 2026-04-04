@@ -89,9 +89,9 @@ export class GameView {
     }
   }
 
-  render(character, interaction = {}) {
-    this.characterElement.style.transform = `translate3d(${character.x}px, ${character.y}px, 0)`;
-    this.characterElement.classList.add("is-ready");
+    render(character, interaction = {}) {
+        this.characterElement.style.transform = `translate3d(${character.x}px, ${character.y}px, 0)`;
+        this.characterElement.classList.add("is-ready");
     this.characterElement.classList.toggle(
       "is-moving",
       Math.abs(character.vx) > 8 && character.onGround,
@@ -101,13 +101,21 @@ export class GameView {
       !character.onGround && !character.isClimbing,
     );
     this.characterElement.classList.toggle("is-climbing", character.isClimbing);
-    this.characterElement.classList.toggle(
-      "is-facing-left",
-      character.facing < 0,
-    );
+        this.characterElement.classList.toggle(
+            "is-facing-left",
+            character.facing < 0,
+        );
+        this.characterElement.classList.toggle(
+            "is-throw-ready",
+            Boolean(interaction.canThrowStone),
+        );
+        this.characterElement.classList.toggle(
+            "is-throwing",
+            Boolean(interaction.isDraggingStone),
+        );
 
-    if (
-      this.activeTriggerElement &&
+        if (
+            this.activeTriggerElement &&
       this.activeTriggerElement !== interaction.activeTriggerElement
     ) {
       this.activeTriggerElement.classList.remove("is-interactable");
