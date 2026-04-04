@@ -4,13 +4,20 @@ import ClearOverlay from "./ClearOverlay.jsx";
 import TimerPanel from "./TimerPanel.jsx";
 import TreasurePile from "./TreasurePile.jsx";
 
-function TriggerBlock({ className, triggerId, triggerDirection, triggerTargets }) {
+function TriggerBlock({
+    className,
+    triggerId,
+    triggerDirection,
+    triggerTargets,
+    projectileTrigger = false,
+}) {
     return (
         <div
             className={className}
             data-trigger-id={triggerId}
             data-trigger-direction={triggerDirection}
             data-trigger-targets={triggerTargets}
+            data-projectile-trigger={projectileTrigger ? "true" : undefined}
         ></div>
     );
 }
@@ -92,7 +99,7 @@ function Stage1Layout({ treasureRef }) {
     );
 }
 
-function Stage2Layout({ treasureRef, treasureAnchorRef }) {
+function Stage2Layout({ treasureRef, treasureAnchorRef, stoneRef, stoneAnchorRef }) {
     return (
         <>
             <div className="stage2-left-frame stage2-post stage2-post--outer" data-collider="solid"></div>
@@ -193,6 +200,7 @@ function Stage2Layout({ treasureRef, treasureAnchorRef }) {
                 triggerId="stage2-button-trigger"
                 triggerDirection="top"
                 triggerTargets="stage2-left-white,stage2-right-white"
+                projectileTrigger={true}
             />
 
             <div className="spawn-pad stage2-spawn-pad" data-collider="solid" data-spawn="player"></div>
@@ -218,6 +226,9 @@ function Stage2Layout({ treasureRef, treasureAnchorRef }) {
                 data-effect="jump-boost"
             ></div>
 
+            <div className="stage2-throw-stone-anchor" ref={stoneAnchorRef}></div>
+            <div className="throw-stone stage2-throw-stone" ref={stoneRef}></div>
+
             <div className="stage2-treasure-base" data-collider="solid"></div>
             <div className="stage2-treasure-support" data-collider="solid"></div>
             <div className="stage2-treasure-anchor" ref={treasureAnchorRef}></div>
@@ -227,13 +238,21 @@ function Stage2Layout({ treasureRef, treasureAnchorRef }) {
     );
 }
 
-function renderStageLayout(stageId, treasureRef, treasureAnchorRef) {
+function renderStageLayout(
+    stageId,
+    treasureRef,
+    treasureAnchorRef,
+    stoneRef,
+    stoneAnchorRef,
+) {
     switch (stageId) {
         case "stage2":
             return (
                 <Stage2Layout
                     treasureRef={treasureRef}
                     treasureAnchorRef={treasureAnchorRef}
+                    stoneRef={stoneRef}
+                    stoneAnchorRef={stoneAnchorRef}
                 />
             );
         case "stage1":
@@ -248,6 +267,8 @@ export default function StageGeometry({
     characterRef,
     treasureRef,
     treasureAnchorRef,
+    stoneRef,
+    stoneAnchorRef,
 }) {
     return (
         <div
@@ -259,7 +280,13 @@ export default function StageGeometry({
             <BackgroundLayer />
             <TimerPanel title={stage.title} />
 
-            {renderStageLayout(stage.id, treasureRef, treasureAnchorRef)}
+            {renderStageLayout(
+                stage.id,
+                treasureRef,
+                treasureAnchorRef,
+                stoneRef,
+                stoneAnchorRef,
+            )}
 
             <CharacterSprite ref={characterRef} />
             <ClearOverlay />
