@@ -7,6 +7,10 @@ function intersects(a, b) {
     );
 }
 
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
 export class GameController {
     constructor({
         stage,
@@ -34,6 +38,7 @@ export class GameController {
         this.activeTrigger = null;
         this.elapsedTimeMs = 0;
         this.isStageCleared = false;
+        this.isDraggingStone = false;
         this.tick = this.tick.bind(this);
     }
 
@@ -49,6 +54,7 @@ export class GameController {
         this.characterModel.resetToSpawn();
         this.elapsedTimeMs = 0;
         this.isStageCleared = false;
+        this.isDraggingStone = false;
         this.gameView.bindControls({
             onRetry: () => {
                 this.restartStage();
@@ -69,6 +75,8 @@ export class GameController {
         this.physicsController?.render();
         this.gameView.render(this.characterModel, {
             activeTriggerElement: this.activeTrigger?.element ?? null,
+            canThrowStone: this.canThrowStone(),
+            isDraggingStone: this.isDraggingStone,
         });
 
         if (stageState && !stageState.changed) {
@@ -105,6 +113,8 @@ export class GameController {
             this.physicsController?.render();
             this.gameView.render(this.characterModel, {
                 activeTriggerElement: null,
+                canThrowStone: false,
+                isDraggingStone: false,
             });
             this.frameHandle = window.requestAnimationFrame(this.tick);
             return;
@@ -128,7 +138,9 @@ export class GameController {
             }
 
             this.handleTriggerInteraction(input);
+            this.handleStoneInteraction(input);
             this.physicsController?.step(this.fixedDeltaTime);
+            this.handleProjectileTriggerHits();
             this.syncPhysicsRuntimeState();
             this.accumulator -= this.fixedDeltaTime;
         }
@@ -148,6 +160,8 @@ export class GameController {
         this.physicsController?.render();
         this.gameView.render(this.characterModel, {
             activeTriggerElement: this.activeTrigger?.element ?? null,
+            canThrowStone: this.canThrowStone(),
+            isDraggingStone: this.isDraggingStone,
         });
 
         this.frameHandle = window.requestAnimationFrame(this.tick);
@@ -191,6 +205,7 @@ export class GameController {
     }
 
     handlePlayerDeath() {
+        this.isDraggingStone = false;
         this.restartStage();
     }
 
@@ -212,6 +227,7 @@ export class GameController {
         this.syncPhysicsRuntimeState();
         this.elapsedTimeMs = 0;
         this.isStageCleared = false;
+        this.isDraggingStone = false;
         this.gameView.hideClearOverlay();
         this.gameView.setNextStageVisibility(false);
         this.gameView.updateTimer(this.formatTime(this.elapsedTimeMs));
@@ -235,6 +251,7 @@ export class GameController {
         this.isStageCleared = true;
         this.inputController.resetTransientActions?.();
         this.activeTrigger = null;
+        this.isDraggingStone = false;
         this.gameView.showClearOverlay({
             timeText: this.formatTime(this.elapsedTimeMs),
             stars: this.getStarRating(this.elapsedTimeMs),
@@ -264,6 +281,108 @@ export class GameController {
         this.stageModel.setRuntimeHazards(
             this.physicsController?.getLavaHazards?.() ?? [],
         );
+    }
+
+    canThrowStone() {
+        return this.physicsController?.canPickupStone?.(
+            this.characterModel.getBounds(),
+            Math.max(16, this.stageModel.bounds.width * 0.015),
+        ) ?? false;
+    }
+
+    handleStoneInteraction(input) {
+        const pointer = input.pointer;
+
+        if (!pointer || !this.physicsController?.getStoneBounds?.()) {
+            this.isDraggingStone = false;
+            return;
+        }
+
+        if (!this.isDraggingStone) {
+            if (
+                pointer.justPressed &&
+                pointer.startedOnCharacter &&
+                this.canThrowStone()
+            ) {
+                this.isDraggingStone = true;
+                this.physicsController.holdStoneAt(this.getStoneCarryPoint());
+            }
+            return;
+        }
+
+        const carryPoint = this.getStoneCarryPoint();
+        this.physicsController.holdStoneAt(carryPoint);
+
+        if (!pointer.isDown && !pointer.justReleased) {
+            this.physicsController.throwStone({
+                position: carryPoint,
+                velocity: {
+                    x: this.characterModel.facing * 2.5,
+                    y: -2,
+                },
+            });
+            this.isDraggingStone = false;
+            return;
+        }
+
+        if (!pointer.justReleased) {
+            return;
+        }
+
+        const throwVelocity = this.getStoneThrowVelocity(
+            pointer.dragStart ?? carryPoint,
+            pointer.position ?? pointer.dragStart ?? carryPoint,
+        );
+
+        this.physicsController.throwStone({
+            position: carryPoint,
+            velocity: throwVelocity,
+        });
+        this.isDraggingStone = false;
+    }
+
+    getStoneCarryPoint() {
+        const bounds = this.characterModel.getBounds();
+        const offsetX = bounds.width * 0.4 * this.characterModel.facing;
+
+        return {
+            x: bounds.left + bounds.width / 2 + offsetX,
+            y: bounds.top + bounds.height * 0.34,
+        };
+    }
+
+    getStoneThrowVelocity(startPoint, endPoint) {
+        const dx = endPoint.x - startPoint.x;
+        const dy = endPoint.y - startPoint.y;
+        const dragDistance = Math.sqrt(dx * dx + dy * dy);
+        const strength = clamp(dragDistance, 18, 220);
+        const scale = 0.085;
+        const baseX = dx * scale;
+        const baseY = dy * scale;
+        const extraScale = strength / 140;
+
+        return {
+            x: clamp(baseX * extraScale, -18, 18),
+            y: clamp(baseY * extraScale, -18, 16),
+        };
+    }
+
+    handleProjectileTriggerHits() {
+        const triggerIds = this.physicsController?.consumeTriggerHits?.() ?? [];
+
+        triggerIds.forEach((triggerId) => {
+            const collapseState = this.stageModel.activateTrigger(triggerId);
+
+            if (!collapseState) {
+                return;
+            }
+
+            this.gameView.animateTriggerResult(collapseState);
+
+            if (this.activeTrigger?.id === triggerId) {
+                this.activeTrigger = null;
+            }
+        });
     }
 
     destroy() {
