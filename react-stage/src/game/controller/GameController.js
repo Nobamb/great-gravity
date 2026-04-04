@@ -9,12 +9,18 @@ function intersects(a, b) {
 
 export class GameController {
     constructor({
+        stage,
+        nextStagePath = null,
+        navigate = null,
         characterModel,
         stageModel,
         inputController,
         gameView,
         physicsController = null,
     }) {
+        this.stage = stage;
+        this.nextStagePath = nextStagePath;
+        this.navigate = navigate;
         this.characterModel = characterModel;
         this.stageModel = stageModel;
         this.inputController = inputController;
@@ -47,8 +53,14 @@ export class GameController {
             onRetry: () => {
                 this.restartStage();
             },
+            onNextStage: this.nextStagePath
+                ? () => {
+                    this.navigate?.(this.nextStagePath);
+                }
+                : null,
         });
         this.gameView.hideClearOverlay();
+        this.gameView.setNextStageVisibility(false);
         this.gameView.updateTimer(this.formatTime(this.elapsedTimeMs));
 
         this.updateActiveTrigger();
@@ -174,7 +186,7 @@ export class GameController {
             return;
         }
 
-        this.gameView.animateBlockCollapse(collapseState);
+        this.gameView.animateTriggerResult(collapseState);
         this.activeTrigger = null;
     }
 
@@ -201,6 +213,7 @@ export class GameController {
         this.elapsedTimeMs = 0;
         this.isStageCleared = false;
         this.gameView.hideClearOverlay();
+        this.gameView.setNextStageVisibility(false);
         this.gameView.updateTimer(this.formatTime(this.elapsedTimeMs));
         this.accumulator = 0;
         this.lastTimestamp = 0;
@@ -225,6 +238,7 @@ export class GameController {
         this.gameView.showClearOverlay({
             timeText: this.formatTime(this.elapsedTimeMs),
             stars: this.getStarRating(this.elapsedTimeMs),
+            showNextStage: Boolean(this.stage?.supportsNextStage && this.nextStagePath),
         });
     }
 
