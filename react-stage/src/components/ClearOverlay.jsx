@@ -22,14 +22,21 @@ export default function ClearOverlay() {
                         type="button"
                         className="clear-action clear-action--retry"
                     >
-                        Retry
+                        다시하기
+                    </button>
+                    <button
+                        type="button"
+                        className="clear-action clear-action--next"
+                        hidden
+                    >
+                        다음 스테이지
                     </button>
                     <button
                         type="button"
                         className="clear-action clear-action--main"
                         disabled
                     >
-                        Main
+                        메인화면
                     </button>
                 </div>
             </div>
