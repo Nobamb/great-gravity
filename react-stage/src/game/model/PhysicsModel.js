@@ -67,11 +67,11 @@ export class PhysicsModel {
                 maxRows: 7,
                 density: 0.004,
                 friction: 0.4,
-                frictionAir: 0.08,
+                frictionAir: 0.05,
                 restitution: 0.0,
                 spreadForce: 0.0000012,
-                downwardBias: 0.000008,
-                maxSpeed: 3,
+                downwardBias: 0.000018,
+                maxSpeed: 5,
                 pressureStrength: 0.00003,
                 targetSpacingScale: 2.4,
             },
@@ -396,7 +396,6 @@ export class PhysicsModel {
 
     addSolidifiedBlock(rect) {
         if (this.solidifiedCellKeys.has(rect.id)) {
-            this.removeFluidBodiesNearRect(rect);
             return false;
         }
 
@@ -427,7 +426,6 @@ export class PhysicsModel {
             let hasLeftWall = false;
             let hasRightWall = false;
             let hasTopWall = false;
-            let hasBottomWall = false;
 
             for (const solid of solids) {
                 const solidRight = solid.left + solid.width;
@@ -448,9 +446,6 @@ export class PhysicsModel {
                 if (horzOverlap && Math.abs(solidBottom - origin.top) < margin) {
                     hasTopWall = true;
                 }
-                if (horzOverlap && Math.abs(solid.top - origin.bottom) < margin) {
-                    hasBottomWall = true;
-                }
             }
 
             const containerWidth = this.container.clientWidth;
@@ -465,9 +460,11 @@ export class PhysicsModel {
             if (!hasTopWall) {
                 containment.top = 0;
             }
-            if (!hasBottomWall) {
-                containment.bottom = containerHeight + 120;
-            }
+
+            // Let fluid always continue downward when there is an opening.
+            // Actual stage solids already block falling, so clamping the bottom
+            // to the original fluid box prevents lava from draining naturally.
+            containment.bottom = containerHeight + 120;
 
             containment.width = containment.right - containment.left;
             containment.height = containment.bottom - containment.top;
