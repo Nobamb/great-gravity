@@ -1,8 +1,8 @@
 import { forwardRef } from "react";
 
-const TreasurePile = forwardRef(function TreasurePile(_, ref) {
+const TreasurePile = forwardRef(function TreasurePile({ className = "" }, ref) {
     return (
-        <div className="treasure-pile" ref={ref}>
+        <div className={`treasure-pile ${className}`.trim()} ref={ref}>
             <div className="sword">
                 <div className="sword-hilt">
                     <div className="gem"></div>
