@@ -17,15 +17,11 @@ function init() {
   // 캐릭터의 외형을 담당하는 DOM 요소를 컨테이너 하위에서 탐색합니다.
   const characterElement = container?.querySelector(".character");
   const treasureElement = container?.querySelector(".treasure-pile");
-  const lavaElement = container?.querySelector(".lava-fall");
-  const waterElement = container?.querySelector(".ice-water");
 
   if (
     !container ||
     !characterElement ||
-    !treasureElement ||
-    !lavaElement ||
-    !waterElement
+    !treasureElement
   ) {
     throw new Error("게임 실행에 필요한 요소를 HTML에서 찾을 수 없습니다.");
   }
@@ -45,13 +41,10 @@ function init() {
 
   const physicsModel = new PhysicsModel({
     container,
-    lavaElement,
-    waterElement,
     treasureElement,
   });
   const physicsView = new PhysicsView({
-    lavaElement,
-    waterElement,
+    container,
     treasureElement,
   });
   const physicsController = new PhysicsController({
