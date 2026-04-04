@@ -19,9 +19,10 @@ function clamp(value, min, max) {
 }
 
 export class PhysicsModel {
-    constructor({ container, treasureElement }) {
+    constructor({ container, treasureElement, treasureAnchorElement = null }) {
         this.container = container;
         this.treasureElement = treasureElement;
+        this.treasureAnchorElement = treasureAnchorElement;
         this.enabled = Boolean(Matter?.Engine);
         this.initialized = false;
 
@@ -191,8 +192,9 @@ export class PhysicsModel {
             })
             .filter(Boolean);
 
+        const treasureSourceElement = this.treasureAnchorElement ?? this.treasureElement;
         const treasureRect = createRelativeRect(
-            this.treasureElement.getBoundingClientRect(),
+            treasureSourceElement.getBoundingClientRect(),
             containerRect,
         );
 
