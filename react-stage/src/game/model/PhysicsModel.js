@@ -19,10 +19,18 @@ function clamp(value, min, max) {
 }
 
 export class PhysicsModel {
-    constructor({ container, treasureElement, treasureAnchorElement = null }) {
+    constructor({
+        container,
+        treasureElement,
+        treasureAnchorElement = null,
+        stoneElement = null,
+        stoneAnchorElement = null,
+    }) {
         this.container = container;
         this.treasureElement = treasureElement;
         this.treasureAnchorElement = treasureAnchorElement;
+        this.stoneElement = stoneElement;
+        this.stoneAnchorElement = stoneAnchorElement;
         this.enabled = Boolean(Matter?.Engine);
         this.initialized = false;
 
@@ -32,7 +40,10 @@ export class PhysicsModel {
             lava: [],
             water: [],
             treasure: null,
+            stone: null,
         };
+        this.projectileTriggers = [];
+        this.pendingTriggerHits = [];
         this.renderObstacles = [];
         this.elapsed = 0;
         this.renderObstaclePadding = 2;
@@ -111,7 +122,10 @@ export class PhysicsModel {
             lava: [],
             water: [],
             treasure: null,
+            stone: null,
         };
+        this.projectileTriggers = [];
+        this.pendingTriggerHits = [];
         this.renderObstacles = [];
         this.elapsed = 0;
         this.solidifiedRects = [];
@@ -157,6 +171,7 @@ export class PhysicsModel {
             ...this.dynamicBodies.lava,
             ...this.dynamicBodies.water,
             ...(this.dynamicBodies.treasure ? [this.dynamicBodies.treasure] : []),
+            ...(this.dynamicBodies.stone ? [this.dynamicBodies.stone] : []),
         ]);
 
         const containerRect = this.container.getBoundingClientRect();
@@ -201,10 +216,21 @@ export class PhysicsModel {
         this.rebuildDynamicBodyCache();
         this.dynamicBodies.treasure = this.createTreasureBody(treasureRect);
 
+        if (this.stoneElement && this.stoneAnchorElement) {
+            const stoneRect = createRelativeRect(
+                this.stoneAnchorElement.getBoundingClientRect(),
+                containerRect,
+            );
+            this.dynamicBodies.stone = this.createStoneBody(stoneRect);
+        } else {
+            this.dynamicBodies.stone = null;
+        }
+
         this.addBodies([
             ...this.dynamicBodies.lava,
             ...this.dynamicBodies.water,
             this.dynamicBodies.treasure,
+            this.dynamicBodies.stone,
         ]);
 
         this.elapsed = 0;
@@ -222,6 +248,20 @@ export class PhysicsModel {
     rebuildStaticBodies(stageModel) {
         this.removeBodies(this.staticBodies);
         const physicsSolids = stageModel.domSolids ?? stageModel.solids;
+        this.projectileTriggers = Array.from(
+            this.container.querySelectorAll('[data-projectile-trigger="true"]'),
+        ).map((element, index) => {
+            const rect = createRelativeRect(
+                element.getBoundingClientRect(),
+                this.container.getBoundingClientRect(),
+            );
+
+            return {
+                id: element.dataset.triggerId || `projectile-trigger-${index}`,
+                rect,
+                isUsed: element.dataset.triggerUsed === "true",
+            };
+        });
 
         const boundaryThickness = Math.max(48, stageModel.bounds.width * 0.05);
         const minSolidThickness = Math.max(12, stageModel.bounds.width * 0.012);
@@ -534,6 +574,25 @@ export class PhysicsModel {
         return body;
     }
 
+    createStoneBody(rect) {
+        const radius = Math.min(rect.width, rect.height) * 0.42;
+        const body = this.Bodies.circle(
+            rect.left + rect.width / 2,
+            rect.top + rect.height / 2,
+            radius,
+            {
+                friction: 0.65,
+                frictionAir: 0.018,
+                restitution: 0.22,
+                density: 0.0045,
+            },
+        );
+        body.plugin.renderWidth = radius * 2.25;
+        body.plugin.renderHeight = radius * 2.25;
+        body.plugin.isHeld = false;
+        return body;
+    }
+
     step(dt) {
         if (!this.enabled || !this.initialized) {
             return;
@@ -550,6 +609,7 @@ export class PhysicsModel {
         this.solidifyFluidContacts();
         this.clampFluidVelocities();
         this.removeOffscreenFluidBodies();
+        this.detectProjectileTriggerHits();
     }
 
     solidifyFluidContacts() {
@@ -633,6 +693,137 @@ export class PhysicsModel {
             width,
             height,
         };
+    }
+
+    getStoneBounds() {
+        const stoneBody = this.dynamicBodies.stone;
+
+        if (!stoneBody) {
+            return null;
+        }
+
+        const radius = stoneBody.circleRadius;
+
+        return {
+            left: stoneBody.position.x - radius,
+            top: stoneBody.position.y - radius,
+            right: stoneBody.position.x + radius,
+            bottom: stoneBody.position.y + radius,
+            width: radius * 2,
+            height: radius * 2,
+        };
+    }
+
+    canPickupStone(characterBounds, padding = 0) {
+        const stoneBody = this.dynamicBodies.stone;
+
+        if (!stoneBody || stoneBody.plugin.isHeld) {
+            return false;
+        }
+
+        const speed = Math.sqrt(
+            stoneBody.velocity.x ** 2 + stoneBody.velocity.y ** 2,
+        );
+
+        if (speed > 2.8) {
+            return false;
+        }
+
+        const stoneBounds = this.getStoneBounds();
+
+        if (!stoneBounds) {
+            return false;
+        }
+
+        return !(
+            stoneBounds.right < characterBounds.left - padding ||
+            stoneBounds.left > characterBounds.right + padding ||
+            stoneBounds.bottom < characterBounds.top - padding ||
+            stoneBounds.top > characterBounds.bottom + padding
+        );
+    }
+
+    holdStoneAt(position) {
+        const stoneBody = this.dynamicBodies.stone;
+
+        if (!stoneBody) {
+            return false;
+        }
+
+        this.Body.setStatic(stoneBody, true);
+        this.Body.setVelocity(stoneBody, { x: 0, y: 0 });
+        this.Body.setAngularVelocity(stoneBody, 0);
+        this.Body.setAngle(stoneBody, 0);
+        this.Body.setPosition(stoneBody, position);
+        stoneBody.plugin.isHeld = true;
+        return true;
+    }
+
+    throwStone({ position, velocity }) {
+        const stoneBody = this.dynamicBodies.stone;
+
+        if (!stoneBody) {
+            return false;
+        }
+
+        this.Body.setPosition(stoneBody, position);
+        this.Body.setStatic(stoneBody, false);
+        this.Body.setVelocity(stoneBody, velocity);
+        this.Body.setAngularVelocity(stoneBody, velocity.x * 0.045);
+        stoneBody.plugin.isHeld = false;
+        return true;
+    }
+
+    detectProjectileTriggerHits() {
+        const stoneBody = this.dynamicBodies.stone;
+
+        if (!stoneBody || stoneBody.plugin.isHeld || this.projectileTriggers.length === 0) {
+            return;
+        }
+
+        const speed = Math.sqrt(
+            stoneBody.velocity.x ** 2 + stoneBody.velocity.y ** 2,
+        );
+
+        if (speed < 2.2) {
+            return;
+        }
+
+        const stoneBounds = this.getStoneBounds();
+
+        if (!stoneBounds) {
+            return;
+        }
+
+        this.projectileTriggers.forEach((trigger) => {
+            if (trigger.isUsed) {
+                return;
+            }
+
+            const overlaps = !(
+                stoneBounds.right < trigger.rect.left ||
+                stoneBounds.left > trigger.rect.right ||
+                stoneBounds.bottom < trigger.rect.top ||
+                stoneBounds.top > trigger.rect.bottom
+            );
+
+            if (!overlaps) {
+                return;
+            }
+
+            trigger.isUsed = true;
+            this.pendingTriggerHits.push(trigger.id);
+        });
+    }
+
+    consumeTriggerHits() {
+        if (this.pendingTriggerHits.length === 0) {
+            return [];
+        }
+
+        const triggerHits = [...new Set(this.pendingTriggerHits)];
+        this.pendingTriggerHits = [];
+        return triggerHits;
     }
 
     applyFluidForces(bodies, config) {
@@ -848,6 +1039,7 @@ export class PhysicsModel {
             ...this.dynamicBodies.lava,
             ...this.dynamicBodies.water,
             ...(this.dynamicBodies.treasure ? [this.dynamicBodies.treasure] : []),
+            ...(this.dynamicBodies.stone ? [this.dynamicBodies.stone] : []),
         ]);
         this.staticBodies = [];
         this.fluidZones = [];
@@ -855,7 +1047,10 @@ export class PhysicsModel {
             lava: [],
             water: [],
             treasure: null,
+            stone: null,
         };
+        this.projectileTriggers = [];
+        this.pendingTriggerHits = [];
         this.solidifiedRects = [];
         this.solidifiedCellKeys.clear();
         this.initialized = false;
