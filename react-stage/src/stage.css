@@ -606,6 +606,36 @@ body {
   width: 10.5%;
 }
 
+.stage2-throw-stone-anchor,
+.stage2-throw-stone {
+  left: 40.2%;
+  top: 31.8%;
+}
+
+.stage2-throw-stone-anchor {
+  position: absolute;
+  width: calc(28 * var(--cw));
+  height: calc(28 * var(--cw));
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.throw-stone {
+  position: absolute;
+  width: calc(28 * var(--cw));
+  height: calc(28 * var(--cw));
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, #ffffff 0, #f0f0f0 18%, #c7c7c7 52%, #8f8f8f 100%);
+  box-shadow:
+    inset calc(-2 * var(--cw)) calc(-3 * var(--cw)) calc(6 * var(--cw)) rgba(0, 0, 0, 0.22),
+    0 0 calc(12 * var(--cw)) rgba(255, 255, 255, 0.24);
+  transform: translate(-50%, -50%);
+  z-index: 26;
+  pointer-events: none;
+}
+
 .stage2-treasure-base {
   left: 84.7%;
   top: 91.8%;
@@ -731,6 +761,14 @@ body {
   will-change: transform;
 }
 
+.throw-stone.physics-managed {
+  left: 0;
+  top: 0;
+  transform: none;
+  transform-origin: center center;
+  will-change: transform;
+}
+
 .coins-container {
   position: absolute;
   bottom: 0px;
@@ -833,6 +871,15 @@ body {
   box-shadow:
     0 0 calc(18 * var(--cw)) rgba(132, 255, 255, 0.85),
     0 0 calc(28 * var(--cw)) rgba(0, 255, 255, 0.28);
+}
+
+.character.is-throw-ready {
+  cursor: grab;
+}
+
+.character.is-throwing {
+  cursor: grabbing;
+  filter: brightness(1.08);
 }
 
 .character.is-facing-left .character-head {
