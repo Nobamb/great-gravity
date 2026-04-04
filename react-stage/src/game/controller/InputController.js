@@ -3,8 +3,13 @@
  * 사용자의 키보드 입력을 감지하고 게임에서 사용하기 쉬운 상태로 정리합니다.
  */
 export class InputController {
-    constructor(target = window) {
+    constructor(
+        target = window,
+        { containerElement = null, characterElement = null } = {},
+    ) {
         this.target = target;
+        this.containerElement = containerElement;
+        this.characterElement = characterElement;
         this.keys = {
             left: false,
             right: false,
@@ -13,12 +18,26 @@ export class InputController {
         };
         this.jumpQueued = false;
         this.interactQueued = false;
+        this.pointerState = {
+            isDown: false,
+            justPressed: false,
+            justReleased: false,
+            startedOnCharacter: false,
+            position: null,
+            dragStart: null,
+        };
 
         this.boundKeyDown = this.handleKeyDown.bind(this);
         this.boundKeyUp = this.handleKeyUp.bind(this);
+        this.boundMouseDown = this.handleMouseDown.bind(this);
+        this.boundMouseMove = this.handleMouseMove.bind(this);
+        this.boundMouseUp = this.handleMouseUp.bind(this);
 
         this.target.addEventListener("keydown", this.boundKeyDown);
         this.target.addEventListener("keyup", this.boundKeyUp);
+        this.target.addEventListener("mousedown", this.boundMouseDown);
+        this.target.addEventListener("mousemove", this.boundMouseMove);
+        this.target.addEventListener("mouseup", this.boundMouseUp);
     }
 
     handleKeyDown(event) {
@@ -86,15 +105,90 @@ export class InputController {
             || code === "KeyE";
     }
 
+    getPointerPosition(event) {
+        if (!this.containerElement) {
+            return null;
+        }
+
+        const containerRect = this.containerElement.getBoundingClientRect();
+
+        return {
+            x: event.clientX - containerRect.left,
+            y: event.clientY - containerRect.top,
+        };
+    }
+
+    handleMouseDown(event) {
+        if (event.button !== 0) {
+            return;
+        }
+
+        const position = this.getPointerPosition(event);
+
+        if (!position) {
+            return;
+        }
+
+        this.pointerState.isDown = true;
+        this.pointerState.justPressed = true;
+        this.pointerState.justReleased = false;
+        this.pointerState.position = position;
+        this.pointerState.dragStart = position;
+        this.pointerState.startedOnCharacter =
+            this.characterElement?.contains(event.target) ?? false;
+
+        if (this.pointerState.startedOnCharacter) {
+            event.preventDefault();
+        }
+    }
+
+    handleMouseMove(event) {
+        const position = this.getPointerPosition(event);
+
+        if (!position) {
+            return;
+        }
+
+        this.pointerState.position = position;
+    }
+
+    handleMouseUp(event) {
+        if (event.button !== 0) {
+            return;
+        }
+
+        const position = this.getPointerPosition(event);
+
+        if (position) {
+            this.pointerState.position = position;
+        }
+
+        this.pointerState.isDown = false;
+        this.pointerState.justReleased = true;
+    }
+
     /**
      * @returns {object} { horizontal, vertical, jump, interact }
      */
     getSnapshot() {
+        const pointerSnapshot = {
+            isDown: this.pointerState.isDown,
+            justPressed: this.pointerState.justPressed,
+            justReleased: this.pointerState.justReleased,
+            startedOnCharacter: this.pointerState.startedOnCharacter,
+            position: this.pointerState.position
+                ? { ...this.pointerState.position }
+                : null,
+            dragStart: this.pointerState.dragStart
+                ? { ...this.pointerState.dragStart }
+                : null,
+        };
         const snapshot = {
             horizontal: 0,
             vertical: 0,
             jump: this.jumpQueued,
             interact: this.interactQueued,
+            pointer: pointerSnapshot,
         };
 
         if (this.keys.left && !this.keys.right) {
@@ -111,6 +205,13 @@ export class InputController {
 
         this.jumpQueued = false;
         this.interactQueued = false;
+        this.pointerState.justPressed = false;
+        this.pointerState.justReleased = false;
+
+        if (!this.pointerState.isDown) {
+            this.pointerState.startedOnCharacter = false;
+            this.pointerState.dragStart = null;
+        }
 
         return snapshot;
     }
@@ -118,10 +219,21 @@ export class InputController {
     resetTransientActions() {
         this.jumpQueued = false;
         this.interactQueued = false;
+        this.pointerState = {
+            isDown: false,
+            justPressed: false,
+            justReleased: false,
+            startedOnCharacter: false,
+            position: this.pointerState.position,
+            dragStart: null,
+        };
     }
 
     destroy() {
         this.target.removeEventListener("keydown", this.boundKeyDown);
         this.target.removeEventListener("keyup", this.boundKeyUp);
+        this.target.removeEventListener("mousedown", this.boundMouseDown);
+        this.target.removeEventListener("mousemove", this.boundMouseMove);
+        this.target.removeEventListener("mouseup", this.boundMouseUp);
     }
 }
