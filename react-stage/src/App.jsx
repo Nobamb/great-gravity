@@ -27,6 +27,8 @@ function useGameRuntime({
     characterRef,
     treasureRef,
     treasureAnchorRef,
+    stoneRef,
+    stoneAnchorRef,
     stage,
     nextStagePath,
     navigate,
@@ -36,6 +38,8 @@ function useGameRuntime({
         const characterElement = characterRef.current;
         const treasureElement = treasureRef.current;
         const treasureAnchorElement = treasureAnchorRef.current;
+        const stoneElement = stoneRef.current;
+        const stoneAnchorElement = stoneAnchorRef.current;
 
         if (!container || !characterElement || !treasureElement) {
             return undefined;
@@ -43,16 +47,22 @@ function useGameRuntime({
 
         const stageModel = new StageModel(container);
         const gameView = new GameView(characterElement);
-        const inputController = new InputController(window);
+        const inputController = new InputController(window, {
+            containerElement: container,
+            characterElement,
+        });
         const characterModel = new CharacterModel(gameView.measureCharacter());
         const physicsModel = new PhysicsModel({
             container,
             treasureElement,
             treasureAnchorElement,
+            stoneElement,
+            stoneAnchorElement,
         });
         const physicsView = new PhysicsView({
             container,
             treasureElement,
+            stoneElement,
         });
         const physicsController = new PhysicsController({
             physicsModel,
@@ -80,6 +90,8 @@ function useGameRuntime({
         navigate,
         nextStagePath,
         stage,
+        stoneAnchorRef,
+        stoneRef,
         treasureRef,
         treasureAnchorRef,
     ]);
@@ -91,6 +103,8 @@ function StageRuntime({ stage }) {
     const characterRef = useRef(null);
     const treasureRef = useRef(null);
     const treasureAnchorRef = useRef(null);
+    const stoneRef = useRef(null);
+    const stoneAnchorRef = useRef(null);
     const nextStagePath = stage.nextStageId ? getStagePath(stage.nextStageId) : null;
 
     useGameRuntime({
@@ -98,6 +112,8 @@ function StageRuntime({ stage }) {
         characterRef,
         treasureRef,
         treasureAnchorRef,
+        stoneRef,
+        stoneAnchorRef,
         stage,
         nextStagePath,
         navigate,
@@ -112,6 +128,8 @@ function StageRuntime({ stage }) {
                     characterRef={characterRef}
                     treasureRef={treasureRef}
                     treasureAnchorRef={treasureAnchorRef}
+                    stoneRef={stoneRef}
+                    stoneAnchorRef={stoneAnchorRef}
                 />
             </Screen>
         </div>
