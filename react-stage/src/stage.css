@@ -447,12 +447,20 @@ body {
 }
 
 .stage2-cap-trigger {
-  left: 50%;
-  top: calc(100% + calc(8 * var(--cw)));
-  width: 18%;
-  height: calc(24 * var(--cw));
-  transform: translateX(-50%);
+  top: 50%;
+  width: calc(28 * var(--cw));
+  height: calc(72 * var(--cw));
   border-radius: calc(4 * var(--cw));
+}
+
+.stage2-cap-trigger--left {
+  left: calc(100% + calc(8 * var(--cw)));
+  transform: translateY(-50%);
+}
+
+.stage2-cap-trigger--right {
+  right: calc(100% + calc(8 * var(--cw)));
+  transform: translateY(-50%);
 }
 
 .stage2-fluid-divider {
@@ -559,13 +567,15 @@ body {
 
 .stage2-jump-block--low-left {
   left: 31.7%;
-  top: 73.5%;
+  top: auto;
+  bottom: 13%;
   width: 11%;
 }
 
 .stage2-jump-block--upper-left {
   left: 31.7%;
-  top: 32.1%;
+  top: auto;
+  bottom: 60%;
   width: 10.5%;
 }
 
@@ -573,6 +583,13 @@ body {
   left: 57%;
   top: 58.9%;
   width: 12.4%;
+}
+
+.stage2-jump-block--upper-right {
+  left: 57%;
+  top: auto;
+  bottom: 82.4%;
+  width: 10.5%;
 }
 
 .stage2-treasure-pocket {
