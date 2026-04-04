@@ -1,4 +1,13 @@
 import { useEffect, useRef } from "react";
+import {
+    BrowserRouter,
+    Navigate,
+    Route,
+    Routes,
+    useNavigate,
+} from "react-router-dom";
+import Screen from "./components/Screen.jsx";
+import StageGeometry from "./components/StageGeometry.jsx";
 import { GameController } from "./game/controller/GameController.js";
 import { InputController } from "./game/controller/InputController.js";
 import { PhysicsController } from "./game/controller/PhysicsController.js";
@@ -7,30 +16,26 @@ import { PhysicsModel } from "./game/model/PhysicsModel.js";
 import { StageModel } from "./game/model/StageModel.js";
 import { GameView } from "./game/view/GameView.js";
 import { PhysicsView } from "./game/view/PhysicsView.js";
-import Screen from "./components/Screen.jsx";
-import StageGeometry from "./components/StageGeometry.jsx";
+import {
+    getStagePath,
+    STAGE_DEFINITIONS,
+    STAGE_LIST,
+} from "./stages/stageDefinitions.js";
 
 function useGameRuntime({
     containerRef,
     characterRef,
-    lavaRef,
-    waterRef,
     treasureRef,
+    stage,
+    nextStagePath,
+    navigate,
 }) {
     useEffect(() => {
         const container = containerRef.current;
         const characterElement = characterRef.current;
-        const lavaElement = lavaRef.current;
-        const waterElement = waterRef.current;
         const treasureElement = treasureRef.current;
 
-        if (
-            !container ||
-            !characterElement ||
-            !lavaElement ||
-            !waterElement ||
-            !treasureElement
-        ) {
+        if (!container || !characterElement || !treasureElement) {
             return undefined;
         }
 
@@ -40,13 +45,10 @@ function useGameRuntime({
         const characterModel = new CharacterModel(gameView.measureCharacter());
         const physicsModel = new PhysicsModel({
             container,
-            lavaElement,
-            waterElement,
             treasureElement,
         });
         const physicsView = new PhysicsView({
-            lavaElement,
-            waterElement,
+            container,
             treasureElement,
         });
         const physicsController = new PhysicsController({
@@ -54,6 +56,9 @@ function useGameRuntime({
             physicsView,
         });
         const gameController = new GameController({
+            stage,
+            nextStagePath,
+            navigate,
             characterModel,
             stageModel,
             inputController,
@@ -66,35 +71,60 @@ function useGameRuntime({
         return () => {
             gameController.destroy?.();
         };
-    }, [characterRef, containerRef, lavaRef, treasureRef, waterRef]);
+    }, [
+        characterRef,
+        containerRef,
+        navigate,
+        nextStagePath,
+        stage,
+        treasureRef,
+    ]);
 }
 
-export default function App() {
+function StageRuntime({ stage }) {
+    const navigate = useNavigate();
     const containerRef = useRef(null);
     const characterRef = useRef(null);
-    const lavaRef = useRef(null);
-    const waterRef = useRef(null);
     const treasureRef = useRef(null);
+    const nextStagePath = stage.nextStageId ? getStagePath(stage.nextStageId) : null;
 
     useGameRuntime({
         containerRef,
         characterRef,
-        lavaRef,
-        waterRef,
         treasureRef,
+        stage,
+        nextStagePath,
+        navigate,
     });
 
     return (
         <div className="app-shell">
             <Screen>
                 <StageGeometry
+                    stage={stage}
                     containerRef={containerRef}
                     characterRef={characterRef}
-                    lavaRef={lavaRef}
-                    waterRef={waterRef}
                     treasureRef={treasureRef}
                 />
             </Screen>
         </div>
+    );
+}
+
+export default function App() {
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<Navigate to={STAGE_DEFINITIONS.stage1.path} replace />} />
+                {STAGE_LIST.map((stage) => (
+                    <Route
+                        key={stage.id}
+                        path={stage.path}
+                        element={<StageRuntime stage={stage} />}
+                    />
+                ))}
+                <Route path="*" element={<Navigate to={STAGE_DEFINITIONS.stage1.path} replace />} />
+            </Routes>
+        </BrowserRouter>
     );
 }
