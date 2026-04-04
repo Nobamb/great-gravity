@@ -92,7 +92,7 @@ function Stage1Layout({ treasureRef }) {
     );
 }
 
-function Stage2Layout({ treasureRef }) {
+function Stage2Layout({ treasureRef, treasureAnchorRef }) {
     return (
         <>
             <div className="stage2-left-frame stage2-post stage2-post--outer" data-collider="solid"></div>
@@ -106,7 +106,7 @@ function Stage2Layout({ treasureRef }) {
                 <TriggerBlock
                     className="trigger-block stage2-cap-trigger stage2-cap-trigger--left"
                     triggerId="stage2-left-cap-trigger"
-                    triggerDirection="top"
+                    triggerDirection="right"
                     triggerTargets="stage2-left-cap"
                 />
             </div>
@@ -122,7 +122,7 @@ function Stage2Layout({ treasureRef }) {
                 <TriggerBlock
                     className="trigger-block stage2-cap-trigger stage2-cap-trigger--right"
                     triggerId="stage2-right-cap-trigger"
-                    triggerDirection="top"
+                    triggerDirection="left"
                     triggerTargets="stage2-right-cap"
                 />
             </div>
@@ -194,20 +194,24 @@ function Stage2Layout({ treasureRef }) {
                 data-effect="jump-boost"
             ></div>
 
-            <div className="stage2-treasure-pocket stage2-treasure-pocket--left" data-collider="solid"></div>
-            <div className="stage2-treasure-pocket stage2-treasure-pocket--right" data-collider="solid"></div>
             <div className="stage2-treasure-base" data-collider="solid"></div>
             <div className="stage2-treasure-support" data-collider="solid"></div>
+            <div className="stage2-treasure-anchor" ref={treasureAnchorRef}></div>
 
             <TreasurePile ref={treasureRef} className="stage2-treasure-pile" />
         </>
     );
 }
 
-function renderStageLayout(stageId, treasureRef) {
+function renderStageLayout(stageId, treasureRef, treasureAnchorRef) {
     switch (stageId) {
         case "stage2":
-            return <Stage2Layout treasureRef={treasureRef} />;
+            return (
+                <Stage2Layout
+                    treasureRef={treasureRef}
+                    treasureAnchorRef={treasureAnchorRef}
+                />
+            );
         case "stage1":
         default:
             return <Stage1Layout treasureRef={treasureRef} />;
@@ -219,6 +223,7 @@ export default function StageGeometry({
     containerRef,
     characterRef,
     treasureRef,
+    treasureAnchorRef,
 }) {
     return (
         <div
@@ -230,7 +235,7 @@ export default function StageGeometry({
             <BackgroundLayer />
             <TimerPanel title={stage.title} />
 
-            {renderStageLayout(stage.id, treasureRef)}
+            {renderStageLayout(stage.id, treasureRef, treasureAnchorRef)}
 
             <CharacterSprite ref={characterRef} />
             <ClearOverlay />

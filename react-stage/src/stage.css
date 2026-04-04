@@ -401,7 +401,6 @@ body {
 .stage2-fluid-divider,
 .stage2-white-block,
 .stage2-treasure-base,
-.stage2-treasure-pocket,
 .stage2-treasure-support {
   position: absolute;
   background: #b27a81;
@@ -592,24 +591,8 @@ body {
   width: 10.5%;
 }
 
-.stage2-treasure-pocket {
-  top: 95.6%;
-  height: 4.4%;
-  z-index: 12;
-}
-
-.stage2-treasure-pocket--left {
-  left: 76.8%;
-  width: 6.4%;
-}
-
-.stage2-treasure-pocket--right {
-  left: 87.8%;
-  width: 5.8%;
-}
-
 .stage2-treasure-base {
-  left: 82.4%;
+  left: 84.7%;
   top: 91.8%;
   width: 8.8%;
   height: 3.4%;
@@ -617,16 +600,26 @@ body {
 }
 
 .stage2-treasure-support {
-  left: 82.4%;
+  left: 84.7%;
   top: 80.5%;
   width: 2.1%;
   height: 16.3%;
   z-index: 12;
 }
 
+.stage2-treasure-anchor,
 .stage2-treasure-pile {
-  left: 87.8%;
-  top: 95.8%;
+  left: 89.1%;
+  top: 91.8%;
+}
+
+.stage2-treasure-anchor {
+  position: absolute;
+  width: calc(100 * var(--cw));
+  height: calc(60 * var(--cw));
+  transform: translate(-50%, -100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .fluid-zone.physics-fluid,
