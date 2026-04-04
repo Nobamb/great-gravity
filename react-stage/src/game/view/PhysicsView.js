@@ -288,9 +288,10 @@ class FluidSurfaceRenderer {
 }
 
 export class PhysicsView {
-    constructor({ container, treasureElement }) {
+    constructor({ container, treasureElement, stoneElement = null }) {
         this.containerElement = container;
         this.treasureElement = treasureElement;
+        this.stoneElement = stoneElement;
         this.fluidRenderers = new Map();
         this.solidifiedBlockPool = [];
         this.particlePools = new Map();
@@ -314,6 +315,7 @@ export class PhysicsView {
 
         this.cleanupFluidResources(physicsModel.fluidZones);
         this.treasureElement.classList.add("physics-managed");
+        this.stoneElement?.classList.add("physics-managed");
     }
 
     cleanupFluidResources(fluidZones) {
@@ -370,6 +372,7 @@ export class PhysicsView {
         });
         this.renderSolidifiedBlocks(physicsModel);
         this.renderTreasure(physicsModel);
+        this.renderStone(physicsModel);
     }
 
     ensureSolidifiedBlockPool(size) {
@@ -463,6 +466,25 @@ export class PhysicsView {
         const y = treasureBody.position.y - (height / 2);
 
         this.treasureElement.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${treasureBody.angle}rad)`;
+    }
+
+    renderStone(physicsModel) {
+        if (!this.stoneElement) {
+            return;
+        }
+
+        const stoneBody = physicsModel.dynamicBodies.stone;
+
+        if (!stoneBody) {
+            return;
+        }
+
+        const width = stoneBody.plugin.renderWidth;
+        const height = stoneBody.plugin.renderHeight;
+        const x = stoneBody.position.x - (width / 2);
+        const y = stoneBody.position.y - (height / 2);
+
+        this.stoneElement.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${stoneBody.angle}rad)`;
     }
 
     destroy() {
