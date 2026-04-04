@@ -288,20 +288,12 @@ class FluidSurfaceRenderer {
 }
 
 export class PhysicsView {
-    constructor({ lavaElement, waterElement, treasureElement }) {
-        this.containerElement = lavaElement.parentElement;
-        this.lavaElement = lavaElement;
-        this.waterElement = waterElement;
+    constructor({ container, treasureElement }) {
+        this.containerElement = container;
         this.treasureElement = treasureElement;
-        this.fluidRenderers = {
-            lava: null,
-            water: null,
-        };
+        this.fluidRenderers = new Map();
         this.solidifiedBlockPool = [];
-        this.particlePools = {
-            lava: [],
-            water: [],
-        };
+        this.particlePools = new Map();
     }
 
     initialize(physicsModel) {
@@ -309,26 +301,48 @@ export class PhysicsView {
             return;
         }
 
-        this.lavaElement.classList.add("physics-fluid");
-        this.waterElement.classList.add("physics-fluid");
+        physicsModel.fluidZones.forEach((zone) => {
+            zone.element.classList.add("physics-fluid");
+
+            if (!this.fluidRenderers.has(zone.id)) {
+                this.fluidRenderers.set(
+                    zone.id,
+                    new FluidSurfaceRenderer(this.containerElement, zone.key),
+                );
+            }
+        });
+
+        this.cleanupFluidResources(physicsModel.fluidZones);
         this.treasureElement.classList.add("physics-managed");
+    }
 
-        // 캔버스를 게임 컨테이너에 배치 (유체가 어디로든 흘러가는 것을 렌더링)
-        this.fluidRenderers.lava ??= new FluidSurfaceRenderer(this.containerElement, "lava");
-        this.fluidRenderers.water ??= new FluidSurfaceRenderer(this.containerElement, "water");
+    cleanupFluidResources(fluidZones) {
+        const activeZoneIds = new Set(fluidZones.map((zone) => zone.id));
 
-        if (!this.fluidRenderers.lava.ready) {
-            this.ensureParticlePool("lava", physicsModel.dynamicBodies.lava.length);
+        for (const [zoneId, renderer] of this.fluidRenderers.entries()) {
+            if (activeZoneIds.has(zoneId)) {
+                continue;
+            }
+
+            renderer?.canvas?.remove();
+            this.fluidRenderers.delete(zoneId);
         }
 
-        if (!this.fluidRenderers.water.ready) {
-            this.ensureParticlePool("water", physicsModel.dynamicBodies.water.length);
+        for (const [zoneId, pool] of this.particlePools.entries()) {
+            if (activeZoneIds.has(zoneId)) {
+                continue;
+            }
+
+            pool.forEach((particleElement) => {
+                particleElement.remove();
+            });
+            this.particlePools.delete(zoneId);
         }
     }
 
-    ensureParticlePool(key, size) {
+    ensureParticlePool(zoneId, key, size) {
         const className = key === "lava" ? "lava-particle" : "water-particle";
-        const pool = this.particlePools[key];
+        const pool = this.particlePools.get(zoneId) ?? [];
 
         while (pool.length < size) {
             const particleElement = document.createElement("span");
@@ -341,6 +355,9 @@ export class PhysicsView {
             const particleElement = pool.pop();
             particleElement?.remove();
         }
+
+        this.particlePools.set(zoneId, pool);
+        return pool;
     }
 
     render(physicsModel) {
@@ -348,8 +365,9 @@ export class PhysicsView {
             return;
         }
 
-        this.renderFluid("lava", physicsModel);
-        this.renderFluid("water", physicsModel);
+        physicsModel.fluidZones.forEach((zone) => {
+            this.renderFluidZone(zone, physicsModel);
+        });
         this.renderSolidifiedBlocks(physicsModel);
         this.renderTreasure(physicsModel);
     }
@@ -385,33 +403,32 @@ export class PhysicsView {
         });
     }
 
-    renderFluid(key, physicsModel) {
-        const bodies = physicsModel.dynamicBodies[key];
-        const renderScale = this.getFluidRenderScale(key);
-        const particles = bodies.map((body) => {
-            return {
-                x: body.position.x,
-                y: body.position.y,
-                radius: body.circleRadius * renderScale,
-            };
-        });
-
-        const renderer = this.fluidRenderers[key];
-        const clipRect = physicsModel.fluidContainment[key];
+    renderFluidZone(zone, physicsModel) {
+        const renderScale = this.getFluidRenderScale(zone.key);
+        const particles = zone.bodies.map((body) => ({
+            x: body.position.x,
+            y: body.position.y,
+            radius: body.circleRadius * renderScale,
+        }));
+        const renderer = this.fluidRenderers.get(zone.id);
         const renderedByWebGL = renderer?.render(
             particles,
             physicsModel.renderObstacles,
-            clipRect,
+            zone.containmentRect,
             physicsModel.elapsed,
         );
 
         if (renderedByWebGL) {
+            const pool = this.particlePools.get(zone.id) ?? [];
+            pool.forEach((particleElement) => {
+                particleElement.remove();
+            });
+            this.particlePools.delete(zone.id);
             return;
         }
 
-        this.ensureParticlePool(key, bodies.length);
-        const pool = this.particlePools[key];
-        bodies.forEach((body, index) => {
+        const pool = this.ensureParticlePool(zone.id, zone.key, zone.bodies.length);
+        zone.bodies.forEach((body, index) => {
             const particleElement = pool[index];
 
             if (!particleElement) {
@@ -449,28 +466,22 @@ export class PhysicsView {
     }
 
     destroy() {
-        Object.values(this.fluidRenderers).forEach((renderer) => {
+        for (const renderer of this.fluidRenderers.values()) {
             renderer?.canvas?.remove();
-        });
+        }
 
-        Object.values(this.particlePools).forEach((pool) => {
+        for (const pool of this.particlePools.values()) {
             pool.forEach((particleElement) => {
                 particleElement.remove();
             });
-        });
+        }
 
         this.solidifiedBlockPool.forEach((blockElement) => {
             blockElement.remove();
         });
 
-        this.fluidRenderers = {
-            lava: null,
-            water: null,
-        };
-        this.particlePools = {
-            lava: [],
-            water: [],
-        };
+        this.fluidRenderers = new Map();
+        this.particlePools = new Map();
         this.solidifiedBlockPool = [];
     }
 }
