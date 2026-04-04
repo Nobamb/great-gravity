@@ -73,6 +73,24 @@ body {
     radial-gradient(circle at 50% 100%, #2d112d 0%, #090912 74%);
 }
 
+.stage-shell--stage2 {
+  background:
+    radial-gradient(circle at 49% 84%, rgba(0, 255, 255, 0.08), transparent 14%),
+    radial-gradient(circle at 50% 42%, rgba(255, 36, 18, 0.06), transparent 24%),
+    #020202 !important;
+}
+
+.stage-shell--stage2 .bg-layer {
+  opacity: 0.12;
+  background-image:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03), transparent 35%);
+  background-size: 100% 100%;
+}
+
+.stage-shell--stage2 .ambient-glow {
+  display: none;
+}
+
 .bg-layer {
   position: absolute;
   inset: 0;
@@ -298,28 +316,41 @@ body {
   z-index: 5;
 }
 
+.fluid-zone,
 .lava-fall,
 .ice-water {
   position: absolute;
-  left: calc(62.8% + calc(15 * var(--cw)));
-  width: calc(14.2% - calc(15 * var(--cw)));
   overflow: hidden;
   pointer-events: none;
   z-index: 8;
 }
 
+.lava-fall,
+.ice-water {
+  left: calc(62.8% + calc(15 * var(--cw)));
+  width: calc(14.2% - calc(15 * var(--cw)));
+}
+
+.fluid-zone--lava,
+.lava-fall {
+  background: linear-gradient(to bottom, #ff8768, #ff6248);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.fluid-zone--water,
+.ice-water {
+  background: linear-gradient(to bottom, #4f88e8, #3c78de);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
 .lava-fall {
   top: 25.9%;
   height: 32.1%;
-  background: linear-gradient(to bottom, #ff8768, #ff6248);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .ice-water {
   top: 59.9%;
   height: 24%;
-  background: linear-gradient(to bottom, #4f88e8, #3c78de);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .bottom-bar {
@@ -346,10 +377,11 @@ body {
 
 .goal-location {
   position: absolute;
-  left: 100%;
-  top: 0;
-  width: 300%;
-  height: 100%;
+  left: 77%;
+  top: 58%;
+  width: calc(23% - calc(15 * var(--cw)));
+  height: 1.9%;
+  min-height: calc(14 * var(--cw));
   background: #6d6d6d;
   box-shadow: 0 calc(10 * var(--cw)) calc(20 * var(--cw)) rgba(0, 0, 0, 0.32);
 }
@@ -364,6 +396,217 @@ body {
   z-index: 20;
 }
 
+.stage2-post,
+.stage2-cap,
+.stage2-white-block,
+.stage2-treasure-pocket,
+.stage2-treasure-support {
+  position: absolute;
+  background: #b27a81;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.stage2-floor {
+  position: absolute;
+  left: 0;
+  top: 96.8%;
+  width: 100%;
+  height: 3.2%;
+  opacity: 0;
+}
+
+.stage2-post {
+  top: 9%;
+  width: 2.1%;
+  height: 91%;
+  z-index: 12;
+}
+
+.stage2-cap {
+  top: 9%;
+  width: 28.6%;
+  height: 2.8%;
+  z-index: 12;
+}
+
+.stage2-left-frame.stage2-post--outer {
+  left: 5%;
+}
+
+.stage2-left-frame.stage2-post--inner {
+  left: 31.5%;
+}
+
+.stage2-left-frame.stage2-cap {
+  left: 5%;
+}
+
+.stage2-right-frame.stage2-post--outer {
+  left: 67%;
+}
+
+.stage2-right-frame.stage2-post--inner {
+  left: 93.5%;
+}
+
+.stage2-right-frame.stage2-cap {
+  left: 67%;
+}
+
+.stage2-connector {
+  position: absolute;
+  width: 5.2%;
+  height: 2.8%;
+  background: linear-gradient(to right, #ff170d, #dc2f1f);
+  box-shadow: 0 0 calc(14 * var(--cw)) rgba(255, 35, 13, 0.34);
+  z-index: 9;
+}
+
+.stage2-connector--left-top {
+  left: 31.6%;
+  top: 11.5%;
+}
+
+.stage2-connector--left-mid {
+  left: 31.6%;
+  top: 51.4%;
+}
+
+.stage2-connector--right-top {
+  left: 62.4%;
+  top: 11%;
+}
+
+.stage2-connector--right-mid {
+  left: 62.4%;
+  top: 51%;
+}
+
+.stage2-fluid-zone {
+  position: absolute;
+}
+
+.stage2-fluid-zone--left-lava {
+  left: 7.1%;
+  top: 13%;
+  width: 22.7%;
+  height: 34%;
+}
+
+.stage2-fluid-zone--left-water {
+  left: 7.1%;
+  top: 55.2%;
+  width: 22.7%;
+  height: 19.1%;
+}
+
+.stage2-fluid-zone--right-water {
+  left: 69.1%;
+  top: 13%;
+  width: 22.7%;
+  height: 34%;
+}
+
+.stage2-fluid-zone--right-lava {
+  left: 69.1%;
+  top: 55.2%;
+  width: 22.7%;
+  height: 19.1%;
+}
+
+.stage2-white-block {
+  top: 76.2%;
+  width: 22.7%;
+  height: 2.7%;
+  background: #f2f2f2;
+  box-shadow:
+    0 0 calc(12 * var(--cw)) rgba(255, 255, 255, 0.12),
+    inset 0 calc(-2 * var(--cw)) 0 rgba(0, 0, 0, 0.08);
+}
+
+.stage2-white-block--left {
+  left: 7.1%;
+}
+
+.stage2-white-block--right {
+  left: 69.1%;
+}
+
+.stage2-button-trigger {
+  left: 4.8%;
+  top: 58.8%;
+  width: 3.8%;
+  height: 10.2%;
+  border-radius: calc(4 * var(--cw));
+  background: linear-gradient(to right, #ff1208 0 72%, #cf291f 72% 100%);
+}
+
+.stage2-spawn-pad {
+  left: 41%;
+  top: 92.8%;
+  bottom: auto;
+  width: 24.8%;
+  min-width: 0;
+  height: 5.2%;
+  min-height: 0;
+  border-radius: 0;
+}
+
+.stage2-jump-block {
+  min-width: 0;
+  min-height: 0;
+  height: 5.8%;
+  border-radius: 0;
+}
+
+.stage2-jump-block--low-left {
+  left: 31.7%;
+  top: 72.8%;
+  width: 11%;
+}
+
+.stage2-jump-block--upper-left {
+  left: 31.7%;
+  top: 31.4%;
+  width: 10.5%;
+}
+
+.stage2-jump-block--right {
+  left: 57%;
+  top: 58.2%;
+  width: 12.4%;
+}
+
+.stage2-treasure-pocket {
+  top: 96%;
+  height: 4%;
+  opacity: 0;
+}
+
+.stage2-treasure-pocket--left {
+  left: 69.1%;
+  width: 11%;
+}
+
+.stage2-treasure-pocket--right {
+  left: 82.6%;
+  width: 9.2%;
+}
+
+.stage2-treasure-support {
+  left: 80.6%;
+  top: 80.5%;
+  width: 2.1%;
+  height: 16.3%;
+  z-index: 12;
+}
+
+.stage2-treasure-pile {
+  left: 87.8%;
+  top: 95.8%;
+}
+
+.fluid-zone.physics-fluid,
 .lava-fall.physics-fluid,
 .ice-water.physics-fluid {
   background: transparent;
@@ -676,6 +919,8 @@ body {
 
 .clear-actions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: calc(16 * var(--cw));
   margin-top: calc(2 * var(--cw));
 }
@@ -704,8 +949,16 @@ body {
   background: linear-gradient(to bottom, #18ff33, #00cb17);
 }
 
+.clear-action--next {
+  background: linear-gradient(to bottom, #ffc947, #ff8b1f);
+}
+
 .clear-action--main {
   background: linear-gradient(to bottom, #ff564d, #d91c12);
+}
+
+.clear-action[hidden] {
+  display: none;
 }
 
 .clear-action:disabled {
