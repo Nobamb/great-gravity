@@ -78,6 +78,9 @@ export class StageModel {
         this.triggerSelector = ".trigger-block";
         this.triggerableSelector = '[data-triggerable="true"]';
         this.stoneSourceSelector = '[data-stone-source="true"]';
+        this.timedBlockSelector = '[data-timed-block="true"]';
+        this.cannonSelector = '[data-cannon="true"]';
+        this.monsterSelector = '[data-monster="true"]';
 
         this.domSolids = [];
         this.runtimeSolids = [];
@@ -92,7 +95,11 @@ export class StageModel {
         this.initialTriggerStates = null;
         this.triggers = [];
         this.projectileTriggers = [];
+        this.contactTriggers = [];
         this.stoneSources = [];
+        this.timedBlocks = [];
+        this.cannons = [];
+        this.monsters = [];
         this.dirty = true;
         this.containerRect = container.getBoundingClientRect();
 
@@ -241,13 +248,22 @@ export class StageModel {
                     ),
                     targets: resolvedTargets,
                     isProjectileTrigger: element.dataset.projectileTrigger === "true",
+                    isContactTrigger: element.dataset.contactTrigger === "true",
+                    contactSources: parseTargetIds(element.dataset.contactSources),
                     isUsed,
                 };
             })
             .filter(Boolean);
 
-        this.triggers = resolvedTriggers.filter((trigger) => !trigger.isProjectileTrigger);
-        this.projectileTriggers = resolvedTriggers.filter((trigger) => trigger.isProjectileTrigger);
+        this.triggers = resolvedTriggers.filter(
+            (trigger) => !trigger.isProjectileTrigger && !trigger.isContactTrigger,
+        );
+        this.projectileTriggers = resolvedTriggers.filter(
+            (trigger) => trigger.isProjectileTrigger,
+        );
+        this.contactTriggers = resolvedTriggers.filter(
+            (trigger) => trigger.isContactTrigger,
+        );
         this.stoneSources = Array.from(
             this.container.querySelectorAll(this.stoneSourceSelector),
         ).map((element, index) => ({
@@ -258,10 +274,71 @@ export class StageModel {
                 containerRect,
             ),
         }));
+        this.timedBlocks = Array.from(
+            this.container.querySelectorAll(this.timedBlockSelector),
+        ).map((element, index) => ({
+            id: element.dataset.collapseId || `timed-block-${index}`,
+            element,
+            rect: createRelativeRect(
+                element.getBoundingClientRect(),
+                containerRect,
+            ),
+            isCollapsed:
+                element.dataset.collider === "disabled" ||
+                ["collapsed", "collapsing"].includes(
+                    element.dataset.collapseState || "",
+                ),
+        }));
+        this.cannons = Array.from(
+            this.container.querySelectorAll(this.cannonSelector),
+        ).map((element, index) => {
+            const rect = createRelativeRect(
+                element.getBoundingClientRect(),
+                containerRect,
+            );
+            const seatElement = element.querySelector('[data-cannon-seat="true"]');
+            const muzzleElement = element.querySelector('[data-cannon-muzzle="true"]');
+            const seatRect = seatElement
+                ? createRelativeRect(seatElement.getBoundingClientRect(), containerRect)
+                : rect;
+            const muzzleRect = muzzleElement
+                ? createRelativeRect(muzzleElement.getBoundingClientRect(), containerRect)
+                : rect;
+
+            return {
+                id: element.dataset.cannonId || `cannon-${index}`,
+                element,
+                rect,
+                seatPoint: {
+                    x: seatRect.left + seatRect.width / 2,
+                    y: seatRect.top + seatRect.height / 2,
+                },
+                muzzlePoint: {
+                    x: muzzleRect.left + muzzleRect.width / 2,
+                    y: muzzleRect.top + muzzleRect.height / 2,
+                },
+            };
+        });
+        this.monsters = Array.from(
+            this.container.querySelectorAll(this.monsterSelector),
+        ).map((element, index) => ({
+            id: element.dataset.monsterId || `monster-${index}`,
+            element,
+            rect: createRelativeRect(
+                element.getBoundingClientRect(),
+                containerRect,
+            ),
+            direction:
+                (element.dataset.monsterDirection || "left") === "right" ? 1 : -1,
+        }));
 
         if (!this.initialTriggerStates) {
             this.initialTriggerStates = {
-                triggers: [...this.triggers, ...this.projectileTriggers].map((trigger) => ({
+                triggers: [
+                    ...this.triggers,
+                    ...this.projectileTriggers,
+                    ...this.contactTriggers,
+                ].map((trigger) => ({
                     id: trigger.id,
                     element: trigger.element,
                     triggerUsed: trigger.element.dataset.triggerUsed || null,
@@ -347,7 +424,7 @@ export class StageModel {
         let bestArea = 0;
 
         for (const trigger of this.triggers) {
-            if (trigger.isUsed || trigger.isProjectileTrigger) {
+            if (trigger.isUsed || trigger.isProjectileTrigger || trigger.isContactTrigger) {
                 continue;
             }
 
@@ -372,6 +449,14 @@ export class StageModel {
 
     activateProjectileTrigger(triggerId) {
         const trigger = this.projectileTriggers.find(
+            (item) => item.id === triggerId && !item.isUsed,
+        );
+
+        return this.activateResolvedTrigger(trigger);
+    }
+
+    activateContactTrigger(triggerId) {
+        const trigger = this.contactTriggers.find(
             (item) => item.id === triggerId && !item.isUsed,
         );
 
@@ -423,6 +508,33 @@ export class StageModel {
         };
     }
 
+    expireTimedBlock(timedBlockId) {
+        const timedBlock = this.timedBlocks.find(
+            (item) => item.id === timedBlockId && !item.isCollapsed,
+        );
+
+        if (!timedBlock) {
+            return null;
+        }
+
+        timedBlock.isCollapsed = true;
+        timedBlock.element.dataset.collider = "disabled";
+        timedBlock.element.dataset.collapseState = "collapsing";
+        this.markDirty();
+
+        return {
+            triggerElement: null,
+            animations: [
+                {
+                    targetElement: timedBlock.element,
+                    x: 0,
+                    y: Math.max(timedBlock.rect.height + 18, this.bounds.height * 0.04),
+                },
+            ],
+            durationMs: 280,
+        };
+    }
+
     resetStage() {
         if (!this.initialTriggerStates) {
             return;
@@ -431,8 +543,16 @@ export class StageModel {
         this.clearRuntimeSolids();
         this.clearRuntimeHazards();
 
-        this.triggers?.forEach((trigger) => {
+        [
+            ...(this.triggers ?? []),
+            ...(this.projectileTriggers ?? []),
+            ...(this.contactTriggers ?? []),
+        ].forEach((trigger) => {
             trigger.isUsed = false;
+        });
+
+        this.timedBlocks?.forEach((timedBlock) => {
+            timedBlock.isCollapsed = false;
         });
 
         this.initialTriggerStates.triggers.forEach((state) => {
@@ -548,6 +668,41 @@ export class StageModel {
         source.element.hidden = true;
         source.element.dataset.stoneSourceState = "consumed";
         return true;
+    }
+
+    getStandingTimedBlock(bounds, tolerance = 10) {
+        return this.timedBlocks.find((timedBlock) => {
+            if (
+                timedBlock.isCollapsed ||
+                timedBlock.element.dataset.collider === "disabled"
+            ) {
+                return false;
+            }
+
+            const verticalGap = Math.abs(bounds.bottom - timedBlock.rect.top);
+            const horizontalOverlap =
+                Math.min(bounds.right, timedBlock.rect.right) -
+                Math.max(bounds.left, timedBlock.rect.left);
+
+            return verticalGap <= tolerance && horizontalOverlap > 12;
+        }) ?? null;
+    }
+
+    getNearbyCannon(bounds, padding = 0) {
+        const expandedBounds = expandRect(bounds, padding);
+        let bestMatch = null;
+        let bestArea = 0;
+
+        this.cannons.forEach((cannon) => {
+            const overlapArea = getOverlapArea(expandedBounds, cannon.rect);
+
+            if (overlapArea > bestArea) {
+                bestArea = overlapArea;
+                bestMatch = cannon;
+            }
+        });
+
+        return bestMatch;
     }
 
     destroy() {
