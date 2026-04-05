@@ -234,12 +234,37 @@ function Stage2Layout({
             ></div>
 
             <div className="stage2-throw-stone-anchor" ref={stoneAnchorRef}></div>
-            <div className="throw-stone stage2-throw-stone" ref={stoneRef}></div>
+            <div
+                className="throw-stone stage2-stone-source stage2-stone-source--left"
+                data-stone-source="true"
+                data-stone-source-id="stage2-stone-left"
+            ></div>
+            <div
+                className="throw-stone stage2-stone-source stage2-stone-source--upper-right"
+                data-stone-source="true"
+                data-stone-source-id="stage2-stone-upper-right"
+            ></div>
+            <div className="throw-stone stage2-projectile-stone" ref={stoneRef}></div>
             <svg className="stone-aim-overlay" width="100%" height="100%" aria-hidden="true">
                 <line
                     className="stone-aim-line"
                     data-stone-aim-line
                     ref={stoneAimRef}
+                    hidden
+                ></line>
+                <circle
+                    className="stone-aim-reticle"
+                    data-stone-aim-reticle
+                    hidden
+                ></circle>
+                <line
+                    className="stone-aim-reticle-axis"
+                    data-stone-aim-reticle-axis="horizontal"
+                    hidden
+                ></line>
+                <line
+                    className="stone-aim-reticle-axis"
+                    data-stone-aim-reticle-axis="vertical"
                     hidden
                 ></line>
             </svg>
