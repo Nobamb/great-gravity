@@ -42,6 +42,12 @@ export class PhysicsModel {
             treasure: null,
             stone: null,
         };
+        this.stoneState = "missing";
+        this.stoneSpawnRect = null;
+        this.stoneHeldPosition = null;
+        this.stoneBodyInWorld = false;
+        this.stoneAirborneFrames = 0;
+        this.stoneReleaseOrigin = null;
         this.projectileTriggers = [];
         this.pendingTriggerHits = [];
         this.renderObstacles = [];
@@ -124,6 +130,12 @@ export class PhysicsModel {
             treasure: null,
             stone: null,
         };
+        this.stoneState = "missing";
+        this.stoneSpawnRect = null;
+        this.stoneHeldPosition = null;
+        this.stoneBodyInWorld = false;
+        this.stoneAirborneFrames = 0;
+        this.stoneReleaseOrigin = null;
         this.projectileTriggers = [];
         this.pendingTriggerHits = [];
         this.renderObstacles = [];
@@ -221,10 +233,19 @@ export class PhysicsModel {
                 this.stoneAnchorElement.getBoundingClientRect(),
                 containerRect,
             );
+            this.stoneSpawnRect = stoneRect;
             this.dynamicBodies.stone = this.createStoneBody(stoneRect);
+            this.stoneState = "grounded";
         } else {
             this.dynamicBodies.stone = null;
+            this.stoneSpawnRect = null;
+            this.stoneState = "missing";
         }
+
+        this.stoneHeldPosition = null;
+        this.stoneBodyInWorld = Boolean(this.dynamicBodies.stone);
+        this.stoneAirborneFrames = 0;
+        this.stoneReleaseOrigin = null;
 
         this.addBodies([
             ...this.dynamicBodies.lava,
@@ -258,6 +279,7 @@ export class PhysicsModel {
 
             return {
                 id: element.dataset.triggerId || `projectile-trigger-${index}`,
+                element,
                 rect,
                 isUsed: element.dataset.triggerUsed === "true",
             };
@@ -590,7 +612,30 @@ export class PhysicsModel {
         body.plugin.renderWidth = radius * 2.25;
         body.plugin.renderHeight = radius * 2.25;
         body.plugin.isHeld = false;
+        body.plugin.hasTriggeredProjectile = false;
         return body;
+    }
+
+    addStoneBodyToWorld() {
+        const stoneBody = this.dynamicBodies.stone;
+
+        if (!stoneBody || this.stoneBodyInWorld) {
+            return;
+        }
+
+        this.addBodies([stoneBody]);
+        this.stoneBodyInWorld = true;
+    }
+
+    removeStoneBodyFromWorld() {
+        const stoneBody = this.dynamicBodies.stone;
+
+        if (!stoneBody || !this.stoneBodyInWorld) {
+            return;
+        }
+
+        this.removeBodies([stoneBody]);
+        this.stoneBodyInWorld = false;
     }
 
     step(dt) {
@@ -610,6 +655,7 @@ export class PhysicsModel {
         this.clampFluidVelocities();
         this.removeOffscreenFluidBodies();
         this.detectProjectileTriggerHits();
+        this.updateStoneState();
     }
 
     solidifyFluidContacts() {
@@ -698,7 +744,7 @@ export class PhysicsModel {
     getStoneBounds() {
         const stoneBody = this.dynamicBodies.stone;
 
-        if (!stoneBody) {
+        if (!stoneBody || !this.stoneBodyInWorld) {
             return null;
         }
 
@@ -714,10 +760,25 @@ export class PhysicsModel {
         };
     }
 
+    getStoneState() {
+        return this.stoneState;
+    }
+
+    getHeldStonePosition() {
+        return this.stoneHeldPosition
+            ? { ...this.stoneHeldPosition }
+            : null;
+    }
+
     canPickupStone(characterBounds, padding = 0) {
         const stoneBody = this.dynamicBodies.stone;
 
-        if (!stoneBody || stoneBody.plugin.isHeld) {
+        if (
+            !stoneBody ||
+            !this.stoneBodyInWorld ||
+            this.stoneState !== "grounded" ||
+            stoneBody.plugin.isHeld
+        ) {
             return false;
         }
 
@@ -743,19 +804,34 @@ export class PhysicsModel {
         );
     }
 
-    holdStoneAt(position) {
+    pickupStone(position) {
         const stoneBody = this.dynamicBodies.stone;
 
         if (!stoneBody) {
             return false;
         }
 
-        this.Body.setStatic(stoneBody, true);
+        this.clearStoneProjectileState();
+        this.removeStoneBodyFromWorld();
         this.Body.setVelocity(stoneBody, { x: 0, y: 0 });
         this.Body.setAngularVelocity(stoneBody, 0);
         this.Body.setAngle(stoneBody, 0);
         this.Body.setPosition(stoneBody, position);
         stoneBody.plugin.isHeld = true;
+        stoneBody.plugin.hasTriggeredProjectile = false;
+        this.stoneState = "held";
+        this.stoneHeldPosition = { ...position };
+        this.stoneAirborneFrames = 0;
+        this.stoneReleaseOrigin = null;
+        return true;
+    }
+
+    setHeldStonePosition(position) {
+        if (this.stoneState !== "held") {
+            return false;
+        }
+
+        this.stoneHeldPosition = { ...position };
         return true;
     }
 
@@ -766,18 +842,48 @@ export class PhysicsModel {
             return false;
         }
 
+        this.addStoneBodyToWorld();
         this.Body.setPosition(stoneBody, position);
         this.Body.setStatic(stoneBody, false);
         this.Body.setVelocity(stoneBody, velocity);
         this.Body.setAngularVelocity(stoneBody, velocity.x * 0.045);
         stoneBody.plugin.isHeld = false;
+        stoneBody.plugin.hasTriggeredProjectile = false;
+        this.stoneState = "thrown";
+        this.stoneHeldPosition = null;
+        this.stoneAirborneFrames = 0;
+        this.stoneReleaseOrigin = { ...position };
+        this.pendingTriggerHits = [];
         return true;
+    }
+
+    clearStoneProjectileState() {
+        const stoneBody = this.dynamicBodies.stone;
+
+        this.pendingTriggerHits = [];
+        this.stoneReleaseOrigin = null;
+        this.stoneAirborneFrames = 0;
+
+        if (stoneBody) {
+            stoneBody.plugin.hasTriggeredProjectile = false;
+        }
     }
 
     detectProjectileTriggerHits() {
         const stoneBody = this.dynamicBodies.stone;
 
-        if (!stoneBody || stoneBody.plugin.isHeld || this.projectileTriggers.length === 0) {
+        if (
+            !stoneBody ||
+            !this.stoneBodyInWorld ||
+            this.stoneState !== "thrown" ||
+            stoneBody.plugin.isHeld ||
+            stoneBody.plugin.hasTriggeredProjectile ||
+            this.projectileTriggers.length === 0
+        ) {
+            return;
+        }
+
+        if (this.stoneAirborneFrames < 2) {
             return;
         }
 
@@ -785,14 +891,18 @@ export class PhysicsModel {
             stoneBody.velocity.x ** 2 + stoneBody.velocity.y ** 2,
         );
 
-        if (speed < 2.2) {
+        if (speed < 3.8) {
             return;
         }
 
-        const stoneBounds = this.getStoneBounds();
+        if (this.stoneReleaseOrigin) {
+            const travelDx = stoneBody.position.x - this.stoneReleaseOrigin.x;
+            const travelDy = stoneBody.position.y - this.stoneReleaseOrigin.y;
+            const travelDistance = Math.sqrt(travelDx * travelDx + travelDy * travelDy);
 
-        if (!stoneBounds) {
-            return;
+            if (travelDistance < Math.max(stoneBody.circleRadius * 3.8, 32)) {
+                return;
+            }
         }
 
         this.projectileTriggers.forEach((trigger) => {
@@ -800,20 +910,64 @@ export class PhysicsModel {
                 return;
             }
 
-            const overlaps = !(
-                stoneBounds.right < trigger.rect.left ||
-                stoneBounds.left > trigger.rect.right ||
-                stoneBounds.bottom < trigger.rect.top ||
-                stoneBounds.top > trigger.rect.bottom
-            );
+            const liveRect = trigger.element
+                ? createRelativeRect(
+                    trigger.element.getBoundingClientRect(),
+                    this.container.getBoundingClientRect(),
+                )
+                : trigger.rect;
+            const centerInside =
+                stoneBody.position.x >= liveRect.left &&
+                stoneBody.position.x <= liveRect.right &&
+                stoneBody.position.y >= liveRect.top &&
+                stoneBody.position.y <= liveRect.bottom;
 
-            if (!overlaps) {
+            if (!centerInside) {
                 return;
             }
 
             trigger.isUsed = true;
+            trigger.rect = liveRect;
+            stoneBody.plugin.hasTriggeredProjectile = true;
             this.pendingTriggerHits.push(trigger.id);
         });
+    }
+
+    updateStoneState() {
+        const stoneBody = this.dynamicBodies.stone;
+
+        if (
+            !stoneBody ||
+            !this.stoneBodyInWorld ||
+            this.stoneState === "missing" ||
+            this.stoneState === "held"
+        ) {
+            return;
+        }
+
+        if (this.stoneState !== "thrown") {
+            return;
+        }
+
+        this.stoneAirborneFrames += 1;
+
+        const speed = Math.sqrt(
+            stoneBody.velocity.x ** 2 + stoneBody.velocity.y ** 2,
+        );
+        const spin = Math.abs(stoneBody.angularVelocity);
+
+        if (this.stoneAirborneFrames < 10) {
+            return;
+        }
+
+        if (speed > 1.1 || spin > 0.04) {
+            return;
+        }
+
+        this.Body.setAngularVelocity(stoneBody, 0);
+        this.stoneState = "grounded";
+        this.stoneAirborneFrames = 0;
+        this.stoneReleaseOrigin = null;
     }
 
     consumeTriggerHits() {
@@ -1049,6 +1203,12 @@ export class PhysicsModel {
             treasure: null,
             stone: null,
         };
+        this.stoneState = "missing";
+        this.stoneSpawnRect = null;
+        this.stoneHeldPosition = null;
+        this.stoneBodyInWorld = false;
+        this.stoneAirborneFrames = 0;
+        this.stoneReleaseOrigin = null;
         this.projectileTriggers = [];
         this.pendingTriggerHits = [];
         this.solidifiedRects = [];
