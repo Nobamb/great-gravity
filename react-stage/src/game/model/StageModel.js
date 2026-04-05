@@ -93,6 +93,7 @@ export class StageModel {
             height: 0,
         };
         this.initialTriggerStates = null;
+        this.allTriggers = [];
         this.triggers = [];
         this.projectileTriggers = [];
         this.contactTriggers = [];
@@ -247,6 +248,9 @@ export class StageModel {
                         containerRect,
                     ),
                     targets: resolvedTargets,
+                    supportsInteract:
+                        element.dataset.interactTrigger !== "false" &&
+                        element.dataset.contactTrigger !== "true",
                     isProjectileTrigger: element.dataset.projectileTrigger === "true",
                     isContactTrigger: element.dataset.contactTrigger === "true",
                     contactSources: parseTargetIds(element.dataset.contactSources),
@@ -255,8 +259,9 @@ export class StageModel {
             })
             .filter(Boolean);
 
+        this.allTriggers = resolvedTriggers;
         this.triggers = resolvedTriggers.filter(
-            (trigger) => !trigger.isProjectileTrigger && !trigger.isContactTrigger,
+            (trigger) => trigger.supportsInteract,
         );
         this.projectileTriggers = resolvedTriggers.filter(
             (trigger) => trigger.isProjectileTrigger,
@@ -335,9 +340,7 @@ export class StageModel {
         if (!this.initialTriggerStates) {
             this.initialTriggerStates = {
                 triggers: [
-                    ...this.triggers,
-                    ...this.projectileTriggers,
-                    ...this.contactTriggers,
+                    ...this.allTriggers,
                 ].map((trigger) => ({
                     id: trigger.id,
                     element: trigger.element,
@@ -424,7 +427,7 @@ export class StageModel {
         let bestArea = 0;
 
         for (const trigger of this.triggers) {
-            if (trigger.isUsed || trigger.isProjectileTrigger || trigger.isContactTrigger) {
+            if (trigger.isUsed || !trigger.supportsInteract) {
                 continue;
             }
 
@@ -544,9 +547,7 @@ export class StageModel {
         this.clearRuntimeHazards();
 
         [
-            ...(this.triggers ?? []),
-            ...(this.projectileTriggers ?? []),
-            ...(this.contactTriggers ?? []),
+            ...(this.allTriggers ?? []),
         ].forEach((trigger) => {
             trigger.isUsed = false;
         });
