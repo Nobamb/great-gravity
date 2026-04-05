@@ -11,6 +11,8 @@ function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
 
+const TIMED_BLOCK_DURATION_MS = 1000;
+
 function createNeutralInput(input) {
     return {
         ...input,
@@ -280,7 +282,7 @@ export class GameController {
 
             if (timedBlock.isActive && timedBlock.startTimeMs !== null) {
                 progress = clamp(
-                    (this.elapsedTimeMs - timedBlock.startTimeMs) / 5000,
+                    (this.elapsedTimeMs - timedBlock.startTimeMs) / TIMED_BLOCK_DURATION_MS,
                     0,
                     1,
                 );
@@ -395,7 +397,7 @@ export class GameController {
                 return;
             }
 
-            if (this.elapsedTimeMs - timedState.startTimeMs < 5000) {
+            if (this.elapsedTimeMs - timedState.startTimeMs < TIMED_BLOCK_DURATION_MS) {
                 return;
             }
 
@@ -488,9 +490,25 @@ export class GameController {
         }
 
         const velocity = this.getCannonLaunchVelocity(muzzlePoint, pointerPosition);
+        const speed = Math.hypot(velocity.x, velocity.y);
+        const direction = speed > 0
+            ? { x: velocity.x / speed, y: velocity.y / speed }
+            : { x: 0, y: -1 };
+        const launchOffset = Math.max(
+            this.characterModel.width * 0.6,
+            this.characterModel.height * 0.45,
+            18 * this.characterModel.physicsScale,
+        );
+
         this.characterModel.launch({
-            x: muzzlePoint.x - this.characterModel.width / 2,
-            y: muzzlePoint.y - this.characterModel.height / 2,
+            x:
+                muzzlePoint.x +
+                direction.x * launchOffset -
+                this.characterModel.width / 2,
+            y:
+                muzzlePoint.y +
+                direction.y * launchOffset -
+                this.characterModel.height / 2,
             vx: velocity.x,
             vy: velocity.y,
         });
@@ -501,19 +519,28 @@ export class GameController {
         const dx = pointerPoint.x - muzzlePoint.x;
         const dy = pointerPoint.y - muzzlePoint.y;
         const dragDistance = Math.sqrt(dx * dx + dy * dy);
-        const strength = clamp(dragDistance, 30, 420);
-        const baseScale = 0.18;
-        const strengthScale = strength / 140;
+        const safeDistance = Math.max(dragDistance, 1);
+        const normalizedStrength = clamp((dragDistance - 30) / 390, 0, 1);
+        const launchSpeed =
+            (620 + normalizedStrength * 420) * this.characterModel.physicsScale;
 
         return {
-            x: clamp(dx * baseScale * strengthScale, -38, 38),
-            y: clamp(dy * baseScale * strengthScale, -42, 28),
+            x: (dx / safeDistance) * launchSpeed,
+            y: (dy / safeDistance) * launchSpeed,
         };
     }
 
     handleContactTriggerHits() {
         const characterBounds = this.characterModel.getBounds();
         const stoneBounds = this.physicsController?.getStoneBounds?.() ?? null;
+        const solidifiedBounds = (
+            this.physicsController?.getSolidifiedBlocks?.() ?? []
+        ).map((block) => ({
+            left: block.left,
+            top: block.top,
+            right: block.left + block.width,
+            bottom: block.top + block.height,
+        }));
 
         this.stageModel.contactTriggers.forEach((trigger) => {
             if (trigger.isUsed) {
@@ -532,8 +559,11 @@ export class GameController {
             const touchedByLava =
                 sources.includes("lava") &&
                 this.stageModel.hazards.some((hazard) => intersects(hazard, trigger.rect));
+            const touchedBySolidified =
+                sources.includes("solidified") &&
+                solidifiedBounds.some((block) => intersects(block, trigger.rect));
 
-            if (!touchedByCharacter && !touchedByStone && !touchedByLava) {
+            if (!touchedByCharacter && !touchedByStone && !touchedByLava && !touchedBySolidified) {
                 return;
             }
 
@@ -867,8 +897,12 @@ export class GameController {
             }
 
             if (pointer.isDown) {
+                const releasePoint = this.getStoneReleasePoint(
+                    carryPoint,
+                    pointerPosition,
+                );
                 this.stoneAim = {
-                    start: carryPoint,
+                    start: releasePoint,
                     end: pointerPosition,
                 };
             } else if (!pointer.justReleased) {
@@ -889,13 +923,18 @@ export class GameController {
                 return;
             }
 
-            const throwVelocity = this.getStoneThrowVelocity(
+            const releasePoint = this.getStoneReleasePoint(
                 carryPoint,
                 pointerPosition,
             );
+            const throwVelocity = this.getStoneThrowVelocity({
+                origin: releasePoint,
+                target: pointerPosition,
+                dragDistance: this.getPointerDistance(carryPoint, pointerPosition),
+            });
 
             this.physicsController.throwStone({
-                position: carryPoint,
+                position: releasePoint,
                 velocity: throwVelocity,
             });
             return;
@@ -922,19 +961,31 @@ export class GameController {
         };
     }
 
-    getStoneThrowVelocity(carryPoint, pointerPoint) {
+    getStoneReleasePoint(carryPoint, pointerPoint) {
         const dx = pointerPoint.x - carryPoint.x;
         const dy = pointerPoint.y - carryPoint.y;
-        const dragDistance = Math.sqrt(dx * dx + dy * dy);
-        const strength = clamp(dragDistance, 24, 280);
-        const scale = 0.12;
-        const baseX = dx * scale;
-        const baseY = dy * scale;
-        const extraScale = strength / 150;
+        const distance = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+        const releaseOffset = Math.max(
+            12,
+            this.stageModel.bounds.width * 0.012,
+        );
 
         return {
-            x: clamp(baseX * extraScale, -24, 24),
-            y: clamp(baseY * extraScale, -24, 20),
+            x: carryPoint.x + (dx / distance) * releaseOffset,
+            y: carryPoint.y + (dy / distance) * releaseOffset,
+        };
+    }
+
+    getStoneThrowVelocity({ origin, target, dragDistance = null }) {
+        const dx = target.x - origin.x;
+        const dy = target.y - origin.y;
+        const distance = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+        const strength = clamp(dragDistance ?? distance, 24, 280);
+        const launchSpeed = clamp(strength * 0.12, 4, 34);
+
+        return {
+            x: (dx / distance) * launchSpeed,
+            y: (dy / distance) * launchSpeed,
         };
     }
 
