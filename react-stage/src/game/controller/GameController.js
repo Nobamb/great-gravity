@@ -432,12 +432,18 @@ export class GameController {
     }
 
     getStoneCarryPoint() {
+        const viewOrigin = this.gameView?.getStoneAimOrigin?.();
+
+        if (viewOrigin) {
+            return viewOrigin;
+        }
+
         const bounds = this.characterModel.getBounds();
-        const offsetX = bounds.width * 0.08 * this.characterModel.facing;
+        const offsetX = bounds.width * 0.04 * this.characterModel.facing;
 
         return {
             x: bounds.left + bounds.width / 2 + offsetX,
-            y: bounds.top - Math.max(bounds.height * 0.26, 18),
+            y: bounds.top - Math.max(bounds.height * 0.38, 24),
         };
     }
 
@@ -445,15 +451,15 @@ export class GameController {
         const dx = pointerPoint.x - carryPoint.x;
         const dy = pointerPoint.y - carryPoint.y;
         const dragDistance = Math.sqrt(dx * dx + dy * dy);
-        const strength = clamp(dragDistance, 18, 260);
-        const scale = 0.11;
+        const strength = clamp(dragDistance, 24, 280);
+        const scale = 0.12;
         const baseX = dx * scale;
         const baseY = dy * scale;
-        const extraScale = strength / 155;
+        const extraScale = strength / 150;
 
         return {
-            x: clamp(baseX * extraScale, -22, 22),
-            y: clamp(baseY * extraScale, -22, 18),
+            x: clamp(baseX * extraScale, -24, 24),
+            y: clamp(baseY * extraScale, -24, 20),
         };
     }
 
