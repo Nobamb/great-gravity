@@ -195,3 +195,9 @@ stage2-fluid-divider--right, stage2-fluid-divider--left 모두 trigger-block이 
 ### 10-3. 지금 보면은 조금 수정해볼 부분들이 있어
 
 일단 캐릭터 근처에 있는 stage3-timed-block 바로 밑에 있는 stage3-left-floor stage3-frame 부분 있잖아(맨 밑에 있는 용암과 물을 받쳐주는 블록 말고 용암과 물 위에 있는 블록) 그 블록을 삭제를 해주었으면 좋겠어 그리고 trigger-block은 e키를 누르는 방식 말고도 돌을 던져서 맞추면 trigger-block이 동작해서 부모 요소까지 삭제하는 느낌으로 가면 좋겠고, stage3-right-chamber stage3-frame stage3-frame--right-outer(몬스터 위치 기준 왼쪽에 있는 블록)랑 stage3-right-chamber-mid stage3-frame(몬스터 위치 기준 오른쪽에 있는 블록) 안에 자식 요소로 trigger-block을 추가해야 되는데 지금 보면은 바깥에 trigger-block이 있거든, 그 부분 수정해서 몬스터 위치 기준 왼쪽, 오른쪽에 있는 블록들 모두 stage3-right-floor stage3-frame(몬스터가 밟고 있는 블록)의 바닥까지 높이를 지정하고, trigger-block은 그 아래에 위치하게 하면 좋겠어 그리고 빨간 버튼(stage3-contact-button)도 물 속에 잠길 수 있도록 해서 용암이랑 물 모두 블록으로 막혀있는 공간 내에서는 꽉 채워주었으면 좋겠어
+
+
+
+### 10-4. 캐논 기능 제대로 넣는 것이라던가 그외에 요소들 수정 좀 진행해보자
+
+stage3-timed-block의 지속시간을 5초에서 1초로 줄여, 그리고 stage3-mid-vertical-block stage3-frame에 있는 trigger-block은 왼쪽에 위에서부터 아래로 3개의 solidified-block를 추가해줘, 일단 trigger-block을 돌로 맞춰서 없애도록 의도적으로 그렇게 설계할 거고(그렇다고 e를 클릭했을 때 trigger-block이 사라지는 기능을 삭제하지는 마), jump-block stage3-jump-block stage3-jump-block--low이 블록도 타이머 블록으로 변경해, stage3-right-lava-shelf stage3-frame는 아예 삭제 진행하고 stage3-right-water-shelf stage3-frame의 자식요소로 해서 왼쪽에도 가로 20px의 trigger-block을 추가해 stage3-right-chamber stage3-frame stage3-frame--right-outer랑 stage3-right-chamber-mid stage3-frame에 있는 trigger-block의 높이도 30px로 지정해 그리고 캐논을 사용할 때 캐릭터가 날아가지 않는 버그가 발생하는데 이 부분도 수정해
