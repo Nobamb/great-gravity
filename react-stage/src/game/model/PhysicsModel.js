@@ -835,6 +835,27 @@ export class PhysicsModel {
         return true;
     }
 
+    consumeStone({ keepPendingHits = false } = {}) {
+        const stoneBody = this.dynamicBodies.stone;
+
+        if (stoneBody) {
+            this.Body.setVelocity(stoneBody, { x: 0, y: 0 });
+            this.Body.setAngularVelocity(stoneBody, 0);
+            stoneBody.plugin.isHeld = false;
+            stoneBody.plugin.hasTriggeredProjectile = false;
+        }
+
+        this.removeStoneBodyFromWorld();
+        this.stoneState = "missing";
+        this.stoneHeldPosition = null;
+        this.stoneAirborneFrames = 0;
+        this.stoneReleaseOrigin = null;
+
+        if (!keepPendingHits) {
+            this.pendingTriggerHits = [];
+        }
+    }
+
     throwStone({ position, velocity }) {
         const stoneBody = this.dynamicBodies.stone;
 
@@ -891,7 +912,7 @@ export class PhysicsModel {
             stoneBody.velocity.x ** 2 + stoneBody.velocity.y ** 2,
         );
 
-        if (speed < 3.8) {
+        if (speed < 2.2) {
             return;
         }
 
@@ -900,7 +921,7 @@ export class PhysicsModel {
             const travelDy = stoneBody.position.y - this.stoneReleaseOrigin.y;
             const travelDistance = Math.sqrt(travelDx * travelDx + travelDy * travelDy);
 
-            if (travelDistance < Math.max(stoneBody.circleRadius * 3.8, 32)) {
+            if (travelDistance < Math.max(stoneBody.circleRadius * 2.2, 18)) {
                 return;
             }
         }
@@ -930,6 +951,7 @@ export class PhysicsModel {
             trigger.rect = liveRect;
             stoneBody.plugin.hasTriggeredProjectile = true;
             this.pendingTriggerHits.push(trigger.id);
+            this.consumeStone({ keepPendingHits: true });
         });
     }
 
@@ -964,10 +986,7 @@ export class PhysicsModel {
             return;
         }
 
-        this.Body.setAngularVelocity(stoneBody, 0);
-        this.stoneState = "grounded";
-        this.stoneAirborneFrames = 0;
-        this.stoneReleaseOrigin = null;
+        this.consumeStone();
     }
 
     consumeTriggerHits() {
