@@ -42,6 +42,8 @@ function normalizeSolidRect(rect) {
         right: rect.left + rect.width,
         bottom: rect.top + rect.height,
         effect: rect.effect || null,
+        isAnchored: rect.isAnchored === true,
+        velocityY: rect.velocityY ?? 0,
     };
 }
 
@@ -81,10 +83,12 @@ export class StageModel {
         this.timedBlockSelector = '[data-timed-block="true"]';
         this.cannonSelector = '[data-cannon="true"]';
         this.monsterSelector = '[data-monster="true"]';
+        this.initialSolidifiedSelector = '[data-solidified-block="true"]';
 
         this.domSolids = [];
         this.runtimeSolids = [];
         this.runtimeHazards = [];
+        this.initialSolidifiedBlocks = [];
         this.solids = [];
         this.hazards = [];
         this.ladders = [];
@@ -102,6 +106,7 @@ export class StageModel {
         this.cannons = [];
         this.monsters = [];
         this.dirty = true;
+        this.shouldSeedInitialSolidifiedBlocks = true;
         this.containerRect = container.getBoundingClientRect();
 
         this.markDirty = this.markDirty.bind(this);
@@ -152,6 +157,21 @@ export class StageModel {
             });
         });
 
+        this.initialSolidifiedBlocks = Array.from(
+            this.container.querySelectorAll(this.initialSolidifiedSelector),
+        ).map((element, index) => {
+            const rect = createRelativeRect(
+                element.getBoundingClientRect(),
+                containerRect,
+            );
+
+            return normalizeSolidRect({
+                id: element.dataset.solidifiedId || `initial-solidified-${index}`,
+                ...rect,
+                isAnchored: element.dataset.solidifiedAnchored === "true",
+            });
+        });
+
         if (
             previousWidth > 0 &&
             previousHeight > 0 &&
@@ -167,6 +187,7 @@ export class StageModel {
                     top: solid.top * scaleY,
                     width: solid.width * scaleX,
                     height: solid.height * scaleY,
+                    velocityY: (solid.velocityY ?? 0) * scaleY,
                 }),
             );
             this.runtimeHazards = this.runtimeHazards.map((hazard) =>
@@ -180,6 +201,13 @@ export class StageModel {
                     id: hazard.id,
                 }),
             );
+        }
+
+        if (this.shouldSeedInitialSolidifiedBlocks) {
+            this.runtimeSolids = this.initialSolidifiedBlocks.map((solid) =>
+                normalizeSolidRect(solid),
+            );
+            this.shouldSeedInitialSolidifiedBlocks = false;
         }
 
         this.rebuildSolidList();
@@ -545,6 +573,7 @@ export class StageModel {
 
         this.clearRuntimeSolids();
         this.clearRuntimeHazards();
+        this.shouldSeedInitialSolidifiedBlocks = true;
 
         [
             ...(this.allTriggers ?? []),
