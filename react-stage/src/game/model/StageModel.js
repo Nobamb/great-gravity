@@ -90,6 +90,7 @@ export class StageModel {
         };
         this.initialTriggerStates = null;
         this.triggers = [];
+        this.projectileTriggers = [];
         this.dirty = true;
         this.containerRect = container.getBoundingClientRect();
 
@@ -199,7 +200,7 @@ export class StageModel {
             triggerableTargets.map((target) => [target.id, target]),
         );
 
-        this.triggers = Array.from(
+        const resolvedTriggers = Array.from(
             this.container.querySelectorAll(this.triggerSelector),
         )
             .map((element, index) => {
@@ -237,14 +238,18 @@ export class StageModel {
                         containerRect,
                     ),
                     targets: resolvedTargets,
+                    isProjectileTrigger: element.dataset.projectileTrigger === "true",
                     isUsed,
                 };
             })
             .filter(Boolean);
 
+        this.triggers = resolvedTriggers.filter((trigger) => !trigger.isProjectileTrigger);
+        this.projectileTriggers = resolvedTriggers.filter((trigger) => trigger.isProjectileTrigger);
+
         if (!this.initialTriggerStates) {
             this.initialTriggerStates = {
-                triggers: this.triggers.map((trigger) => ({
+                triggers: [...this.triggers, ...this.projectileTriggers].map((trigger) => ({
                     id: trigger.id,
                     element: trigger.element,
                     triggerUsed: trigger.element.dataset.triggerUsed || null,
@@ -324,7 +329,7 @@ export class StageModel {
         let bestArea = 0;
 
         for (const trigger of this.triggers) {
-            if (trigger.isUsed) {
+            if (trigger.isUsed || trigger.isProjectileTrigger) {
                 continue;
             }
 
@@ -344,6 +349,18 @@ export class StageModel {
             (item) => item.id === triggerId && !item.isUsed,
         );
 
+        return this.activateResolvedTrigger(trigger);
+    }
+
+    activateProjectileTrigger(triggerId) {
+        const trigger = this.projectileTriggers.find(
+            (item) => item.id === triggerId && !item.isUsed,
+        );
+
+        return this.activateResolvedTrigger(trigger);
+    }
+
+    activateResolvedTrigger(trigger) {
         if (!trigger) {
             return null;
         }
