@@ -9,7 +9,8 @@ function TriggerBlock({
     triggerId,
     triggerDirection,
     triggerTargets,
-    projectileTrigger = false,
+    projectileTrigger = true,
+    interactTrigger = true,
 }) {
     return (
         <div
@@ -18,6 +19,7 @@ function TriggerBlock({
             data-trigger-direction={triggerDirection}
             data-trigger-targets={triggerTargets}
             data-projectile-trigger={projectileTrigger ? "true" : undefined}
+            data-interact-trigger={interactTrigger ? undefined : "false"}
         ></div>
     );
 }
@@ -207,6 +209,7 @@ function Stage2Layout({
                 triggerDirection="top"
                 triggerTargets="stage2-left-white,stage2-right-white"
                 projectileTrigger={true}
+                interactTrigger={false}
             />
             <div className="stage2-button-trigger" aria-hidden="true"></div>
 
@@ -291,14 +294,13 @@ function Stage3Layout({
             <div className="stage3-left-tower stage3-frame" data-collider="solid"></div>
             <div className="stage3-left-tower stage3-frame stage3-frame--right" data-collider="solid"></div>
             <div className="stage3-left-tower-cap stage3-frame" data-collider="solid"></div>
-            <div className="stage3-left-tower-divider stage3-frame" data-collider="solid" id="stage3-left-tower-divider"></div>
-            <div className="trigger-block trigger-block--right stage3-left-tower-divider-trigger" data-trigger="true" data-trigger-id="stage3-divider-trigger" data-trigger-direction="right" data-trigger-targets="stage3-left-tower-divider"></div>
+            <div className="stage3-left-tower-divider stage3-frame" data-collider="solid" data-triggerable="true" data-collapse-id="stage3-left-tower-divider" id="stage3-left-tower-divider"></div>
+            <div className="trigger-block trigger-block--right stage3-left-tower-divider-trigger" data-trigger="true" data-trigger-id="stage3-divider-trigger" data-trigger-direction="right" data-trigger-targets="stage3-left-tower-divider" data-projectile-trigger="true"></div>
             <div className="stage3-timed-block stage3-timed-block--upper" data-collider="solid" data-triggerable="true" data-timed-block="true" data-collapse-id="stage3-timed-block-upper"></div>
             <div className="stage3-stone-anchor stage3-stone-anchor--upper"></div>
             <div className="stage3-stone-source throw-stone stage3-stone-source--upper" data-stone-source="true" data-stone-source-id="stage3-stone-upper"></div>
             <div className="throw-stone stage3-projectile-stone stage3-projectile-stone--upper"></div>
             <div className="stage3-left-shaft stage3-frame" data-collider="solid"></div>
-            <div className="stage3-left-floor stage3-frame" data-collider="solid"></div>
             <div className="stage3-left-bottom-floor stage3-frame" data-collider="solid"></div>
 
             <div
@@ -322,8 +324,8 @@ function Stage3Layout({
                 data-timed-block="true"
                 data-collapse-id="stage3-timed-block"
             ></div>
-            <div className="stage3-mid-vertical-block stage3-frame" data-collider="solid" id="stage3-mid-vertical-block">
-                <div className="trigger-block trigger-block--top stage3-mid-vertical-trigger" data-trigger="true" data-trigger-id="stage3-mid-vertical-trigger" data-trigger-direction="top" data-trigger-targets="stage3-mid-vertical-block"></div>
+            <div className="stage3-mid-vertical-block stage3-frame" data-collider="solid" data-triggerable="true" data-collapse-id="stage3-mid-vertical-block" id="stage3-mid-vertical-block">
+                <div className="trigger-block trigger-block--top stage3-mid-vertical-trigger" data-trigger="true" data-trigger-id="stage3-mid-vertical-trigger" data-trigger-direction="top" data-trigger-targets="stage3-mid-vertical-block" data-projectile-trigger="true"></div>
             </div>
             <div
                 className="jump-block stage3-jump-block stage3-jump-block--low"
@@ -368,10 +370,12 @@ function Stage3Layout({
                 <div className="stage3-cannon-wheel stage3-cannon-wheel--right"></div>
             </div>
 
-            <div className="stage3-right-chamber stage3-frame stage3-frame--right-outer" data-collider="solid" id="stage3-right-chamber-outer"></div>
-            <div className="trigger-block trigger-block--bottom stage3-right-chamber-trigger--left" data-trigger="true" data-trigger-id="stage3-right-chamber-outer-trigger" data-trigger-direction="bottom" data-trigger-targets="stage3-right-chamber-outer"></div>
-            <div className="stage3-right-chamber-mid stage3-frame" data-collider="solid" id="stage3-right-chamber-mid"></div>
-            <div className="trigger-block trigger-block--bottom stage3-right-chamber-trigger--mid" data-trigger="true" data-trigger-id="stage3-right-chamber-mid-trigger" data-trigger-direction="bottom" data-trigger-targets="stage3-right-chamber-mid"></div>
+            <div className="stage3-right-chamber stage3-frame stage3-frame--right-outer" data-collider="solid" data-triggerable="true" data-collapse-id="stage3-right-chamber-outer" id="stage3-right-chamber-outer">
+                <div className="trigger-block trigger-block--bottom stage3-right-chamber-trigger--left" data-trigger="true" data-trigger-id="stage3-right-chamber-outer-trigger" data-trigger-direction="bottom" data-trigger-targets="stage3-right-chamber-outer" data-projectile-trigger="true"></div>
+            </div>
+            <div className="stage3-right-chamber-mid stage3-frame" data-collider="solid" data-triggerable="true" data-collapse-id="stage3-right-chamber-mid" id="stage3-right-chamber-mid">
+                <div className="trigger-block trigger-block--bottom stage3-right-chamber-trigger--mid" data-trigger="true" data-trigger-id="stage3-right-chamber-mid-trigger" data-trigger-direction="bottom" data-trigger-targets="stage3-right-chamber-mid" data-projectile-trigger="true"></div>
+            </div>
             <div className="stage3-right-chamber stage3-frame stage3-frame--right-inner" data-collider="solid"></div>
             <div className="stage3-right-chamber-cap stage3-frame" data-collider="solid"></div>
             <div className="stage3-right-water-shelf stage3-frame" data-collider="solid"></div>
