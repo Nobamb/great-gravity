@@ -278,6 +278,152 @@ function Stage2Layout({
     );
 }
 
+function Stage3Layout({
+    treasureRef,
+    treasureAnchorRef,
+    stoneRef,
+    stoneAnchorRef,
+    stoneAimRef,
+}) {
+    return (
+        <>
+            <div className="stage3-left-wall" data-collider="solid"></div>
+            <div className="stage3-left-tower stage3-frame" data-collider="solid"></div>
+            <div className="stage3-left-tower stage3-frame stage3-frame--right" data-collider="solid"></div>
+            <div className="stage3-left-tower-cap stage3-frame" data-collider="solid"></div>
+            <div className="stage3-left-tower-divider stage3-frame" data-collider="solid"></div>
+            <div className="stage3-left-shaft stage3-frame" data-collider="solid"></div>
+            <div className="stage3-left-floor stage3-frame" data-collider="solid"></div>
+
+            <div
+                className="stage3-fluid-zone stage3-fluid-zone--left-lava fluid-zone fluid-zone--lava"
+                data-fluid-type="lava"
+                data-fluid-id="stage3-left-lava"
+            ></div>
+            <div
+                className="stage3-fluid-zone stage3-fluid-zone--left-water fluid-zone fluid-zone--water"
+                data-fluid-type="water"
+                data-fluid-id="stage3-left-water"
+            ></div>
+            <div className="stage3-left-bottom-lava fluid-zone fluid-zone--lava" data-fluid-type="lava" data-fluid-id="stage3-bottom-lava"></div>
+            <div className="stage3-left-bottom-water fluid-zone fluid-zone--water" data-fluid-type="water" data-fluid-id="stage3-bottom-water"></div>
+
+            <div className="spawn-pad stage3-spawn-pad" data-collider="solid" data-spawn="player"></div>
+            <div
+                className="stage3-timed-block"
+                data-collider="solid"
+                data-triggerable="true"
+                data-timed-block="true"
+                data-collapse-id="stage3-timed-block"
+            ></div>
+            <div
+                className="jump-block stage3-jump-block stage3-jump-block--low"
+                data-collider="solid"
+                data-effect="jump-boost"
+            ></div>
+            <div
+                className="jump-block stage3-jump-block stage3-jump-block--mid"
+                data-collider="solid"
+                data-effect="jump-boost"
+            ></div>
+
+            <div className="stage3-main-platform stage3-frame" data-collider="solid"></div>
+
+            <div className="stage3-stone-anchor" ref={stoneAnchorRef}></div>
+            <div
+                className="stage3-stone-source throw-stone"
+                data-stone-source="true"
+                data-stone-source-id="stage3-stone-left"
+            ></div>
+            <div className="throw-stone stage3-projectile-stone" ref={stoneRef}></div>
+
+            <div
+                className="trigger-block stage3-contact-hitbox"
+                data-contact-trigger="true"
+                data-trigger-id="stage3-white-gate-trigger"
+                data-trigger-direction="top"
+                data-trigger-targets="stage3-white-gate"
+                data-contact-sources="character,stone,lava"
+            ></div>
+            <div className="stage3-contact-button" aria-hidden="true"></div>
+
+            <div
+                className="stage3-cannon"
+                data-cannon="true"
+                data-cannon-id="stage3-main-cannon"
+            >
+                <div className="stage3-cannon-seat" data-cannon-seat="true"></div>
+                <div className="stage3-cannon-barrel" data-cannon-muzzle="true"></div>
+                <div className="stage3-cannon-wheel stage3-cannon-wheel--left"></div>
+                <div className="stage3-cannon-wheel stage3-cannon-wheel--right"></div>
+            </div>
+
+            <div className="stage3-right-chamber stage3-frame stage3-frame--right-outer" data-collider="solid"></div>
+            <div className="stage3-right-chamber stage3-frame stage3-frame--right-inner" data-collider="solid"></div>
+            <div className="stage3-right-chamber-cap stage3-frame" data-collider="solid"></div>
+            <div className="stage3-right-water-shelf stage3-frame" data-collider="solid"></div>
+            <div className="stage3-right-lava-shelf stage3-frame" data-collider="solid"></div>
+            <div className="stage3-right-floor stage3-frame" data-collider="solid"></div>
+
+            <div
+                className="stage3-fluid-zone stage3-fluid-zone--right-water fluid-zone fluid-zone--water"
+                data-fluid-type="water"
+                data-fluid-id="stage3-right-water"
+            ></div>
+            <div
+                className="stage3-fluid-zone stage3-fluid-zone--right-lava fluid-zone fluid-zone--lava"
+                data-fluid-type="lava"
+                data-fluid-id="stage3-right-lava"
+            ></div>
+
+            <div
+                className="stage3-white-gate"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage3-white-gate"
+            ></div>
+
+            <div
+                className="stage3-monster"
+                data-monster="true"
+                data-monster-id="stage3-guardian"
+                data-monster-direction="left"
+            >
+                <div className="stage3-monster-eye"></div>
+                <div className="stage3-monster-teeth"></div>
+            </div>
+
+            <div className="stage3-treasure-base stage3-frame" data-collider="solid"></div>
+            <div className="stage3-treasure-anchor" ref={treasureAnchorRef}></div>
+            <TreasurePile ref={treasureRef} className="stage3-treasure-pile" />
+
+            <svg className="stone-aim-overlay" width="100%" height="100%" aria-hidden="true">
+                <line
+                    className="stone-aim-line"
+                    data-stone-aim-line
+                    ref={stoneAimRef}
+                    hidden
+                ></line>
+                <circle
+                    className="stone-aim-reticle"
+                    data-stone-aim-reticle
+                    hidden
+                ></circle>
+                <line
+                    className="stone-aim-reticle-axis"
+                    data-stone-aim-reticle-axis="horizontal"
+                    hidden
+                ></line>
+                <line
+                    className="stone-aim-reticle-axis"
+                    data-stone-aim-reticle-axis="vertical"
+                    hidden
+                ></line>
+            </svg>
+        </>
+    );
+}
+
 function renderStageLayout(
     stageId,
     treasureRef,
@@ -287,6 +433,16 @@ function renderStageLayout(
     stoneAimRef,
 ) {
     switch (stageId) {
+        case "stage3":
+            return (
+                <Stage3Layout
+                    treasureRef={treasureRef}
+                    treasureAnchorRef={treasureAnchorRef}
+                    stoneRef={stoneRef}
+                    stoneAnchorRef={stoneAnchorRef}
+                    stoneAimRef={stoneAimRef}
+                />
+            );
         case "stage2":
             return (
                 <Stage2Layout
