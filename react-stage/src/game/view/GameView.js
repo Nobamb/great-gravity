@@ -25,6 +25,12 @@ export class GameView {
       heldStoneElement ?? this.characterElement?.querySelector(".held-stone") ?? null;
     this.stoneAimElement =
       stoneAimElement ?? this.containerElement?.querySelector("[data-stone-aim-line]") ?? null;
+    this.stoneAimReticleElement =
+      this.containerElement?.querySelector("[data-stone-aim-reticle]") ?? null;
+    this.stoneAimReticleHorizontalElement =
+      this.containerElement?.querySelector('[data-stone-aim-reticle-axis="horizontal"]') ?? null;
+    this.stoneAimReticleVerticalElement =
+      this.containerElement?.querySelector('[data-stone-aim-reticle-axis="vertical"]') ?? null;
     this.activeTriggerElement = null;
     this.collapseTimers = new Map();
     this.boundRetryClick = null;
@@ -197,12 +203,7 @@ export class GameView {
     }
 
     if (!stoneAim?.start || !stoneAim?.end) {
-      this.stoneAimElement.setAttribute("hidden", "");
-      this.stoneAimElement.style.display = "none";
-      this.stoneAimElement.setAttribute("x1", "0");
-      this.stoneAimElement.setAttribute("y1", "0");
-      this.stoneAimElement.setAttribute("x2", "0");
-      this.stoneAimElement.setAttribute("y2", "0");
+      this.resetStoneAimVisuals();
       return;
     }
 
@@ -212,6 +213,72 @@ export class GameView {
     this.stoneAimElement.setAttribute("y1", `${stoneAim.start.y}`);
     this.stoneAimElement.setAttribute("x2", `${stoneAim.end.x}`);
     this.stoneAimElement.setAttribute("y2", `${stoneAim.end.y}`);
+
+    const reticleRadius = Math.max(this.measureCharacter().width * 0.36, 12);
+    const axisLength = reticleRadius * 0.55;
+
+    if (this.stoneAimReticleElement) {
+      this.stoneAimReticleElement.removeAttribute("hidden");
+      this.stoneAimReticleElement.style.display = "block";
+      this.stoneAimReticleElement.setAttribute("cx", `${stoneAim.end.x}`);
+      this.stoneAimReticleElement.setAttribute("cy", `${stoneAim.end.y}`);
+      this.stoneAimReticleElement.setAttribute("r", `${reticleRadius}`);
+    }
+
+    if (this.stoneAimReticleHorizontalElement) {
+      this.stoneAimReticleHorizontalElement.removeAttribute("hidden");
+      this.stoneAimReticleHorizontalElement.style.display = "block";
+      this.stoneAimReticleHorizontalElement.setAttribute("x1", `${stoneAim.end.x - axisLength}`);
+      this.stoneAimReticleHorizontalElement.setAttribute("y1", `${stoneAim.end.y}`);
+      this.stoneAimReticleHorizontalElement.setAttribute("x2", `${stoneAim.end.x + axisLength}`);
+      this.stoneAimReticleHorizontalElement.setAttribute("y2", `${stoneAim.end.y}`);
+    }
+
+    if (this.stoneAimReticleVerticalElement) {
+      this.stoneAimReticleVerticalElement.removeAttribute("hidden");
+      this.stoneAimReticleVerticalElement.style.display = "block";
+      this.stoneAimReticleVerticalElement.setAttribute("x1", `${stoneAim.end.x}`);
+      this.stoneAimReticleVerticalElement.setAttribute("y1", `${stoneAim.end.y - axisLength}`);
+      this.stoneAimReticleVerticalElement.setAttribute("x2", `${stoneAim.end.x}`);
+      this.stoneAimReticleVerticalElement.setAttribute("y2", `${stoneAim.end.y + axisLength}`);
+    }
+  }
+
+  resetStoneAimVisuals() {
+    if (this.stoneAimElement) {
+      this.stoneAimElement.setAttribute("hidden", "");
+      this.stoneAimElement.style.display = "none";
+      this.stoneAimElement.setAttribute("x1", "0");
+      this.stoneAimElement.setAttribute("y1", "0");
+      this.stoneAimElement.setAttribute("x2", "0");
+      this.stoneAimElement.setAttribute("y2", "0");
+    }
+
+    if (this.stoneAimReticleElement) {
+      this.stoneAimReticleElement.setAttribute("hidden", "");
+      this.stoneAimReticleElement.style.display = "none";
+      this.stoneAimReticleElement.setAttribute("cx", "0");
+      this.stoneAimReticleElement.setAttribute("cy", "0");
+      this.stoneAimReticleElement.setAttribute("r", "0");
+    }
+
+    if (this.stoneAimReticleHorizontalElement) {
+      this.stoneAimReticleHorizontalElement.setAttribute("hidden", "");
+      this.stoneAimReticleHorizontalElement.style.display = "none";
+      this.stoneAimReticleHorizontalElement.setAttribute("x1", "0");
+      this.stoneAimReticleHorizontalElement.setAttribute("y1", "0");
+      this.stoneAimReticleHorizontalElement.setAttribute("x2", "0");
+      this.stoneAimReticleHorizontalElement.setAttribute("y2", "0");
+    }
+
+    if (this.stoneAimReticleVerticalElement) {
+      this.stoneAimReticleVerticalElement.setAttribute("hidden", "");
+      this.stoneAimReticleVerticalElement.style.display = "none";
+      this.stoneAimReticleVerticalElement.setAttribute("x1", "0");
+      this.stoneAimReticleVerticalElement.setAttribute("y1", "0");
+      this.stoneAimReticleVerticalElement.setAttribute("x2", "0");
+      this.stoneAimReticleVerticalElement.setAttribute("y2", "0");
+    }
   }
 
   animateTriggerResult({ triggerElement, animations = [], durationMs }) {
@@ -283,12 +350,7 @@ export class GameView {
       });
 
     if (this.stoneAimElement) {
-      this.stoneAimElement.setAttribute("hidden", "");
-      this.stoneAimElement.style.display = "none";
-      this.stoneAimElement.setAttribute("x1", "0");
-      this.stoneAimElement.setAttribute("y1", "0");
-      this.stoneAimElement.setAttribute("x2", "0");
-      this.stoneAimElement.setAttribute("y2", "0");
+      this.resetStoneAimVisuals();
     }
 
     if (this.heldStoneElement) {
@@ -325,12 +387,7 @@ export class GameView {
     this.activeTriggerElement?.classList.remove("is-interactable");
     this.activeTriggerElement = null;
     if (this.stoneAimElement) {
-      this.stoneAimElement.setAttribute("hidden", "");
-      this.stoneAimElement.style.display = "none";
-      this.stoneAimElement.setAttribute("x1", "0");
-      this.stoneAimElement.setAttribute("y1", "0");
-      this.stoneAimElement.setAttribute("x2", "0");
-      this.stoneAimElement.setAttribute("y2", "0");
+      this.resetStoneAimVisuals();
     }
     if (this.heldStoneElement) {
       this.heldStoneElement.hidden = true;
