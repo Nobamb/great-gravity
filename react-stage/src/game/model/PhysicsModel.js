@@ -235,7 +235,7 @@ export class PhysicsModel {
             );
             this.stoneSpawnRect = stoneRect;
             this.dynamicBodies.stone = this.createStoneBody(stoneRect);
-            this.stoneState = "grounded";
+            this.stoneState = "missing";
         } else {
             this.dynamicBodies.stone = null;
             this.stoneSpawnRect = null;
@@ -243,7 +243,7 @@ export class PhysicsModel {
         }
 
         this.stoneHeldPosition = null;
-        this.stoneBodyInWorld = Boolean(this.dynamicBodies.stone);
+        this.stoneBodyInWorld = false;
         this.stoneAirborneFrames = 0;
         this.stoneReleaseOrigin = null;
 
@@ -251,7 +251,6 @@ export class PhysicsModel {
             ...this.dynamicBodies.lava,
             ...this.dynamicBodies.water,
             this.dynamicBodies.treasure,
-            this.dynamicBodies.stone,
         ]);
 
         this.elapsed = 0;
@@ -474,6 +473,16 @@ export class PhysicsModel {
         return true;
     }
 
+    removeSolidifiedBlockById(blockId) {
+        if (!this.solidifiedCellKeys.has(blockId)) {
+            return false;
+        }
+
+        this.solidifiedRects = this.solidifiedRects.filter((solid) => solid.id !== blockId);
+        this.solidifiedCellKeys.delete(blockId);
+        return true;
+    }
+
     updateFluidContainment(solids) {
         this.fluidZones.forEach((zone) => {
             const origin = zone.originRect;
@@ -655,6 +664,7 @@ export class PhysicsModel {
         this.clampFluidVelocities();
         this.removeOffscreenFluidBodies();
         this.detectProjectileTriggerHits();
+        this.detectSolidifiedBlockHits();
         this.updateStoneState();
     }
 
@@ -953,6 +963,38 @@ export class PhysicsModel {
             this.pendingTriggerHits.push(trigger.id);
             this.consumeStone({ keepPendingHits: true });
         });
+    }
+
+    detectSolidifiedBlockHits() {
+        const stoneBody = this.dynamicBodies.stone;
+
+        if (
+            !stoneBody ||
+            !this.stoneBodyInWorld ||
+            this.stoneState !== "thrown" ||
+            this.solidifiedRects.length === 0
+        ) {
+            return;
+        }
+
+        const stoneBounds = this.getStoneBounds();
+
+        if (!stoneBounds) {
+            return;
+        }
+
+        const hitBlock = this.solidifiedRects.find((block) => !(
+            stoneBounds.right < block.left ||
+            stoneBounds.left > block.right ||
+            stoneBounds.bottom < block.top ||
+            stoneBounds.top > block.bottom
+        ));
+
+        if (!hitBlock) {
+            return;
+        }
+
+        this.removeSolidifiedBlockById(hitBlock.id);
     }
 
     updateStoneState() {
