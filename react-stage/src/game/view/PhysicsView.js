@@ -473,6 +473,16 @@ export class PhysicsView {
             return;
         }
 
+        const stoneState = physicsModel.getStoneState?.() ?? "grounded";
+        this.stoneElement.hidden = stoneState === "held";
+
+        this.stoneElement.classList.toggle("is-airborne", stoneState === "thrown");
+        this.stoneElement.classList.remove("is-held-ui");
+
+        if (stoneState === "held") {
+            return;
+        }
+
         const stoneBody = physicsModel.dynamicBodies.stone;
 
         if (!stoneBody) {
