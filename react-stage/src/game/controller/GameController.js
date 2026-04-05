@@ -335,13 +335,36 @@ export class GameController {
     }
 
     handleStoneAutoPickup() {
-        if (this.getStoneState() !== "grounded") {
+        const stoneState = this.getStoneState();
+
+        if (stoneState === "held" || stoneState === "thrown") {
+            return;
+        }
+
+        const pickupPadding = Math.max(12, this.stageModel.bounds.width * 0.012);
+        const source = this.stageModel.getOverlappingStoneSource(
+            this.characterModel.getBounds(),
+            pickupPadding,
+        );
+
+        if (source) {
+            const carryPoint = this.getStoneCarryPoint();
+            this.stageModel.consumeStoneSource(source.id);
+            this.physicsController.pickupStone(carryPoint);
+            this.physicsController.setHeldStonePosition(carryPoint);
+            this.isDraggingStone = false;
+            this.isPreparingStoneThrow = false;
+            this.stoneAim = null;
+            return;
+        }
+
+        if (stoneState !== "grounded") {
             return;
         }
 
         const canPickup = this.physicsController?.canPickupStone?.(
             this.characterModel.getBounds(),
-            Math.max(12, this.stageModel.bounds.width * 0.012),
+            pickupPadding,
         );
 
         if (!canPickup) {
