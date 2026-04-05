@@ -1,5 +1,5 @@
 export class GameView {
-  constructor(characterElement) {
+  constructor(characterElement, { heldStoneElement = null, stoneAimElement = null } = {}) {
     this.containerElement = characterElement.parentElement;
     this.characterElement = characterElement;
     this.timerElement =
@@ -17,6 +17,12 @@ export class GameView {
     this.clearStarMasks = Array.from(
       this.clearOverlayElement?.querySelectorAll(".clear-star-mask") ?? [],
     );
+    this.worldStoneElement =
+      this.containerElement?.querySelector(".throw-stone") ?? null;
+    this.heldStoneElement =
+      heldStoneElement ?? this.characterElement?.querySelector(".held-stone") ?? null;
+    this.stoneAimElement =
+      stoneAimElement ?? this.containerElement?.querySelector("[data-stone-aim-line]") ?? null;
     this.activeTriggerElement = null;
     this.collapseTimers = new Map();
     this.boundRetryClick = null;
@@ -113,6 +119,8 @@ export class GameView {
             "is-throwing",
             Boolean(interaction.isDraggingStone),
         );
+        this.renderHeldStone(interaction.heldStone ?? null);
+        this.renderStoneAim(interaction.stoneAim ?? null);
 
         if (
             this.activeTriggerElement &&
@@ -126,6 +134,52 @@ export class GameView {
     if (this.activeTriggerElement) {
       this.activeTriggerElement.classList.add("is-interactable");
     }
+  }
+
+  renderHeldStone(heldStone) {
+    if (!this.heldStoneElement) {
+      return;
+    }
+
+    const isHeld = Boolean(heldStone?.position);
+
+    this.heldStoneElement.hidden = !isHeld;
+    this.heldStoneElement.classList.toggle("is-held-ui", isHeld);
+    this.heldStoneElement.classList.toggle("is-carried", isHeld);
+
+    if (!isHeld) {
+      this.heldStoneElement.style.left = "";
+      this.heldStoneElement.style.top = "";
+      this.heldStoneElement.style.transform = "";
+      return;
+    }
+
+    this.heldStoneElement.style.left = "";
+    this.heldStoneElement.style.top = "";
+    this.heldStoneElement.style.transform = "";
+  }
+
+  renderStoneAim(stoneAim) {
+    if (!this.stoneAimElement) {
+      return;
+    }
+
+    if (!stoneAim?.start || !stoneAim?.end) {
+      this.stoneAimElement.setAttribute("hidden", "");
+      this.stoneAimElement.style.display = "none";
+      this.stoneAimElement.setAttribute("x1", "0");
+      this.stoneAimElement.setAttribute("y1", "0");
+      this.stoneAimElement.setAttribute("x2", "0");
+      this.stoneAimElement.setAttribute("y2", "0");
+      return;
+    }
+
+    this.stoneAimElement.removeAttribute("hidden");
+    this.stoneAimElement.style.display = "block";
+    this.stoneAimElement.setAttribute("x1", `${stoneAim.start.x}`);
+    this.stoneAimElement.setAttribute("y1", `${stoneAim.start.y}`);
+    this.stoneAimElement.setAttribute("x2", `${stoneAim.end.x}`);
+    this.stoneAimElement.setAttribute("y2", `${stoneAim.end.y}`);
   }
 
   animateTriggerResult({ triggerElement, animations = [], durationMs }) {
@@ -196,6 +250,23 @@ export class GameView {
         element.classList.remove("is-used", "is-interactable");
       });
 
+    if (this.stoneAimElement) {
+      this.stoneAimElement.setAttribute("hidden", "");
+      this.stoneAimElement.style.display = "none";
+      this.stoneAimElement.setAttribute("x1", "0");
+      this.stoneAimElement.setAttribute("y1", "0");
+      this.stoneAimElement.setAttribute("x2", "0");
+      this.stoneAimElement.setAttribute("y2", "0");
+    }
+
+    if (this.heldStoneElement) {
+      this.heldStoneElement.hidden = true;
+      this.heldStoneElement.classList.remove("is-held-ui", "is-carried", "is-airborne");
+      this.heldStoneElement.style.left = "";
+      this.heldStoneElement.style.top = "";
+      this.heldStoneElement.style.transform = "";
+    }
+
     // Trigger 블록이 죽은 직후에도 완전히 초기 위치/상태로 되돌아오도록 레이아웃을 확정합니다.
     void this.containerElement.offsetWidth;
 
@@ -221,6 +292,21 @@ export class GameView {
     this.collapseTimers.clear();
     this.activeTriggerElement?.classList.remove("is-interactable");
     this.activeTriggerElement = null;
+    if (this.stoneAimElement) {
+      this.stoneAimElement.setAttribute("hidden", "");
+      this.stoneAimElement.style.display = "none";
+      this.stoneAimElement.setAttribute("x1", "0");
+      this.stoneAimElement.setAttribute("y1", "0");
+      this.stoneAimElement.setAttribute("x2", "0");
+      this.stoneAimElement.setAttribute("y2", "0");
+    }
+    if (this.heldStoneElement) {
+      this.heldStoneElement.hidden = true;
+      this.heldStoneElement.classList.remove("is-held-ui", "is-carried", "is-airborne");
+      this.heldStoneElement.style.left = "";
+      this.heldStoneElement.style.top = "";
+      this.heldStoneElement.style.transform = "";
+    }
     this.boundRetryClick = null;
     this.boundNextClick = null;
   }
