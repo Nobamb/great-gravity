@@ -104,6 +104,17 @@ export class CharacterModel {
         };
     }
 
+    launch({ x = this.x, y = this.y, vx = 0, vy = 0 } = {}) {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.onGround = false;
+        this.onLadder = false;
+        this.isClimbing = false;
+        this.groundEffect = null;
+    }
+
     /**
      * 설전된 스폰 위치로 캐릭터를 즉시 이동시킵니다.
      */
