@@ -55,11 +55,15 @@ export class PhysicsModel {
         this.renderObstaclePadding = 2;
         this.solidifiedRects = [];
         this.solidifiedCellKeys = new Set();
+        this.staticSolidRects = [];
+        this.solidifiedIdCounter = 0;
         this.solidifyConfig = {
             maxBlocksPerStep: 6,
             contactRatio: 1.08,
             removalPaddingRatio: 0.58,
             friction: 0.92,
+            gravity: 880,
+            maxFallSpeed: 520,
         };
 
         this.fluidConfigs = {
@@ -142,6 +146,8 @@ export class PhysicsModel {
         this.elapsed = 0;
         this.solidifiedRects = [];
         this.solidifiedCellKeys = new Set();
+        this.staticSolidRects = [];
+        this.solidifiedIdCounter = 0;
     }
 
     initialize(stageModel) {
@@ -268,6 +274,14 @@ export class PhysicsModel {
     rebuildStaticBodies(stageModel) {
         this.removeBodies(this.staticBodies);
         const physicsSolids = stageModel.domSolids ?? stageModel.solids;
+        this.staticSolidRects = physicsSolids.map((solid) => ({
+            left: solid.left,
+            top: solid.top,
+            width: solid.width,
+            height: solid.height,
+            right: solid.left + solid.width,
+            bottom: solid.top + solid.height,
+        }));
         this.projectileTriggers = Array.from(
             this.container.querySelectorAll('[data-projectile-trigger="true"]'),
         ).map((element, index) => {
@@ -353,6 +367,8 @@ export class PhysicsModel {
             right: solid.left + solid.width,
             bottom: solid.top + solid.height,
             effect: solid.effect || null,
+            isAnchored: solid.isAnchored === true,
+            velocityY: solid.velocityY ?? 0,
         }));
         this.solidifiedCellKeys = new Set(
             this.solidifiedRects.map((solid) => solid.id),
@@ -458,6 +474,17 @@ export class PhysicsModel {
     }
 
     addSolidifiedBlock(rect) {
+        const overlapsExistingBlock = this.solidifiedRects.some((solid) => !(
+            rect.right <= solid.left ||
+            rect.left >= solid.right ||
+            rect.bottom <= solid.top ||
+            rect.top >= solid.bottom
+        ));
+
+        if (overlapsExistingBlock) {
+            return false;
+        }
+
         if (this.solidifiedCellKeys.has(rect.id)) {
             return false;
         }
@@ -481,6 +508,78 @@ export class PhysicsModel {
         this.solidifiedRects = this.solidifiedRects.filter((solid) => solid.id !== blockId);
         this.solidifiedCellKeys.delete(blockId);
         return true;
+    }
+
+    updateSolidifiedBlockPhysics(dt) {
+        if (this.solidifiedRects.length === 0) {
+            return;
+        }
+
+        const anchoredBlocks = this.solidifiedRects
+            .filter((block) => block.isAnchored)
+            .map((block) => ({
+                left: block.left,
+                top: block.top,
+                right: block.right,
+                bottom: block.bottom,
+            }));
+        const settledDynamicBlocks = [];
+        const blocks = [...this.solidifiedRects].sort((a, b) => b.top - a.top);
+
+        blocks.forEach((block) => {
+            if (block.isAnchored) {
+                block.velocityY = 0;
+                return;
+            }
+
+            const nextVelocityY = Math.min(
+                (block.velocityY ?? 0) + (this.solidifyConfig.gravity * dt),
+                this.solidifyConfig.maxFallSpeed,
+            );
+            let nextTop = block.top + (nextVelocityY * dt);
+            let nextBottom = nextTop + block.height;
+            let resolvedVelocityY = nextVelocityY;
+            let supportTop = Number.POSITIVE_INFINITY;
+
+            const supports = [
+                ...this.staticSolidRects,
+                ...anchoredBlocks,
+                ...settledDynamicBlocks,
+            ];
+
+            supports.forEach((support) => {
+                const horizontalOverlap =
+                    block.left < support.right - 2 &&
+                    block.right > support.left + 2;
+                const startsAbove = block.bottom <= support.top + 4;
+
+                if (!horizontalOverlap || !startsAbove) {
+                    return;
+                }
+
+                if (nextBottom >= support.top && support.top < supportTop) {
+                    supportTop = support.top;
+                }
+            });
+
+            if (supportTop !== Number.POSITIVE_INFINITY) {
+                nextTop = supportTop - block.height;
+                nextBottom = supportTop;
+                resolvedVelocityY = 0;
+            }
+
+            block.top = nextTop;
+            block.bottom = nextBottom;
+            block.right = block.left + block.width;
+            block.velocityY = resolvedVelocityY;
+
+            settledDynamicBlocks.push({
+                left: block.left,
+                top: block.top,
+                right: block.right,
+                bottom: block.bottom,
+            });
+        });
     }
 
     updateFluidContainment(solids) {
@@ -661,6 +760,7 @@ export class PhysicsModel {
 
         this.Engine.update(this.engine, dt * 1000);
         this.solidifyFluidContacts();
+        this.updateSolidifiedBlockPhysics(dt);
         this.clampFluidVelocities();
         this.removeOffscreenFluidBodies();
         this.detectProjectileTriggerHits();
@@ -693,6 +793,10 @@ export class PhysicsModel {
                 const centerX = (waterBody.position.x + lavaBody.position.x) / 2;
                 const centerY = (waterBody.position.y + lavaBody.position.y) / 2;
                 const solidRect = this.getSolidifiedRectForPoint(centerX, centerY);
+                solidRect.id = `solidified-fluid-${this.solidifiedIdCounter}`;
+                this.solidifiedIdCounter += 1;
+                solidRect.isAnchored = false;
+                solidRect.velocityY = 0;
 
                 if (this.addSolidifiedBlock(solidRect)) {
                     createdBlocks += 1;
@@ -713,6 +817,8 @@ export class PhysicsModel {
             width: solid.width,
             height: solid.height,
             effect: solid.effect || null,
+            isAnchored: solid.isAnchored === true,
+            velocityY: solid.velocityY ?? 0,
         }));
     }
 
@@ -902,6 +1008,7 @@ export class PhysicsModel {
 
     detectProjectileTriggerHits() {
         const stoneBody = this.dynamicBodies.stone;
+        const stoneBounds = this.getStoneBounds();
 
         if (
             !stoneBody ||
@@ -909,7 +1016,8 @@ export class PhysicsModel {
             this.stoneState !== "thrown" ||
             stoneBody.plugin.isHeld ||
             stoneBody.plugin.hasTriggeredProjectile ||
-            this.projectileTriggers.length === 0
+            this.projectileTriggers.length === 0 ||
+            !stoneBounds
         ) {
             return;
         }
@@ -947,13 +1055,24 @@ export class PhysicsModel {
                     this.container.getBoundingClientRect(),
                 )
                 : trigger.rect;
-            const centerInside =
-                stoneBody.position.x >= liveRect.left &&
-                stoneBody.position.x <= liveRect.right &&
-                stoneBody.position.y >= liveRect.top &&
-                stoneBody.position.y <= liveRect.bottom;
+            const radius = stoneBody.circleRadius;
+            const previousCenterX = stoneBody.position.x - stoneBody.velocity.x;
+            const previousCenterY = stoneBody.position.y - stoneBody.velocity.y;
+            const sweptBounds = {
+                left: Math.min(stoneBounds.left, previousCenterX - radius),
+                top: Math.min(stoneBounds.top, previousCenterY - radius),
+                right: Math.max(stoneBounds.right, previousCenterX + radius),
+                bottom: Math.max(stoneBounds.bottom, previousCenterY + radius),
+            };
+            const triggerPadding = Math.max(stoneBody.circleRadius * 0.35, 4);
+            const overlapsTrigger = !(
+                sweptBounds.right < liveRect.left - triggerPadding ||
+                sweptBounds.left > liveRect.right + triggerPadding ||
+                sweptBounds.bottom < liveRect.top - triggerPadding ||
+                sweptBounds.top > liveRect.bottom + triggerPadding
+            );
 
-            if (!centerInside) {
+            if (!overlapsTrigger) {
                 return;
             }
 
