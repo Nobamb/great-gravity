@@ -31,6 +31,30 @@ export class GameView {
       this.containerElement?.querySelector('[data-stone-aim-reticle-axis="horizontal"]') ?? null;
     this.stoneAimReticleVerticalElement =
       this.containerElement?.querySelector('[data-stone-aim-reticle-axis="vertical"]') ?? null;
+    this.monsterElements = new Map(
+      Array.from(this.containerElement?.querySelectorAll("[data-monster='true']") ?? []).map(
+        (element) => [element.dataset.monsterId, element],
+      ),
+    );
+    this.monsterBasePositions = new Map(
+      Array.from(this.monsterElements.entries()).map(([id, element]) => [
+        id,
+        {
+          left: element.offsetLeft,
+          top: element.offsetTop,
+        },
+      ]),
+    );
+    this.timedBlockElements = new Map(
+      Array.from(this.containerElement?.querySelectorAll("[data-timed-block='true']") ?? []).map(
+        (element) => [element.dataset.collapseId, element],
+      ),
+    );
+    this.cannonElements = new Map(
+      Array.from(this.containerElement?.querySelectorAll("[data-cannon='true']") ?? []).map(
+        (element) => [element.dataset.cannonId, element],
+      ),
+    );
     this.activeTriggerElement = null;
     this.collapseTimers = new Map();
     this.boundRetryClick = null;
@@ -44,6 +68,18 @@ export class GameView {
       width: rect.width,
       height: rect.height,
     };
+  }
+
+  refreshStageAnchors() {
+    this.monsterBasePositions = new Map(
+      Array.from(this.monsterElements.entries()).map(([id, element]) => [
+        id,
+        {
+          left: element.offsetLeft,
+          top: element.offsetTop,
+        },
+      ]),
+    );
   }
 
   bindControls({ onRetry, onNextStage } = {}) {
@@ -129,6 +165,9 @@ export class GameView {
         );
         this.renderHeldStone(interaction.heldStone ?? null);
         this.renderStoneAim(interaction.stoneAim ?? null);
+        this.renderTimedBlocks(interaction.timedBlocks ?? []);
+        this.renderMonsters(interaction.monsters ?? []);
+        this.renderCannonState(interaction.cannonState ?? null);
 
         if (
             this.activeTriggerElement &&
@@ -281,17 +320,68 @@ export class GameView {
     }
   }
 
-  animateTriggerResult({ triggerElement, animations = [], durationMs }) {
-    if (!triggerElement) {
+  renderTimedBlocks(timedBlocks) {
+    this.timedBlockElements.forEach((element) => {
+      element.classList.remove("is-ticking");
+      element.style.removeProperty("--timed-progress");
+    });
+
+    timedBlocks.forEach(({ id, progress = 0, isActive = false }) => {
+      const element = this.timedBlockElements.get(id);
+
+      if (!element) {
+        return;
+      }
+
+      element.style.setProperty("--timed-progress", `${progress}`);
+      element.classList.toggle("is-ticking", isActive);
+    });
+  }
+
+  renderMonsters(monsters) {
+    this.monsterElements.forEach((element) => {
+      element.classList.remove("is-alert", "is-dead", "is-facing-left");
+      element.style.transform = "";
+    });
+
+    monsters.forEach((monster) => {
+      const element = this.monsterElements.get(monster.id);
+
+      if (!element) {
+        return;
+      }
+
+      const basePosition = this.monsterBasePositions.get(monster.id) ?? {
+        left: 0,
+        top: 0,
+      };
+      const scaleX = monster.direction < 0 ? -1 : 1;
+      element.style.transform = `translate3d(${monster.x - basePosition.left}px, ${monster.y - basePosition.top}px, 0) scaleX(${scaleX})`;
+      element.classList.toggle("is-alert", monster.isAlert && !monster.isDead);
+      element.classList.toggle("is-dead", monster.isDead);
+    });
+  }
+
+  renderCannonState(cannonState) {
+    this.cannonElements.forEach((element) => {
+      element.classList.remove("is-aiming");
+    });
+
+    if (!cannonState?.id) {
       return;
     }
 
-    if (this.activeTriggerElement === triggerElement) {
+    const element = this.cannonElements.get(cannonState.id);
+    element?.classList.toggle("is-aiming", Boolean(cannonState.isAiming));
+  }
+
+  animateTriggerResult({ triggerElement, animations = [], durationMs }) {
+    if (triggerElement && this.activeTriggerElement === triggerElement) {
       triggerElement.classList.remove("is-interactable");
       this.activeTriggerElement = null;
     }
 
-    triggerElement.classList.add("is-used");
+    triggerElement?.classList.add("is-used");
 
     animations.forEach(({ targetElement, x, y }) => {
       if (!targetElement) {
@@ -361,6 +451,20 @@ export class GameView {
       this.heldStoneElement.style.transform = "";
     }
 
+    this.monsterElements.forEach((element) => {
+      element.classList.remove("is-alert", "is-dead", "is-facing-left");
+      element.style.transform = "";
+    });
+
+    this.timedBlockElements.forEach((element) => {
+      element.classList.remove("is-ticking");
+      element.style.removeProperty("--timed-progress");
+    });
+
+    this.cannonElements.forEach((element) => {
+      element.classList.remove("is-aiming");
+    });
+
     // Trigger 블록이 죽은 직후에도 완전히 초기 위치/상태로 되돌아오도록 레이아웃을 확정합니다.
     void this.containerElement.offsetWidth;
 
@@ -396,6 +500,17 @@ export class GameView {
       this.heldStoneElement.style.top = "";
       this.heldStoneElement.style.transform = "";
     }
+    this.monsterElements.forEach((element) => {
+      element.classList.remove("is-alert", "is-dead", "is-facing-left");
+      element.style.transform = "";
+    });
+    this.timedBlockElements.forEach((element) => {
+      element.classList.remove("is-ticking");
+      element.style.removeProperty("--timed-progress");
+    });
+    this.cannonElements.forEach((element) => {
+      element.classList.remove("is-aiming");
+    });
     this.boundRetryClick = null;
     this.boundNextClick = null;
   }
