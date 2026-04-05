@@ -291,9 +291,15 @@ function Stage3Layout({
             <div className="stage3-left-tower stage3-frame" data-collider="solid"></div>
             <div className="stage3-left-tower stage3-frame stage3-frame--right" data-collider="solid"></div>
             <div className="stage3-left-tower-cap stage3-frame" data-collider="solid"></div>
-            <div className="stage3-left-tower-divider stage3-frame" data-collider="solid"></div>
+            <div className="stage3-left-tower-divider stage3-frame" data-collider="solid" id="stage3-left-tower-divider"></div>
+            <div className="trigger-block trigger-block--right stage3-left-tower-divider-trigger" data-trigger="true" data-trigger-id="stage3-divider-trigger" data-trigger-direction="right" data-trigger-targets="stage3-left-tower-divider"></div>
+            <div className="stage3-timed-block stage3-timed-block--upper" data-collider="solid" data-triggerable="true" data-timed-block="true" data-collapse-id="stage3-timed-block-upper"></div>
+            <div className="stage3-stone-anchor stage3-stone-anchor--upper"></div>
+            <div className="stage3-stone-source throw-stone stage3-stone-source--upper" data-stone-source="true" data-stone-source-id="stage3-stone-upper"></div>
+            <div className="throw-stone stage3-projectile-stone stage3-projectile-stone--upper"></div>
             <div className="stage3-left-shaft stage3-frame" data-collider="solid"></div>
             <div className="stage3-left-floor stage3-frame" data-collider="solid"></div>
+            <div className="stage3-left-bottom-floor stage3-frame" data-collider="solid"></div>
 
             <div
                 className="stage3-fluid-zone stage3-fluid-zone--left-lava fluid-zone fluid-zone--lava"
@@ -316,6 +322,8 @@ function Stage3Layout({
                 data-timed-block="true"
                 data-collapse-id="stage3-timed-block"
             ></div>
+            <div className="stage3-mid-vertical-block stage3-frame" data-collider="solid" id="stage3-mid-vertical-block"></div>
+            <div className="trigger-block trigger-block--bottom stage3-mid-vertical-trigger" data-trigger="true" data-trigger-id="stage3-mid-vertical-trigger" data-trigger-direction="bottom" data-trigger-targets="stage3-mid-vertical-block"></div>
             <div
                 className="jump-block stage3-jump-block stage3-jump-block--low"
                 data-collider="solid"
@@ -358,7 +366,10 @@ function Stage3Layout({
                 <div className="stage3-cannon-wheel stage3-cannon-wheel--right"></div>
             </div>
 
-            <div className="stage3-right-chamber stage3-frame stage3-frame--right-outer" data-collider="solid"></div>
+            <div className="stage3-right-chamber stage3-frame stage3-frame--right-outer" data-collider="solid" id="stage3-right-chamber-outer"></div>
+            <div className="trigger-block trigger-block--bottom stage3-right-chamber-trigger--left" data-trigger="true" data-trigger-id="stage3-right-chamber-outer-trigger" data-trigger-direction="bottom" data-trigger-targets="stage3-right-chamber-outer"></div>
+            <div className="stage3-right-chamber-mid stage3-frame" data-collider="solid" id="stage3-right-chamber-mid"></div>
+            <div className="trigger-block trigger-block--bottom stage3-right-chamber-trigger--mid" data-trigger="true" data-trigger-id="stage3-right-chamber-mid-trigger" data-trigger-direction="bottom" data-trigger-targets="stage3-right-chamber-mid"></div>
             <div className="stage3-right-chamber stage3-frame stage3-frame--right-inner" data-collider="solid"></div>
             <div className="stage3-right-chamber-cap stage3-frame" data-collider="solid"></div>
             <div className="stage3-right-water-shelf stage3-frame" data-collider="solid"></div>
