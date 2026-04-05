@@ -299,7 +299,6 @@ function Stage3Layout({
             <div className="stage3-timed-block stage3-timed-block--upper" data-collider="solid" data-triggerable="true" data-timed-block="true" data-collapse-id="stage3-timed-block-upper"></div>
             <div className="stage3-stone-anchor stage3-stone-anchor--upper"></div>
             <div className="stage3-stone-source throw-stone stage3-stone-source--upper" data-stone-source="true" data-stone-source-id="stage3-stone-upper"></div>
-            <div className="throw-stone stage3-projectile-stone stage3-projectile-stone--upper"></div>
             <div className="stage3-left-shaft stage3-frame" data-collider="solid"></div>
             <div className="stage3-left-bottom-floor stage3-frame" data-collider="solid"></div>
 
@@ -328,9 +327,33 @@ function Stage3Layout({
                 <div className="trigger-block trigger-block--top stage3-mid-vertical-trigger" data-trigger="true" data-trigger-id="stage3-mid-vertical-trigger" data-trigger-direction="top" data-trigger-targets="stage3-mid-vertical-block" data-projectile-trigger="true"></div>
             </div>
             <div
-                className="jump-block stage3-jump-block stage3-jump-block--low"
+                className="stage3-initial-solidified stage3-mid-vertical-solid stage3-mid-vertical-solid--top"
+                data-solidified-block="true"
+                data-solidified-id="stage3-mid-vertical-solid-top"
+                data-solidified-anchored="true"
+            ></div>
+            <div
+                className="stage3-initial-solidified stage3-mid-vertical-solid stage3-mid-vertical-solid--mid"
+                data-solidified-block="true"
+                data-solidified-id="stage3-mid-vertical-solid-mid"
+                data-solidified-anchored="true"
+            ></div>
+            <div
+                className="stage3-initial-solidified stage3-bottom-seal-solid stage3-bottom-seal-solid--upper"
+                data-solidified-block="true"
+                data-solidified-id="stage3-bottom-seal-solid-upper"
+            ></div>
+            <div
+                className="stage3-initial-solidified stage3-bottom-seal-solid stage3-bottom-seal-solid--lower"
+                data-solidified-block="true"
+                data-solidified-id="stage3-bottom-seal-solid-lower"
+            ></div>
+            <div
+                className="stage3-timed-block stage3-timed-block--low"
                 data-collider="solid"
-                data-effect="jump-boost"
+                data-triggerable="true"
+                data-timed-block="true"
+                data-collapse-id="stage3-timed-block-low"
             ></div>
             <div
                 className="jump-block stage3-jump-block stage3-jump-block--mid"
@@ -355,7 +378,7 @@ function Stage3Layout({
                 data-trigger-id="stage3-white-gate-trigger"
                 data-trigger-direction="top"
                 data-trigger-targets="stage3-white-gate"
-                data-contact-sources="character,stone,lava"
+                data-contact-sources="character,stone,lava,solidified"
             ></div>
             <div className="stage3-contact-button" aria-hidden="true"></div>
 
@@ -378,8 +401,22 @@ function Stage3Layout({
             </div>
             <div className="stage3-right-chamber stage3-frame stage3-frame--right-inner" data-collider="solid"></div>
             <div className="stage3-right-chamber-cap stage3-frame" data-collider="solid"></div>
-            <div className="stage3-right-water-shelf stage3-frame" data-collider="solid"></div>
-            <div className="stage3-right-lava-shelf stage3-frame" data-collider="solid"></div>
+            <div
+                className="stage3-right-water-shelf stage3-frame"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage3-right-water-shelf"
+                id="stage3-right-water-shelf"
+            >
+                <div
+                    className="trigger-block stage3-right-water-shelf-trigger"
+                    data-trigger="true"
+                    data-trigger-id="stage3-right-water-shelf-trigger"
+                    data-trigger-direction="left"
+                    data-trigger-targets="stage3-right-water-shelf"
+                    data-projectile-trigger="true"
+                ></div>
+            </div>
             <div className="stage3-right-floor stage3-frame" data-collider="solid"></div>
 
             <div
