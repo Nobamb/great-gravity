@@ -622,7 +622,7 @@ body {
 }
 
 .stage2-throw-stone-anchor,
-.stage2-throw-stone {
+.stage2-projectile-stone {
   left: 40.2%;
   top: 31.8%;
 }
@@ -634,6 +634,21 @@ body {
   transform: translate(-50%, -50%);
   opacity: 0;
   pointer-events: none;
+}
+
+.stage2-stone-source {
+  position: absolute;
+  z-index: 26;
+}
+
+.stage2-stone-source--left {
+  left: 40.2%;
+  top: 31.8%;
+}
+
+.stage2-stone-source--upper-right {
+  left: 57.6%;
+  top: 11.8%;
 }
 
 .throw-stone {
@@ -712,16 +727,40 @@ body {
 
 .stone-aim-line {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.98);
-  stroke-width: 6;
+  stroke: #050510;
+  stroke-width: 5;
   stroke-linecap: round;
+  stroke-dasharray: 16 12;
   vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 calc(10 * var(--cw)) rgba(255, 255, 255, 0.55))
-    drop-shadow(0 0 calc(18 * var(--cw)) rgba(91, 171, 255, 0.32));
+  filter: drop-shadow(0 0 calc(8 * var(--cw)) rgba(0, 255, 255, 0.55))
+    drop-shadow(0 0 calc(18 * var(--cw)) rgba(0, 255, 255, 0.32));
   opacity: 1;
 }
 
 .stone-aim-line[hidden] {
+  display: none;
+}
+
+.stone-aim-reticle,
+.stone-aim-reticle-axis {
+  fill: none;
+  stroke: #050510;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 calc(8 * var(--cw)) rgba(0, 255, 255, 0.55))
+    drop-shadow(0 0 calc(18 * var(--cw)) rgba(0, 255, 255, 0.32));
+}
+
+.stone-aim-reticle {
+  stroke-width: 4;
+}
+
+.stone-aim-reticle-axis {
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.stone-aim-reticle[hidden],
+.stone-aim-reticle-axis[hidden] {
   display: none;
 }
 
