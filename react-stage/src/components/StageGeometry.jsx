@@ -99,7 +99,13 @@ function Stage1Layout({ treasureRef }) {
     );
 }
 
-function Stage2Layout({ treasureRef, treasureAnchorRef, stoneRef, stoneAnchorRef }) {
+function Stage2Layout({
+    treasureRef,
+    treasureAnchorRef,
+    stoneRef,
+    stoneAnchorRef,
+    stoneAimRef,
+}) {
     return (
         <>
             <div className="stage2-left-frame stage2-post stage2-post--outer" data-collider="solid"></div>
@@ -196,12 +202,13 @@ function Stage2Layout({ treasureRef, treasureAnchorRef, stoneRef, stoneAnchorRef
             ></div>
 
             <TriggerBlock
-                className="trigger-block stage2-button-trigger"
+                className="trigger-block stage2-button-hitbox"
                 triggerId="stage2-button-trigger"
                 triggerDirection="top"
                 triggerTargets="stage2-left-white,stage2-right-white"
                 projectileTrigger={true}
             />
+            <div className="stage2-button-trigger" aria-hidden="true"></div>
 
             <div className="spawn-pad stage2-spawn-pad" data-collider="solid" data-spawn="player"></div>
 
@@ -228,6 +235,14 @@ function Stage2Layout({ treasureRef, treasureAnchorRef, stoneRef, stoneAnchorRef
 
             <div className="stage2-throw-stone-anchor" ref={stoneAnchorRef}></div>
             <div className="throw-stone stage2-throw-stone" ref={stoneRef}></div>
+            <svg className="stone-aim-overlay" width="100%" height="100%" aria-hidden="true">
+                <line
+                    className="stone-aim-line"
+                    data-stone-aim-line
+                    ref={stoneAimRef}
+                    hidden
+                ></line>
+            </svg>
 
             <div className="stage2-treasure-base" data-collider="solid"></div>
             <div className="stage2-treasure-support" data-collider="solid"></div>
@@ -244,6 +259,7 @@ function renderStageLayout(
     treasureAnchorRef,
     stoneRef,
     stoneAnchorRef,
+    stoneAimRef,
 ) {
     switch (stageId) {
         case "stage2":
@@ -253,6 +269,7 @@ function renderStageLayout(
                     treasureAnchorRef={treasureAnchorRef}
                     stoneRef={stoneRef}
                     stoneAnchorRef={stoneAnchorRef}
+                    stoneAimRef={stoneAimRef}
                 />
             );
         case "stage1":
@@ -265,10 +282,12 @@ export default function StageGeometry({
     stage,
     containerRef,
     characterRef,
+    heldStoneRef,
     treasureRef,
     treasureAnchorRef,
     stoneRef,
     stoneAnchorRef,
+    stoneAimRef,
 }) {
     return (
         <div
@@ -286,9 +305,10 @@ export default function StageGeometry({
                 treasureAnchorRef,
                 stoneRef,
                 stoneAnchorRef,
+                stoneAimRef,
             )}
 
-            <CharacterSprite ref={characterRef} />
+            <CharacterSprite ref={characterRef} heldStoneRef={heldStoneRef} />
             <ClearOverlay />
 
             <div className="vignette"></div>
