@@ -19,15 +19,20 @@ class FluidSurfaceRenderer {
             antialias: true,
             premultipliedAlpha: true,
         });
+        this.ctx2d = null;
 
         this.ready = false;
 
         if (!this.gl) {
+            this.ctx2d = this.canvas.getContext("2d");
+            this.ready = Boolean(this.ctx2d);
             return;
         }
 
         this.program = this.createProgram();
         if (!this.program) {
+            this.ctx2d = this.canvas.getContext("2d");
+            this.ready = Boolean(this.ctx2d);
             return;
         }
 
@@ -71,13 +76,20 @@ class FluidSurfaceRenderer {
         if (this.canvas.width !== width || this.canvas.height !== height) {
             this.canvas.width = width;
             this.canvas.height = height;
-            this.gl.viewport(0, 0, width, height);
+
+            if (this.gl && this.program) {
+                this.gl.viewport(0, 0, width, height);
+            }
         }
     }
 
     render(particles, obstacles, clipRect, time) {
         if (!this.ready) {
             return false;
+        }
+
+        if (!this.gl || !this.program) {
+            return this.render2D(particles, obstacles, clipRect);
         }
 
         this.resize();
@@ -128,6 +140,82 @@ class FluidSurfaceRenderer {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 
+        return true;
+    }
+
+    render2D(particles, obstacles, clipRect) {
+        if (!this.ctx2d) {
+            return false;
+        }
+
+        this.resize();
+
+        const ctx = this.ctx2d;
+        const scaleX = this.canvas.width / Math.max(this.containerElement.clientWidth, 1);
+        const scaleY = this.canvas.height / Math.max(this.containerElement.clientHeight, 1);
+        const radiusScale = Math.min(scaleX, scaleY);
+        const clipLeft = (clipRect?.left ?? 0) * scaleX;
+        const clipTop = (clipRect?.top ?? 0) * scaleY;
+        const clipWidth =
+            (clipRect?.width ?? this.containerElement.clientWidth) * scaleX;
+        const clipHeight =
+            (clipRect?.height ?? this.containerElement.clientHeight) * scaleY;
+
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(clipLeft, clipTop, clipWidth, clipHeight);
+        ctx.clip();
+        ctx.fillStyle = this.variant === "lava"
+            ? "rgba(255, 116, 36, 0.9)"
+            : "rgba(78, 178, 255, 0.88)";
+        ctx.beginPath();
+
+        particles.forEach((particle) => {
+            const px = particle.x * scaleX;
+            const py = particle.y * scaleY;
+            const radius = particle.radius * radiusScale * 0.96;
+            ctx.moveTo(px + radius, py);
+            ctx.arc(px, py, radius, 0, Math.PI * 2);
+        });
+
+        ctx.fill();
+        ctx.globalCompositeOperation = "source-atop";
+
+        const gradient = ctx.createLinearGradient(
+            clipLeft,
+            clipTop,
+            clipLeft,
+            clipTop + clipHeight,
+        );
+
+        if (this.variant === "lava") {
+            gradient.addColorStop(0, "rgba(255, 214, 132, 0.96)");
+            gradient.addColorStop(0.4, "rgba(255, 122, 44, 0.98)");
+            gradient.addColorStop(1, "rgba(142, 28, 16, 0.98)");
+        } else {
+            gradient.addColorStop(0, "rgba(224, 248, 255, 0.96)");
+            gradient.addColorStop(0.45, "rgba(96, 195, 255, 0.94)");
+            gradient.addColorStop(1, "rgba(31, 83, 201, 0.96)");
+        }
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(clipLeft, clipTop, clipWidth, clipHeight);
+
+        if (obstacles.length > 0) {
+            ctx.globalCompositeOperation = "destination-out";
+            obstacles.forEach((obstacle) => {
+                ctx.fillRect(
+                    obstacle.x * scaleX,
+                    obstacle.y * scaleY,
+                    obstacle.width * scaleX,
+                    obstacle.height * scaleY,
+                );
+            });
+        }
+
+        ctx.globalCompositeOperation = "source-over";
+        ctx.restore();
         return true;
     }
 
@@ -421,32 +509,13 @@ export class PhysicsView {
             physicsModel.elapsed,
         );
 
-        if (renderedByWebGL) {
+        if (!renderedByWebGL) {
             const pool = this.particlePools.get(zone.id) ?? [];
             pool.forEach((particleElement) => {
                 particleElement.remove();
             });
             this.particlePools.delete(zone.id);
-            return;
         }
-
-        const pool = this.ensureParticlePool(zone.id, zone.key, zone.bodies.length);
-        zone.bodies.forEach((body, index) => {
-            const particleElement = pool[index];
-
-            if (!particleElement) {
-                return;
-            }
-
-            const radius = body.circleRadius * renderScale;
-            const x = body.position.x - radius;
-            const y = body.position.y - radius;
-            const size = radius * 2;
-
-            particleElement.style.width = `${size}px`;
-            particleElement.style.height = `${size}px`;
-            particleElement.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-        });
     }
 
     getFluidRenderScale(key) {
