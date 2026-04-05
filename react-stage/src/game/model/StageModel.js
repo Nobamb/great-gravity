@@ -77,6 +77,7 @@ export class StageModel {
         this.spawnSelector = '[data-spawn="player"]';
         this.triggerSelector = ".trigger-block";
         this.triggerableSelector = '[data-triggerable="true"]';
+        this.stoneSourceSelector = '[data-stone-source="true"]';
 
         this.domSolids = [];
         this.runtimeSolids = [];
@@ -91,6 +92,7 @@ export class StageModel {
         this.initialTriggerStates = null;
         this.triggers = [];
         this.projectileTriggers = [];
+        this.stoneSources = [];
         this.dirty = true;
         this.containerRect = container.getBoundingClientRect();
 
@@ -246,6 +248,16 @@ export class StageModel {
 
         this.triggers = resolvedTriggers.filter((trigger) => !trigger.isProjectileTrigger);
         this.projectileTriggers = resolvedTriggers.filter((trigger) => trigger.isProjectileTrigger);
+        this.stoneSources = Array.from(
+            this.container.querySelectorAll(this.stoneSourceSelector),
+        ).map((element, index) => ({
+            id: element.dataset.stoneSourceId || `stone-source-${index}`,
+            element,
+            rect: createRelativeRect(
+                element.getBoundingClientRect(),
+                containerRect,
+            ),
+        }));
 
         if (!this.initialTriggerStates) {
             this.initialTriggerStates = {
@@ -265,6 +277,12 @@ export class StageModel {
                         element,
                         collider: element.dataset.collider || null,
                     })),
+                })),
+                stoneSources: this.stoneSources.map((source) => ({
+                    id: source.id,
+                    element: source.element,
+                    hidden: source.element.hidden,
+                    sourceState: source.element.dataset.stoneSourceState || null,
                 })),
             };
         }
@@ -447,6 +465,16 @@ export class StageModel {
             });
         });
 
+        this.initialTriggerStates.stoneSources?.forEach((state) => {
+            state.element.hidden = state.hidden;
+
+            if (state.sourceState === null) {
+                delete state.element.dataset.stoneSourceState;
+            } else {
+                state.element.dataset.stoneSourceState = state.sourceState;
+            }
+        });
+
         this.markDirty();
     }
 
@@ -492,6 +520,34 @@ export class StageModel {
             default:
                 return { x: horizontalDistance, y: 0 };
         }
+    }
+
+    getOverlappingStoneSource(bounds, padding = 0) {
+        const expandedBounds = expandRect(bounds, padding);
+
+        return this.stoneSources.find((source) => {
+            const isConsumed =
+                source.element.hidden ||
+                source.element.dataset.stoneSourceState === "consumed";
+
+            if (isConsumed) {
+                return false;
+            }
+
+            return getOverlapArea(expandedBounds, source.rect) > 0;
+        }) ?? null;
+    }
+
+    consumeStoneSource(sourceId) {
+        const source = this.stoneSources.find((item) => item.id === sourceId);
+
+        if (!source) {
+            return false;
+        }
+
+        source.element.hidden = true;
+        source.element.dataset.stoneSourceState = "consumed";
+        return true;
     }
 
     destroy() {
