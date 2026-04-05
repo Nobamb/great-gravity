@@ -91,12 +91,36 @@ export class PhysicsController {
         return this.physicsModel.canPickupStone(characterBounds, padding);
     }
 
-    holdStoneAt(position) {
+    getStoneState() {
+        if (!this.physicsModel.enabled) {
+            return "missing";
+        }
+
+        return this.physicsModel.getStoneState();
+    }
+
+    getHeldStonePosition() {
+        if (!this.physicsModel.enabled) {
+            return null;
+        }
+
+        return this.physicsModel.getHeldStonePosition();
+    }
+
+    pickupStone(position) {
         if (!this.physicsModel.enabled) {
             return false;
         }
 
-        return this.physicsModel.holdStoneAt(position);
+        return this.physicsModel.pickupStone(position);
+    }
+
+    setHeldStonePosition(position) {
+        if (!this.physicsModel.enabled) {
+            return false;
+        }
+
+        return this.physicsModel.setHeldStonePosition(position);
     }
 
     throwStone({ position, velocity }) {
@@ -105,6 +129,14 @@ export class PhysicsController {
         }
 
         return this.physicsModel.throwStone({ position, velocity });
+    }
+
+    clearStoneProjectileState() {
+        if (!this.physicsModel.enabled) {
+            return;
+        }
+
+        this.physicsModel.clearStoneProjectileState();
     }
 
     consumeTriggerHits() {
