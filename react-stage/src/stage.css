@@ -861,6 +861,15 @@ body {
   z-index: 12;
 }
 
+.stage3-left-tower-divider-trigger {
+  position: absolute;
+  left: 32.8%;
+  top: 34%;
+  width: 2.5%;
+  height: 2.5%;
+  z-index: 12;
+}
+
 .stage3-left-shaft {
   left: 7.4%;
   top: 58.5%;
@@ -874,6 +883,31 @@ body {
   top: 86%;
   width: 28%;
   height: 2.8%;
+  z-index: 12;
+}
+
+.stage3-left-bottom-floor {
+  left: 7.4%;
+  top: 99%;
+  width: 28%;
+  height: 2.8%;
+  z-index: 12;
+}
+
+.stage3-mid-vertical-block {
+  left: 22.6%;
+  top: 61.3%;
+  width: 2.2%;
+  height: 35.5%;
+  z-index: 12;
+}
+
+.stage3-mid-vertical-trigger {
+  position: absolute;
+  left: 22.6%;
+  top: 96.8%;
+  width: 2.2%;
+  height: 2.2%;
   z-index: 12;
 }
 
@@ -939,6 +973,12 @@ body {
   z-index: 16;
 }
 
+.stage3-timed-block--upper {
+  left: 14%;
+  top: 40%;
+  width: 7.2%;
+}
+
 .stage3-timed-block.is-ticking {
   filter: saturate(0.92) brightness(0.98);
 }
@@ -993,8 +1033,8 @@ body {
 
 .stage3-contact-hitbox,
 .stage3-contact-button {
-  left: 56.4%;
-  top: 58.7%;
+  left: 19.3%;
+  top: 53.9%;
   border-radius: calc(4 * var(--cw));
 }
 
@@ -1030,10 +1070,11 @@ body {
 .stage3-cannon {
   position: absolute;
   left: 69%;
-  top: 55.5%;
+  bottom: 36.7%;
+  top: auto;
   width: calc(108 * var(--cw));
   height: calc(82 * var(--cw));
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, 0%);
   z-index: 28;
 }
 
@@ -1125,7 +1166,34 @@ body {
 .stage3-right-chamber {
   top: 8.5%;
   width: 2.2%;
-  height: 40%;
+  height: 27.8%;
+  z-index: 12;
+}
+
+.stage3-right-chamber-mid {
+  position: absolute;
+  left: 73.5%;
+  top: 8.5%;
+  width: 2.2%;
+  height: 27.8%;
+  z-index: 12;
+}
+
+.stage3-right-chamber-trigger--left {
+  position: absolute;
+  left: 60.2%;
+  top: 36.3%;
+  width: 2.2%;
+  height: 2.2%;
+  z-index: 12;
+}
+
+.stage3-right-chamber-trigger--mid {
+  position: absolute;
+  left: 73.5%;
+  top: 36.3%;
+  width: 2.2%;
+  height: 2.2%;
   z-index: 12;
 }
 
