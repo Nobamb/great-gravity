@@ -172,3 +172,14 @@ stage2-fluid-divider--right, stage2-fluid-divider--left 모두 trigger-block이 
 ### 9-9. 전체적으로 기능들 구현은 성공했어 이제 기능 일부 추가 및 디자인 수정만 좀 진행해줬으면 좋겠어 
 
 우선 조준선을 통해 돌을 던질 때 조준선 디자인을 좀 바꾸면 좋을 것 같아, 우선 조준선 자체를 점선으로 바꾸면서 캐릭터처럼 기본 색은 블랙에 야광 효과로 00ffff의 색을 주변에 띄도록 하고, 조준선 끝에 조준점(크로스헤어) 추가를 해주었으면 좋겠어, 조준점도 똑같이 블랙에 야광 효과로 00ffff의 색을 주변에 띄도록 하면 좋겠고, 캐릭터 머리 크기 정도의 원형의 조준점이면 좋겠어 그리고 돌을 던질 때 돌이 굳은 용암(solidified-block)을 파괴할 수 있도록 추가되었으면 좋겠어
+
+
+
+## 10. 이번에는 react-stage에 3스테이지를 구현하려고 해
+
+기존 2스테이지에서 클리어를 하고 난 뒤에 다음 스테이지 버튼이 있엇으면 좋겠고, 기존 게임에 새로 추가된 것은 우선 밟고 5초 뒤에 사라지는 블록, 몬스터, 그리고 대포야 타이머 블록은 한번 블록을 밟고 난 시점부터 천천히 투명도가 낮아지면서 5초가 흐르거든 그렇게 5초가 다 지나고 나면 완전히 사라져 그리고 대포는 캐릭터가 접근을 하고 나면 바로 돌을 던질 때 처럼 드래그를 진행하면 방향 및 힘에 따라서 캐릭터를 해당 방향으로 날려보내, 그리고 몬스터는 캐릭터를 파악하면(기준은 몬스터 바로 앞에 벽이 가로막지 않으면서 캐릭터와 동일한 위치(X축 기준, 오차 범위 10PX 정도)에 있을 때) 바로 캐릭터에게 달려들고, 캐릭터가 몬스터에게 닿게 되면 게임 오버가 되는거야, 그리고 몬스터는 용암에 닿게 되면 바로 사라져 3스테이지 디자인은 image/basic-design/stage3-concept.png를 우선적으로 참고해주고, 기타 요소 관련 설명들은 image/basic-design/stage3.png를 참고해서 만들어주면 좋겠어 그리고 gemini.md나 agents.md의 내용도 참고를 해보면 좋겠어
+
+
+### 10-1. 지금 3스테이지 만들어진 거 수정작업들 좀 해야 겠어
+
+일단 3스테이지에서 캐릭터 있는 아랫 부분 하단에 물이랑 용암을 받을 블록이 아예 없어서 3스테이지 시작하자마자 용암이랑 물이 함께 떨어지는 현상이 발생해 그래서 일단 최하단에 용암과 물을 받을 수 있는 블록을 추가했으면 좋겠어, 그리고 timed-block이랑 jump-block stage3-jump-block stage3-jump-block--low 사이에 내가 기존에 설계한 것이랑 다르게 세로로 블록이 세워져있지 않거든, 그 부분 trigger block도 추가하면서 만들어줘(trigger-block과 합쳐서 위에 물이 있는 블록 하단의 stage3-left-shaft stage3-frame까지 닿을 정도의 높이면 좋겠어), 그리고 상단 왼쪽에 있는 stage3-left-tower-divider stage3-frame에도 오른쪽 끝에 trigger-block이 있지 않거든, 그것도 추가해서 만들어주고, stage3-left-tower-divider stage3-frame에서 20px 정도 아래에 timer-block도 추가해서 거기에 stone도 추가해, 그리고 게임 화면에 있는 오른쪽 부분에서 왼쪽과 오른쪽의 stage3-right-chamber stage3-frame stage3-frame--right-outer 두개의 높이도 stage3-right-floor stage3-frame의 끝까지만 닿을 정도로 수정하고, 왼쪽의 stage3-right-chamber stage3-frame stage3-frame--right-outer는 바닥에 추가로 trigger-block도 추가해 그리고 양쪽의 stage3-right-chamber stage3-frame stage3-frame--right-outer의 중간 지점에 두 블록의 높이와 동일한 높이의 블록 추가하면서 거기에도 하단에 trigger-block 추가해, 그리고 지금 만들어놓은 stage3-contact-button도 stage3-left-shaft stage3-frame 블록 중앙의 바로 위로 옮겨서 설치해주고 stage3-cannon의 바닥 부분도 stage3-main-platform stage3-frame의 위에 닿을 수 있도록 해
