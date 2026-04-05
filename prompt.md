@@ -189,3 +189,9 @@ stage2-fluid-divider--right, stage2-fluid-divider--left 모두 trigger-block이 
 ### 10-2. 일단 아직도 수정해야 될 부분들이 남아있거든, 
 
 게임 화면 보면은 캐릭터가 있는 곳에 용암과 물 사이에 있는 stage3-mid-vertical-block stage3-frame 블록의 자식 요소로 trigger-block이 있어야 되는데 지금 보면은 stage3-mid-vertical-block stage3-frame 블록 바깥에 trigger-block이 있고, trigger-block은 stage3-mid-vertical-block stage3-frame 블록의 위에 있어야 돼 그리고 trigger-block은 세로로 긴 형태로 있어야 되고, stage3-mid-vertical-block stage3-frame과 trigger-block의 높이의 합이 stage3-left-shaft stage3-frame의 맽 밑에 닿을 정도의 높이여야 돼 그리고 stage3-main-platform stage3-frame는 너무 높아서 지금 올라가기가 어려운 상황이거든, 한 top 75%가 될 정도로 해주면서, cannon도 bottom 24%정도로 지정해 stage3-timed-block stage3-timed-block--upper도 물 안에 있는 형태가 아닌 stage3-left-shaft stage3-frame의 옆에 지정해주었으면 좋겠어 그리고 stage3-timed-block stage3-timed-block--upper의 위에 stone도 추가해주고, 그외에 디자인 부분 image/basic-design/stage3.png랑 image/basic-design/stage3-concept.png를 참고해서 수정해줘 그리고 stage3-left-bottom-floor stage3-frame의 오른쪽 끝과 stage3-main-platform stage3-frame의 왼쪽 끝을 이어줄 세로로 긴 block하나 추가해줘
+
+
+
+### 10-3. 지금 보면은 조금 수정해볼 부분들이 있어
+
+일단 캐릭터 근처에 있는 stage3-timed-block 바로 밑에 있는 stage3-left-floor stage3-frame 부분 있잖아(맨 밑에 있는 용암과 물을 받쳐주는 블록 말고 용암과 물 위에 있는 블록) 그 블록을 삭제를 해주었으면 좋겠어 그리고 trigger-block은 e키를 누르는 방식 말고도 돌을 던져서 맞추면 trigger-block이 동작해서 부모 요소까지 삭제하는 느낌으로 가면 좋겠고, stage3-right-chamber stage3-frame stage3-frame--right-outer(몬스터 위치 기준 왼쪽에 있는 블록)랑 stage3-right-chamber-mid stage3-frame(몬스터 위치 기준 오른쪽에 있는 블록) 안에 자식 요소로 trigger-block을 추가해야 되는데 지금 보면은 바깥에 trigger-block이 있거든, 그 부분 수정해서 몬스터 위치 기준 왼쪽, 오른쪽에 있는 블록들 모두 stage3-right-floor stage3-frame(몬스터가 밟고 있는 블록)의 바닥까지 높이를 지정하고, trigger-block은 그 아래에 위치하게 하면 좋겠어 그리고 빨간 버튼(stage3-contact-button)도 물 속에 잠길 수 있도록 해서 용암이랑 물 모두 블록으로 막혀있는 공간 내에서는 꽉 채워주었으면 좋겠어
