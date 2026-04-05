@@ -474,12 +474,12 @@ export class PhysicsView {
         }
 
         const stoneState = physicsModel.getStoneState?.() ?? "grounded";
-        this.stoneElement.hidden = stoneState === "held";
+        this.stoneElement.hidden = stoneState === "held" || stoneState === "missing";
 
         this.stoneElement.classList.toggle("is-airborne", stoneState === "thrown");
         this.stoneElement.classList.remove("is-held-ui");
 
-        if (stoneState === "held") {
+        if (stoneState === "held" || stoneState === "missing") {
             return;
         }
 
