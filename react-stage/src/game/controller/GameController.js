@@ -39,6 +39,8 @@ export class GameController {
         this.elapsedTimeMs = 0;
         this.isStageCleared = false;
         this.isDraggingStone = false;
+        this.isPreparingStoneThrow = false;
+        this.stoneAim = null;
         this.tick = this.tick.bind(this);
     }
 
@@ -55,6 +57,8 @@ export class GameController {
         this.elapsedTimeMs = 0;
         this.isStageCleared = false;
         this.isDraggingStone = false;
+        this.isPreparingStoneThrow = false;
+        this.stoneAim = null;
         this.gameView.bindControls({
             onRetry: () => {
                 this.restartStage();
@@ -77,6 +81,9 @@ export class GameController {
             activeTriggerElement: this.activeTrigger?.element ?? null,
             canThrowStone: this.canThrowStone(),
             isDraggingStone: this.isDraggingStone,
+            stoneState: this.getStoneState(),
+            heldStone: this.getHeldStoneInteraction(),
+            stoneAim: this.stoneAim,
         });
 
         if (stageState && !stageState.changed) {
@@ -115,6 +122,9 @@ export class GameController {
                 activeTriggerElement: null,
                 canThrowStone: false,
                 isDraggingStone: false,
+                stoneState: this.getStoneState(),
+                heldStone: null,
+                stoneAim: null,
             });
             this.frameHandle = window.requestAnimationFrame(this.tick);
             return;
@@ -137,6 +147,7 @@ export class GameController {
                 break;
             }
 
+            this.handleStoneAutoPickup();
             this.handleTriggerInteraction(input);
             this.handleStoneInteraction(input);
             this.physicsController?.step(this.fixedDeltaTime);
@@ -151,6 +162,9 @@ export class GameController {
             this.physicsController?.render();
             this.gameView.render(this.characterModel, {
                 activeTriggerElement: null,
+                stoneState: this.getStoneState(),
+                heldStone: null,
+                stoneAim: null,
             });
             this.frameHandle = window.requestAnimationFrame(this.tick);
             return;
@@ -162,6 +176,9 @@ export class GameController {
             activeTriggerElement: this.activeTrigger?.element ?? null,
             canThrowStone: this.canThrowStone(),
             isDraggingStone: this.isDraggingStone,
+            stoneState: this.getStoneState(),
+            heldStone: this.getHeldStoneInteraction(),
+            stoneAim: this.stoneAim,
         });
 
         this.frameHandle = window.requestAnimationFrame(this.tick);
@@ -206,6 +223,8 @@ export class GameController {
 
     handlePlayerDeath() {
         this.isDraggingStone = false;
+        this.isPreparingStoneThrow = false;
+        this.stoneAim = null;
         this.restartStage();
     }
 
@@ -228,6 +247,8 @@ export class GameController {
         this.elapsedTimeMs = 0;
         this.isStageCleared = false;
         this.isDraggingStone = false;
+        this.isPreparingStoneThrow = false;
+        this.stoneAim = null;
         this.gameView.hideClearOverlay();
         this.gameView.setNextStageVisibility(false);
         this.gameView.updateTimer(this.formatTime(this.elapsedTimeMs));
@@ -252,6 +273,8 @@ export class GameController {
         this.inputController.resetTransientActions?.();
         this.activeTrigger = null;
         this.isDraggingStone = false;
+        this.isPreparingStoneThrow = false;
+        this.stoneAim = null;
         this.gameView.showClearOverlay({
             timeText: this.formatTime(this.elapsedTimeMs),
             stars: this.getStarRating(this.elapsedTimeMs),
@@ -284,94 +307,167 @@ export class GameController {
     }
 
     canThrowStone() {
+        if (this.getStoneState() === "held") {
+            return true;
+        }
+
         return this.physicsController?.canPickupStone?.(
             this.characterModel.getBounds(),
             Math.max(16, this.stageModel.bounds.width * 0.015),
         ) ?? false;
     }
 
-    handleStoneInteraction(input) {
-        const pointer = input.pointer;
+    getStoneState() {
+        return this.physicsController?.getStoneState?.() ?? "missing";
+    }
 
-        if (!pointer || !this.physicsController?.getStoneBounds?.()) {
-            this.isDraggingStone = false;
+    getHeldStoneInteraction() {
+        if (this.getStoneState() !== "held") {
+            return null;
+        }
+
+        return {
+            position:
+                this.physicsController?.getHeldStonePosition?.()
+                ?? this.getStoneCarryPoint(),
+            isAiming: this.isDraggingStone,
+        };
+    }
+
+    handleStoneAutoPickup() {
+        if (this.getStoneState() !== "grounded") {
             return;
         }
 
-        if (!this.isDraggingStone) {
-            if (
-                pointer.justPressed &&
-                pointer.startedOnCharacter &&
-                this.canThrowStone()
-            ) {
-                this.isDraggingStone = true;
-                this.physicsController.holdStoneAt(this.getStoneCarryPoint());
-            }
+        const canPickup = this.physicsController?.canPickupStone?.(
+            this.characterModel.getBounds(),
+            Math.max(12, this.stageModel.bounds.width * 0.012),
+        );
+
+        if (!canPickup) {
             return;
         }
 
         const carryPoint = this.getStoneCarryPoint();
-        this.physicsController.holdStoneAt(carryPoint);
+        this.physicsController.pickupStone(carryPoint);
+        this.physicsController.setHeldStonePosition(carryPoint);
+        this.isDraggingStone = false;
+        this.isPreparingStoneThrow = false;
+        this.stoneAim = null;
+    }
 
-        if (!pointer.isDown && !pointer.justReleased) {
+    handleStoneInteraction(input) {
+        const pointer = input.pointer;
+        const stoneState = this.getStoneState();
+        const aimThreshold = Math.max(34, this.stageModel.bounds.width * 0.028);
+
+        if (!pointer || !this.physicsController) {
+            this.isDraggingStone = false;
+            this.stoneAim = null;
+            return;
+        }
+
+        if (stoneState === "held") {
+            const carryPoint = this.getStoneCarryPoint();
+            const pointerPosition = pointer.position ?? carryPoint;
+            const dragDistance = this.getPointerDistance(
+                pointer.dragStart ?? pointerPosition,
+                pointerPosition,
+            );
+
+            this.physicsController.setHeldStonePosition(carryPoint);
+
+            if (pointer.justPressed) {
+                this.isPreparingStoneThrow = true;
+                this.isDraggingStone = false;
+                this.physicsController.clearStoneProjectileState();
+            }
+
+            if (pointer.isDown && !this.isPreparingStoneThrow) {
+                this.isPreparingStoneThrow = true;
+            }
+
+            if (pointer.isDown && dragDistance >= aimThreshold) {
+                this.isDraggingStone = true;
+            }
+
+            if (pointer.isDown) {
+                this.stoneAim = {
+                    start: carryPoint,
+                    end: pointerPosition,
+                };
+            } else if (!pointer.justReleased) {
+                this.stoneAim = null;
+            }
+
+            if (!pointer.justReleased) {
+                return;
+            }
+
+            this.isPreparingStoneThrow = false;
+            this.isDraggingStone = false;
+            this.stoneAim = null;
+
+            if (dragDistance < aimThreshold) {
+                this.physicsController.clearStoneProjectileState();
+                this.physicsController.setHeldStonePosition(carryPoint);
+                return;
+            }
+
+            const throwVelocity = this.getStoneThrowVelocity(
+                carryPoint,
+                pointerPosition,
+            );
+
             this.physicsController.throwStone({
                 position: carryPoint,
-                velocity: {
-                    x: this.characterModel.facing * 2.5,
-                    y: -2,
-                },
+                velocity: throwVelocity,
             });
-            this.isDraggingStone = false;
             return;
         }
 
-        if (!pointer.justReleased) {
-            return;
-        }
-
-        const throwVelocity = this.getStoneThrowVelocity(
-            pointer.dragStart ?? carryPoint,
-            pointer.position ?? pointer.dragStart ?? carryPoint,
-        );
-
-        this.physicsController.throwStone({
-            position: carryPoint,
-            velocity: throwVelocity,
-        });
         this.isDraggingStone = false;
+        this.isPreparingStoneThrow = false;
+        this.stoneAim = null;
     }
 
     getStoneCarryPoint() {
         const bounds = this.characterModel.getBounds();
-        const offsetX = bounds.width * 0.4 * this.characterModel.facing;
+        const offsetX = bounds.width * 0.08 * this.characterModel.facing;
 
         return {
             x: bounds.left + bounds.width / 2 + offsetX,
-            y: bounds.top + bounds.height * 0.34,
+            y: bounds.top - Math.max(bounds.height * 0.26, 18),
         };
     }
 
-    getStoneThrowVelocity(startPoint, endPoint) {
-        const dx = endPoint.x - startPoint.x;
-        const dy = endPoint.y - startPoint.y;
+    getStoneThrowVelocity(carryPoint, pointerPoint) {
+        const dx = pointerPoint.x - carryPoint.x;
+        const dy = pointerPoint.y - carryPoint.y;
         const dragDistance = Math.sqrt(dx * dx + dy * dy);
-        const strength = clamp(dragDistance, 18, 220);
-        const scale = 0.085;
+        const strength = clamp(dragDistance, 18, 260);
+        const scale = 0.11;
         const baseX = dx * scale;
         const baseY = dy * scale;
-        const extraScale = strength / 140;
+        const extraScale = strength / 155;
 
         return {
-            x: clamp(baseX * extraScale, -18, 18),
-            y: clamp(baseY * extraScale, -18, 16),
+            x: clamp(baseX * extraScale, -22, 22),
+            y: clamp(baseY * extraScale, -22, 18),
         };
+    }
+
+    getPointerDistance(startPoint, endPoint) {
+        const dx = endPoint.x - startPoint.x;
+        const dy = endPoint.y - startPoint.y;
+        return Math.sqrt(dx * dx + dy * dy);
     }
 
     handleProjectileTriggerHits() {
         const triggerIds = this.physicsController?.consumeTriggerHits?.() ?? [];
 
         triggerIds.forEach((triggerId) => {
-            const collapseState = this.stageModel.activateTrigger(triggerId);
+            const collapseState = this.stageModel.activateProjectileTrigger(triggerId);
 
             if (!collapseState) {
                 return;
