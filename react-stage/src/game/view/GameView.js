@@ -17,6 +17,8 @@ export class GameView {
     this.clearStarMasks = Array.from(
       this.clearOverlayElement?.querySelectorAll(".clear-star-mask") ?? [],
     );
+    this.characterHeadElement =
+      this.characterElement?.querySelector(".character-head") ?? null;
     this.worldStoneElement =
       this.containerElement?.querySelector(".throw-stone") ?? null;
     this.heldStoneElement =
@@ -157,6 +159,36 @@ export class GameView {
     this.heldStoneElement.style.left = "";
     this.heldStoneElement.style.top = "";
     this.heldStoneElement.style.transform = "";
+  }
+
+  getStoneAimOrigin() {
+    if (!this.containerElement) {
+      return null;
+    }
+
+    const containerRect = this.containerElement.getBoundingClientRect();
+    const heldStoneRect =
+      this.heldStoneElement && !this.heldStoneElement.hidden
+        ? this.heldStoneElement.getBoundingClientRect()
+        : null;
+
+    if (heldStoneRect && heldStoneRect.width > 0 && heldStoneRect.height > 0) {
+      return {
+        x: heldStoneRect.left - containerRect.left + heldStoneRect.width / 2,
+        y: heldStoneRect.top - containerRect.top + heldStoneRect.height / 2,
+      };
+    }
+
+    const headRect = this.characterHeadElement?.getBoundingClientRect();
+
+    if (!headRect) {
+      return null;
+    }
+
+    return {
+      x: headRect.left - containerRect.left + headRect.width / 2,
+      y: headRect.top - containerRect.top - Math.max(headRect.height * 0.35, 10),
+    };
   }
 
   renderStoneAim(stoneAim) {
