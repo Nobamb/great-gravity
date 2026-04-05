@@ -322,8 +322,9 @@ function Stage3Layout({
                 data-timed-block="true"
                 data-collapse-id="stage3-timed-block"
             ></div>
-            <div className="stage3-mid-vertical-block stage3-frame" data-collider="solid" id="stage3-mid-vertical-block"></div>
-            <div className="trigger-block trigger-block--bottom stage3-mid-vertical-trigger" data-trigger="true" data-trigger-id="stage3-mid-vertical-trigger" data-trigger-direction="bottom" data-trigger-targets="stage3-mid-vertical-block"></div>
+            <div className="stage3-mid-vertical-block stage3-frame" data-collider="solid" id="stage3-mid-vertical-block">
+                <div className="trigger-block trigger-block--top stage3-mid-vertical-trigger" data-trigger="true" data-trigger-id="stage3-mid-vertical-trigger" data-trigger-direction="top" data-trigger-targets="stage3-mid-vertical-block"></div>
+            </div>
             <div
                 className="jump-block stage3-jump-block stage3-jump-block--low"
                 data-collider="solid"
@@ -336,6 +337,7 @@ function Stage3Layout({
             ></div>
 
             <div className="stage3-main-platform stage3-frame" data-collider="solid"></div>
+            <div className="stage3-center-support stage3-frame" data-collider="solid"></div>
 
             <div className="stage3-stone-anchor" ref={stoneAnchorRef}></div>
             <div
