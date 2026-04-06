@@ -173,3 +173,7 @@ stage3-timed-block의 지속시간을 5초에서 1초로 줄여, 그리고 stage
 ## 11. 이번에는 4스테이지를 만들어볼거야
 
 전체적인 디자인은 image/basic-design/stage4-concept.png를 참고해서 만들어주면 좋겠어, 그리고 각 디자인 요소 설명은 image/basic-design/stage4.png를 기반으로 작업을 해주면 좋겠어 주로 사용하게 될 오브젝트는 stone, 몬스터, 점프 블록, 대포, 용암, 물, 빨간 버튼 및 이와 연동되는 white-block,일반블록 끝에 있는 trigger-block이 있어 AGENTS.md, GEMINI.md를 참고하여 작업을 진행해줘,plan.md도 참고해보아도 되고 만들어놓은 스테이지가 실제 사진과 다를 수 있으니 브라우저에서 확인을 해서 점검해보는 것도 좋겠어 브라우저는 http://localhost:5173를 참고하면 되고, 하위 url로 /stage4를 추가해서 진행해주면 돼
+
+### 11-1. 4스테이지 디자인 조금만 바꿔주면 좋겠어
+
+stage3-frame stage4-tank-divider라는 요소 일단 제거하고, jump-block stage4-jump-block stage4-jump-block--upper도 일단 top 40%로 지정을 해주었으면 좋겠어,그리고 stage3-frame stage4-main-floor을 시작으로 밑에서 위로 올라가는 블록들을 약 60px더 위로 올려주었으면 하고(캐릭터가 있는 spawn-pad stage4-spawn-pad 제외),게임 화면 맨 밑에는 stage3-frame stage4-main-floor 요소와 길이가 비슷한 블록 하나를 추가해줘, stage3-frame stage4-main-floor랑 평행하고,캐릭터가 지나다닐 수 있도록, 그리고 그 블록 위에는 stone 하나가 있어야 하고, stage3-frame stage4-main-floor에는 stone 다 빼도 돼 stage3-frame stage4-tank-right-wall도 너무 길게 지정하지 말고 stage3-frame stage4-tank-left-wall의 높이랑 비슷하게 지정해도 돼, stage3-white-gate stage4-white-block stage4-white-block--vertical도 left 80%로 지정해
