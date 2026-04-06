@@ -1,3 +1,5 @@
+const CUSTOM_MISSION_ALARM_DURATION_MS = 1600;
+
 export class GameView {
   constructor(characterElement, { heldStoneElement = null, stoneAimElement = null } = {}) {
     this.containerElement = characterElement.parentElement;
@@ -55,8 +57,18 @@ export class GameView {
         (element) => [element.dataset.cannonId, element],
       ),
     );
+    this.stage4MonsterCountElement =
+      this.containerElement?.querySelector("[data-stage4-monster-count='true']") ?? null;
+    this.stage4TreasureBarrierElement =
+      this.containerElement?.querySelector("[data-stage4-treasure-barrier='true']") ?? null;
+    this.customMissionAlarmElement =
+      this.containerElement?.querySelector(".custom-mission-alarm") ?? null;
+    this.customMissionAlarmTextElement =
+      this.customMissionAlarmElement?.querySelector("[data-custom-mission-alarm-text='true']") ?? null;
     this.activeTriggerElement = null;
     this.collapseTimers = new Map();
+    this.customMissionAlarmTimer = null;
+    this.activeMissionAlarmToken = null;
     this.boundRetryClick = null;
     this.boundNextClick = null;
   }
@@ -168,6 +180,8 @@ export class GameView {
         this.renderTimedBlocks(interaction.timedBlocks ?? []);
         this.renderMonsters(interaction.monsters ?? []);
         this.renderCannonState(interaction.cannonState ?? null);
+        this.renderStageMission(interaction.stageMission ?? null);
+        this.renderMissionAlarm(interaction.missionAlarm ?? null);
 
         if (
             this.activeTriggerElement &&
@@ -375,6 +389,66 @@ export class GameView {
     element?.classList.toggle("is-aiming", Boolean(cannonState.isAiming));
   }
 
+  renderStageMission(stageMission) {
+    if (this.stage4MonsterCountElement) {
+      const remainingMonsterCount = Math.max(
+        0,
+        Number(stageMission?.remainingMonsterCount ?? 0),
+      );
+      this.stage4MonsterCountElement.textContent = `${remainingMonsterCount}`;
+    }
+
+    if (this.stage4TreasureBarrierElement) {
+      this.stage4TreasureBarrierElement.hidden = !stageMission?.isTreasureBarrierActive;
+    }
+  }
+
+  renderMissionAlarm(missionAlarm) {
+    if (!missionAlarm?.token || !this.customMissionAlarmElement) {
+      return;
+    }
+
+    if (missionAlarm.token === this.activeMissionAlarmToken) {
+      return;
+    }
+
+    this.activeMissionAlarmToken = missionAlarm.token;
+
+    if (this.customMissionAlarmTimer) {
+      window.clearTimeout(this.customMissionAlarmTimer);
+      this.customMissionAlarmTimer = null;
+    }
+
+    if (this.customMissionAlarmTextElement) {
+      this.customMissionAlarmTextElement.textContent = missionAlarm.message ?? "";
+    }
+
+    this.customMissionAlarmElement.hidden = false;
+    this.customMissionAlarmElement.classList.remove("is-animating");
+    void this.customMissionAlarmElement.offsetWidth;
+    this.customMissionAlarmElement.classList.add("is-animating");
+
+    this.customMissionAlarmTimer = window.setTimeout(() => {
+      this.hideMissionAlarm();
+    }, CUSTOM_MISSION_ALARM_DURATION_MS);
+  }
+
+  hideMissionAlarm() {
+    if (this.customMissionAlarmTimer) {
+      window.clearTimeout(this.customMissionAlarmTimer);
+      this.customMissionAlarmTimer = null;
+    }
+
+    this.activeMissionAlarmToken = null;
+
+    if (!this.customMissionAlarmElement) {
+      return;
+    }
+
+    this.customMissionAlarmElement.classList.remove("is-animating");
+    this.customMissionAlarmElement.hidden = true;
+  }
+
   animateTriggerResult({ triggerElement, animations = [], durationMs }) {
     if (triggerElement && this.activeTriggerElement === triggerElement) {
       triggerElement.classList.remove("is-interactable");
@@ -466,6 +540,14 @@ export class GameView {
     });
 
     // Trigger 블록이 죽은 직후에도 완전히 초기 위치/상태로 되돌아오도록 레이아웃을 확정합니다.
+    if (this.stage4MonsterCountElement) {
+      this.stage4MonsterCountElement.textContent = "1";
+    }
+    if (this.stage4TreasureBarrierElement) {
+      this.stage4TreasureBarrierElement.hidden = false;
+    }
+    this.hideMissionAlarm();
+
     void this.containerElement.offsetWidth;
 
     triggerableElements.forEach((element) => {
@@ -511,6 +593,13 @@ export class GameView {
     this.cannonElements.forEach((element) => {
       element.classList.remove("is-aiming");
     });
+    if (this.stage4MonsterCountElement) {
+      this.stage4MonsterCountElement.textContent = "1";
+    }
+    if (this.stage4TreasureBarrierElement) {
+      this.stage4TreasureBarrierElement.hidden = false;
+    }
+    this.hideMissionAlarm();
     this.boundRetryClick = null;
     this.boundNextClick = null;
   }
