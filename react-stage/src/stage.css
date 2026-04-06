@@ -110,6 +110,27 @@ body {
 }
 
 .stage-shell--stage4 {
+  --stage4-main-floor-left: 21.2%;
+  --stage4-main-floor-top: calc(84.8% - 60px);
+  --stage4-main-floor-width: calc(53.2% - 30px);
+  --stage4-main-floor-height: 3%;
+  --stage4-lower-floor-left: 20.8%;
+  --stage4-lower-floor-top: 91.8%;
+  --stage4-lower-floor-width: 53.6%;
+  --stage4-floor-height: 3%;
+  --stage4-tank-top-edge: 0px;
+  --stage4-tank-left: 34.4%;
+  --stage4-tank-width: 20.8%;
+  --stage4-wall-width: 2.2%;
+  --stage4-upper-jump-left: 61.8%;
+  --stage4-button-left: 42.6%;
+  --stage4-button-width: 4.4%;
+  --stage4-button-height: 3.9%;
+  --stage4-button-top: calc(var(--stage4-main-floor-top) - var(--stage4-button-height));
+  --stage4-monster-width: calc(48 * var(--cw));
+  --stage4-monster-height: calc(52 * var(--cw));
+  --stage4-lower-gate-bottom: calc(var(--stage4-tank-top-edge) + 37.6%);
+  --stage4-right-wall-bottom: calc(var(--stage4-main-floor-top) + var(--stage4-main-floor-height));
   background:
     radial-gradient(circle at 18% 82%, rgba(28, 212, 255, 0.08), transparent 16%),
     radial-gradient(circle at 47% 45%, rgba(255, 96, 48, 0.06), transparent 24%),
@@ -1447,14 +1468,11 @@ body {
 }
 
 .stage4-main-floor,
+.stage4-lower-floor,
 .stage4-tank-left-wall,
 .stage4-tank-right-wall,
 .stage4-tank-top,
-.stage4-tank-divider,
 .stage4-tank-gate,
-.stage4-monster-deck,
-.stage4-monster-post,
-.stage4-cannon-deck,
 .stage4-goal-ledge,
 .stage4-goal-post,
 .stage4-treasure-base {
@@ -1465,52 +1483,52 @@ body {
 
 .stage4-spawn-pad {
   left: 9.8%;
-  top: 84.8%;
+  top: var(--stage4-lower-floor-top);
   bottom: auto;
-  width: 11.6%;
+  width: calc(var(--stage4-lower-floor-left) - 9.8%);
   min-width: 0;
-  height: 3.8%;
+  height: var(--stage4-floor-height);
   min-height: 0;
   border-radius: 0;
 }
 
 .stage4-main-floor {
-  left: 21.2%;
-  top: 84.8%;
-  width: 53.2%;
-  height: 3%;
+  left: var(--stage4-main-floor-left);
+  top: var(--stage4-main-floor-top);
+  width: var(--stage4-main-floor-width);
+  height: var(--stage4-main-floor-height);
+  z-index: 12;
+}
+
+.stage4-lower-floor {
+  left: var(--stage4-lower-floor-left);
+  top: var(--stage4-lower-floor-top);
+  width: var(--stage4-lower-floor-width);
+  height: var(--stage4-floor-height);
   z-index: 12;
 }
 
 .stage4-tank-left-wall {
-  left: 34.4%;
-  top: 15%;
-  width: 2.2%;
-  height: 51.6%;
+  left: var(--stage4-tank-left);
+  top: var(--stage4-tank-top-edge);
+  width: var(--stage4-wall-width);
+  height: calc(var(--stage4-lower-gate-bottom) - var(--stage4-tank-top-edge));
   z-index: 12;
 }
 
 .stage4-tank-right-wall {
-  left: 53%;
-  top: 15%;
-  width: 2.2%;
-  height: 72.8%;
+  left: calc(var(--stage4-tank-left) + var(--stage4-tank-width) - var(--stage4-wall-width));
+  top: var(--stage4-tank-top-edge);
+  width: var(--stage4-wall-width);
+  height: calc(var(--stage4-right-wall-bottom) - var(--stage4-tank-top-edge));
   z-index: 12;
 }
 
 .stage4-tank-top {
-  left: 34.4%;
-  top: 15%;
-  width: 20.8%;
+  left: var(--stage4-tank-left);
+  top: var(--stage4-tank-top-edge);
+  width: var(--stage4-tank-width);
   height: 2.8%;
-  z-index: 12;
-}
-
-.stage4-tank-divider {
-  left: 34.4%;
-  top: 34%;
-  width: 20.8%;
-  height: 2.4%;
   z-index: 12;
 }
 
@@ -1522,11 +1540,11 @@ body {
 }
 
 .stage4-tank-gate--upper {
-  top: 29.6%;
+  top: calc(var(--stage4-tank-top-edge) + 14.6%);
 }
 
 .stage4-tank-gate--lower {
-  top: 50.1%;
+  top: calc(var(--stage4-tank-top-edge) + 35.1%);
 }
 
 .stage4-tank-trigger {
@@ -1537,11 +1555,11 @@ body {
 }
 
 .stage4-tank-trigger--upper {
-  top: 28.9%;
+  top: calc(var(--stage4-tank-top-edge) + 13.9%);
 }
 
 .stage4-tank-trigger--lower {
-  top: 49.4%;
+  top: calc(var(--stage4-tank-top-edge) + 34.4%);
 }
 
 .stage4-fluid-zone {
@@ -1550,32 +1568,16 @@ body {
 
 .stage4-fluid-zone--water {
   left: 36.6%;
-  top: 18.2%;
+  top: calc(var(--stage4-tank-top-edge) + 3.2%);
   width: 16.4%;
   height: 11%;
 }
 
 .stage4-fluid-zone--lava {
   left: 36.6%;
-  top: 36.8%;
+  top: calc(var(--stage4-tank-top-edge) + 21.8%);
   width: 16.4%;
   height: 13%;
-}
-
-.stage4-monster-deck {
-  left: 34.4%;
-  top: 66.4%;
-  width: 20.8%;
-  height: 2.8%;
-  z-index: 12;
-}
-
-.stage4-monster-post {
-  left: 42.8%;
-  top: 69.2%;
-  width: 2.2%;
-  height: 15.6%;
-  z-index: 12;
 }
 
 .stage4-contact-hitbox,
@@ -1585,7 +1587,7 @@ body {
 }
 
 .stage4-contact-hitbox {
-  top: 62.2%;
+  top: calc(var(--stage4-button-top) - 0.7%);
   width: 5.2%;
   height: 4.8%;
   background: transparent;
@@ -1596,9 +1598,10 @@ body {
 
 .stage4-contact-button {
   position: absolute;
-  top: 62.9%;
-  width: 4.4%;
-  height: 3.9%;
+  left: var(--stage4-button-left);
+  top: var(--stage4-button-top);
+  width: var(--stage4-button-width);
+  height: var(--stage4-button-height);
   background: linear-gradient(to right, #ff1208 0 72%, #cf291f 72% 100%);
   box-shadow:
     0 0 calc(16 * var(--cw)) rgba(255, 30, 18, 0.28),
@@ -1616,16 +1619,8 @@ body {
 }
 
 .stage4-monster {
-  left: 42.4%;
-  top: 58.9%;
-}
-
-.stage4-cannon-deck {
-  left: 58.6%;
-  top: 67%;
-  width: 18.2%;
-  height: 2.8%;
-  z-index: 12;
+  left: calc(var(--stage4-button-left) + (var(--stage4-button-width) / 2) - (var(--stage4-monster-width) / 2));
+  top: calc(var(--stage4-button-top) - var(--stage4-monster-height));
 }
 
 .stage4-jump-block {
@@ -1635,21 +1630,29 @@ body {
   border-radius: 0;
 }
 
-.stage4-jump-block--lower {
-  left: 79.8%;
-  top: 82.8%;
-  width: 5.6%;
-}
-
 .stage4-jump-block--upper {
-  left: 61.8%;
-  top: 56.1%;
+  left: var(--stage4-upper-jump-left);
+  top: 40%;
   width: 7%;
 }
 
+.stage4-jump-block--lower {
+  left: calc(var(--stage4-lower-floor-left) + var(--stage4-lower-floor-width));
+  top: calc(var(--stage4-lower-floor-top) + var(--stage4-floor-height) - 3.6%);
+  width: 5.6%;
+}
+
+.stage4-jump-block--goal {
+  left: 67.8%;
+  top: 15.1%;
+  width: 8.8%;
+  height: 3.6%;
+}
+
 .stage4-cannon {
-  left: 69.8%;
-  bottom: 30.4%;
+  left: var(--stage4-upper-jump-left);
+  top: calc(var(--stage4-main-floor-top) - calc(82 * var(--cw)) - 10px);
+  bottom: auto;
 }
 
 .stage4-cannon-seat {
@@ -1665,15 +1668,8 @@ body {
   z-index: 18;
 }
 
-.stage4-white-block--horizontal {
-  left: 67.8%;
-  top: 15.1%;
-  width: 8.8%;
-  height: 2.8%;
-}
-
 .stage4-white-block--vertical {
-  left: 86.2%;
+  left: 80%;
   top: 2%;
   width: 2%;
   height: 13.1%;
@@ -1720,8 +1716,8 @@ body {
 
 .stage4-stone-anchor,
 .stage4-projectile-stone {
-  left: 41.4%;
-  top: 83.1%;
+  left: 43.2%;
+  top: 90.2%;
 }
 
 .stage4-stone-anchor {
@@ -1737,14 +1733,9 @@ body {
   z-index: 26;
 }
 
-.stage4-stone-source--left {
-  left: 41.4%;
-  top: 83.1%;
-}
-
 .stage4-stone-source--right {
-  left: 48.3%;
-  top: 83.1%;
+  left: 43.2%;
+  top: 90.2%;
 }
 
 .fluid-zone.physics-fluid,
