@@ -1,6 +1,8 @@
 import BackgroundLayer from "./BackgroundLayer.jsx";
 import CharacterSprite from "./CharacterSprite.jsx";
 import ClearOverlay from "./ClearOverlay.jsx";
+import CustomMissionAlarm from "./CustomMissionAlarm.jsx";
+import Stage4MissionHud from "./Stage4MissionHud.jsx";
 import TimerPanel from "./TimerPanel.jsx";
 import TreasurePile from "./TreasurePile.jsx";
 
@@ -589,6 +591,11 @@ function Stage4Layout({
             <div className="stage3-frame stage4-goal-post" data-collider="solid"></div>
             <div className="stage3-frame stage4-treasure-base" data-collider="solid"></div>
             <div className="stage4-treasure-anchor" ref={treasureAnchorRef}></div>
+            <div
+                className="stage4-treasure-barrier"
+                data-stage4-treasure-barrier="true"
+                aria-hidden="true"
+            ></div>
             <TreasurePile ref={treasureRef} className="stage4-treasure-pile" />
 
             <div className="stage4-stone-anchor" ref={stoneAnchorRef}></div>
@@ -682,6 +689,8 @@ export default function StageGeometry({
     stoneAnchorRef,
     stoneAimRef,
 }) {
+    const isStage4 = stage.id === "stage4";
+
     return (
         <div
             id="game-container"
@@ -691,6 +700,7 @@ export default function StageGeometry({
         >
             <BackgroundLayer />
             <TimerPanel title={stage.title} />
+            {isStage4 ? <Stage4MissionHud /> : null}
 
             {renderStageLayout(
                 stage.id,
@@ -702,6 +712,7 @@ export default function StageGeometry({
             )}
 
             <CharacterSprite ref={characterRef} heldStoneRef={heldStoneRef} />
+            {isStage4 ? <CustomMissionAlarm /> : null}
             <ClearOverlay />
 
             <div className="vignette"></div>
