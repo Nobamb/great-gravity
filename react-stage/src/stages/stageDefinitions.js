@@ -16,9 +16,16 @@ export const STAGE_DEFINITIONS = {
     stage3: {
         id: "stage3",
         path: "/stage3",
+        nextStageId: "stage4",
+        supportsNextStage: true,
+        title: "Stage 3",
+    },
+    stage4: {
+        id: "stage4",
+        path: "/stage4",
         nextStageId: null,
         supportsNextStage: false,
-        title: "Stage 3",
+        title: "Stage 4",
     },
 };
 
