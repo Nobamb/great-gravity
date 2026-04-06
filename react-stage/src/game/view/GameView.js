@@ -58,7 +58,7 @@ export class GameView {
       ),
     );
     this.stage4MonsterCountElement =
-      this.containerElement?.querySelector("[data-stage4-monster-count='true']") ?? null;
+      this.containerElement?.querySelector("[data-mission-count-id='stage4-guardian']") ?? null;
     this.stage4TreasureBarrierElement =
       this.containerElement?.querySelector("[data-stage4-treasure-barrier='true']") ?? null;
     this.customMissionAlarmElement =
