@@ -109,6 +109,25 @@ body {
   display: none;
 }
 
+.stage-shell--stage4 {
+  background:
+    radial-gradient(circle at 18% 82%, rgba(28, 212, 255, 0.08), transparent 16%),
+    radial-gradient(circle at 47% 45%, rgba(255, 96, 48, 0.06), transparent 24%),
+    radial-gradient(circle at 82% 18%, rgba(255, 248, 232, 0.04), transparent 18%),
+    #020202 !important;
+}
+
+.stage-shell--stage4 .bg-layer {
+  opacity: 0.08;
+  background-image:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02), transparent 42%);
+  background-size: 100% 100%;
+}
+
+.stage-shell--stage4 .ambient-glow {
+  display: none;
+}
+
 .bg-layer {
   position: absolute;
   inset: 0;
@@ -1425,6 +1444,307 @@ body {
   transform: translate(-50%, -100%);
   opacity: 0;
   pointer-events: none;
+}
+
+.stage4-main-floor,
+.stage4-tank-left-wall,
+.stage4-tank-right-wall,
+.stage4-tank-top,
+.stage4-tank-divider,
+.stage4-tank-gate,
+.stage4-monster-deck,
+.stage4-monster-post,
+.stage4-cannon-deck,
+.stage4-goal-ledge,
+.stage4-goal-post,
+.stage4-treasure-base {
+  position: absolute;
+  background: #9e6971;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.stage4-spawn-pad {
+  left: 9.8%;
+  top: 84.8%;
+  bottom: auto;
+  width: 11.6%;
+  min-width: 0;
+  height: 3.8%;
+  min-height: 0;
+  border-radius: 0;
+}
+
+.stage4-main-floor {
+  left: 21.2%;
+  top: 84.8%;
+  width: 53.2%;
+  height: 3%;
+  z-index: 12;
+}
+
+.stage4-tank-left-wall {
+  left: 34.4%;
+  top: 15%;
+  width: 2.2%;
+  height: 51.6%;
+  z-index: 12;
+}
+
+.stage4-tank-right-wall {
+  left: 53%;
+  top: 15%;
+  width: 2.2%;
+  height: 72.8%;
+  z-index: 12;
+}
+
+.stage4-tank-top {
+  left: 34.4%;
+  top: 15%;
+  width: 20.8%;
+  height: 2.8%;
+  z-index: 12;
+}
+
+.stage4-tank-divider {
+  left: 34.4%;
+  top: 34%;
+  width: 20.8%;
+  height: 2.4%;
+  z-index: 12;
+}
+
+.stage4-tank-gate {
+  left: 36.6%;
+  width: 16.4%;
+  height: 2.5%;
+  z-index: 13;
+}
+
+.stage4-tank-gate--upper {
+  top: 29.6%;
+}
+
+.stage4-tank-gate--lower {
+  top: 50.1%;
+}
+
+.stage4-tank-trigger {
+  left: 29.6%;
+  width: 5.6%;
+  height: 3%;
+  border-radius: calc(4 * var(--cw));
+}
+
+.stage4-tank-trigger--upper {
+  top: 28.9%;
+}
+
+.stage4-tank-trigger--lower {
+  top: 49.4%;
+}
+
+.stage4-fluid-zone {
+  position: absolute;
+}
+
+.stage4-fluid-zone--water {
+  left: 36.6%;
+  top: 18.2%;
+  width: 16.4%;
+  height: 11%;
+}
+
+.stage4-fluid-zone--lava {
+  left: 36.6%;
+  top: 36.8%;
+  width: 16.4%;
+  height: 13%;
+}
+
+.stage4-monster-deck {
+  left: 34.4%;
+  top: 66.4%;
+  width: 20.8%;
+  height: 2.8%;
+  z-index: 12;
+}
+
+.stage4-monster-post {
+  left: 42.8%;
+  top: 69.2%;
+  width: 2.2%;
+  height: 15.6%;
+  z-index: 12;
+}
+
+.stage4-contact-hitbox,
+.stage4-contact-button {
+  left: 42.6%;
+  border-radius: calc(4 * var(--cw));
+}
+
+.stage4-contact-hitbox {
+  top: 62.2%;
+  width: 5.2%;
+  height: 4.8%;
+  background: transparent;
+  box-shadow: none;
+  opacity: 0;
+  z-index: 24;
+}
+
+.stage4-contact-button {
+  position: absolute;
+  top: 62.9%;
+  width: 4.4%;
+  height: 3.9%;
+  background: linear-gradient(to right, #ff1208 0 72%, #cf291f 72% 100%);
+  box-shadow:
+    0 0 calc(16 * var(--cw)) rgba(255, 30, 18, 0.28),
+    inset 0 calc(-2 * var(--cw)) 0 rgba(0, 0, 0, 0.18);
+  z-index: 23;
+}
+
+.stage4-contact-hitbox.is-used + .stage4-contact-button {
+  transform: translateY(calc(10 * var(--cw)));
+  height: 2.7%;
+  filter: brightness(0.92);
+  box-shadow:
+    0 0 calc(10 * var(--cw)) rgba(255, 24, 13, 0.18),
+    inset 0 calc(2 * var(--cw)) 0 rgba(0, 0, 0, 0.18);
+}
+
+.stage4-monster {
+  left: 42.4%;
+  top: 58.9%;
+}
+
+.stage4-cannon-deck {
+  left: 58.6%;
+  top: 67%;
+  width: 18.2%;
+  height: 2.8%;
+  z-index: 12;
+}
+
+.stage4-jump-block {
+  min-width: 0;
+  min-height: 0;
+  height: 3.6%;
+  border-radius: 0;
+}
+
+.stage4-jump-block--lower {
+  left: 79.8%;
+  top: 82.8%;
+  width: 5.6%;
+}
+
+.stage4-jump-block--upper {
+  left: 61.8%;
+  top: 56.1%;
+  width: 7%;
+}
+
+.stage4-cannon {
+  left: 69.8%;
+  bottom: 30.4%;
+}
+
+.stage4-cannon-seat {
+  left: 48%;
+  top: 36%;
+}
+
+.stage4-white-block {
+  background: #f4f4f4;
+  box-shadow:
+    0 0 calc(12 * var(--cw)) rgba(255, 255, 255, 0.15),
+    inset 0 calc(-2 * var(--cw)) 0 rgba(0, 0, 0, 0.08);
+  z-index: 18;
+}
+
+.stage4-white-block--horizontal {
+  left: 67.8%;
+  top: 15.1%;
+  width: 8.8%;
+  height: 2.8%;
+}
+
+.stage4-white-block--vertical {
+  left: 86.2%;
+  top: 2%;
+  width: 2%;
+  height: 13.1%;
+}
+
+.stage4-goal-ledge {
+  left: 76.6%;
+  top: 15.1%;
+  width: 17.2%;
+  height: 2.8%;
+  z-index: 12;
+}
+
+.stage4-goal-post {
+  left: 93.2%;
+  top: 5%;
+  width: 2.2%;
+  height: 12.9%;
+  z-index: 12;
+}
+
+.stage4-treasure-base {
+  left: 89.8%;
+  top: 15.1%;
+  width: 4%;
+  height: 2.8%;
+  z-index: 12;
+}
+
+.stage4-treasure-anchor,
+.stage4-treasure-pile {
+  left: 91.8%;
+  top: 15%;
+}
+
+.stage4-treasure-anchor {
+  position: absolute;
+  width: calc(100 * var(--cw));
+  height: calc(60 * var(--cw));
+  transform: translate(-50%, -100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stage4-stone-anchor,
+.stage4-projectile-stone {
+  left: 41.4%;
+  top: 83.1%;
+}
+
+.stage4-stone-anchor {
+  position: absolute;
+  width: calc(28 * var(--cw));
+  height: calc(28 * var(--cw));
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stage4-stone-source {
+  z-index: 26;
+}
+
+.stage4-stone-source--left {
+  left: 41.4%;
+  top: 83.1%;
+}
+
+.stage4-stone-source--right {
+  left: 48.3%;
+  top: 83.1%;
 }
 
 .fluid-zone.physics-fluid,
