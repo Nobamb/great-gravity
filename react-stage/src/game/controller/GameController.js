@@ -12,6 +12,9 @@ function clamp(value, min, max) {
 }
 
 const TIMED_BLOCK_DURATION_MS = 1000;
+const CUSTOM_MISSION_ALARM_DURATION_MS = 1600;
+const STAGE4_LOCKED_TREASURE_MESSAGE =
+    "지금은 보물에 접근할 수 없습니다!\n몬스터를 처치하고 오세요!";
 
 function createNeutralInput(input) {
     return {
@@ -57,6 +60,8 @@ export class GameController {
         this.isAimingCannon = false;
         this.timedBlockStates = new Map();
         this.monsterStates = new Map();
+        this.customMissionAlarm = null;
+        this.customMissionAlarmToken = 0;
         this.tick = this.tick.bind(this);
     }
 
@@ -79,6 +84,7 @@ export class GameController {
         this.stoneAim = null;
         this.activeCannon = null;
         this.isAimingCannon = false;
+        this.customMissionAlarm = null;
         this.gameView.bindControls({
             onRetry: () => {
                 this.restartStage();
@@ -196,7 +202,7 @@ export class GameController {
 
             this.elapsedTimeMs += this.fixedDeltaTime * 1000;
 
-            if (this.isTreasureCollected()) {
+            if (this.handleTreasureInteraction()) {
                 this.handleStageClear();
                 this.accumulator = 0;
                 break;
@@ -230,7 +236,7 @@ export class GameController {
                 break;
             }
 
-            if (this.isTreasureCollected()) {
+            if (this.handleTreasureInteraction()) {
                 this.handleStageClear();
                 this.accumulator = 0;
                 break;
@@ -273,6 +279,58 @@ export class GameController {
             timedBlocks: this.getTimedBlockRenderState(),
             monsters: this.getMonsterRenderState(),
             cannonState: this.getCannonRenderState(),
+            stageMission: this.getStageMissionRenderState(),
+            missionAlarm: this.getMissionAlarmRenderState(),
+        };
+    }
+
+    isStage4() {
+        return this.stage?.id === "stage4";
+    }
+
+    getRemainingMonsterCount() {
+        return [...this.monsterStates.values()].filter((monster) => !monster.isDead).length;
+    }
+
+    isTreasureBarrierActive() {
+        return this.isStage4() && this.getRemainingMonsterCount() > 0;
+    }
+
+    getStageMissionRenderState() {
+        if (!this.isStage4()) {
+            return null;
+        }
+
+        return {
+            remainingMonsterCount: this.getRemainingMonsterCount(),
+            isTreasureBarrierActive: this.isTreasureBarrierActive(),
+        };
+    }
+
+    getMissionAlarmRenderState() {
+        if (!this.isMissionAlarmActive()) {
+            return null;
+        }
+
+        return {
+            token: this.customMissionAlarm.token,
+            message: this.customMissionAlarm.message,
+        };
+    }
+
+    isMissionAlarmActive() {
+        return Boolean(
+            this.customMissionAlarm &&
+            this.elapsedTimeMs < this.customMissionAlarm.expiresAtMs,
+        );
+    }
+
+    showMissionAlarm(message) {
+        this.customMissionAlarmToken += 1;
+        this.customMissionAlarm = {
+            token: this.customMissionAlarmToken,
+            message,
+            expiresAtMs: this.elapsedTimeMs + CUSTOM_MISSION_ALARM_DURATION_MS,
         };
     }
 
@@ -725,6 +783,7 @@ export class GameController {
         this.stoneAim = null;
         this.activeCannon = null;
         this.isAimingCannon = false;
+        this.customMissionAlarm = null;
         this.gameView.hideClearOverlay();
         this.gameView.setNextStageVisibility(false);
         this.gameView.updateTimer(this.formatTime(this.elapsedTimeMs));
@@ -734,7 +793,7 @@ export class GameController {
         this.updateActiveTrigger();
     }
 
-    isTreasureCollected() {
+    isCharacterTouchingTreasure() {
         const treasureBounds = this.physicsController?.getTreasureBounds?.();
 
         if (!treasureBounds) {
@@ -742,6 +801,22 @@ export class GameController {
         }
 
         return intersects(this.characterModel.getBounds(), treasureBounds);
+    }
+
+    handleTreasureInteraction() {
+        if (!this.isCharacterTouchingTreasure()) {
+            return false;
+        }
+
+        if (!this.isTreasureBarrierActive()) {
+            return true;
+        }
+
+        if (!this.isMissionAlarmActive()) {
+            this.showMissionAlarm(STAGE4_LOCKED_TREASURE_MESSAGE);
+        }
+
+        return false;
     }
 
     handleStageClear() {
@@ -753,6 +828,7 @@ export class GameController {
         this.stoneAim = null;
         this.activeCannon = null;
         this.isAimingCannon = false;
+        this.customMissionAlarm = null;
         this.gameView.showClearOverlay({
             timeText: this.formatTime(this.elapsedTimeMs),
             stars: this.getStarRating(this.elapsedTimeMs),
