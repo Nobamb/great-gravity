@@ -379,6 +379,8 @@ export class PhysicsView {
     constructor({ container, treasureElement, stoneElement = null }) {
         this.containerElement = container;
         this.treasureElement = treasureElement;
+        this.stage4TreasureBarrierElement =
+            this.containerElement?.querySelector("[data-stage4-treasure-barrier='true']") ?? null;
         this.stoneElement = stoneElement;
         this.fluidRenderers = new Map();
         this.solidifiedBlockPool = [];
@@ -403,6 +405,7 @@ export class PhysicsView {
 
         this.cleanupFluidResources(physicsModel.fluidZones);
         this.treasureElement.classList.add("physics-managed");
+        this.stage4TreasureBarrierElement?.classList.add("physics-managed");
         this.stoneElement?.classList.add("physics-managed");
     }
 
@@ -535,6 +538,15 @@ export class PhysicsView {
         const y = treasureBody.position.y - (height / 2);
 
         this.treasureElement.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${treasureBody.angle}rad)`;
+        if (this.stage4TreasureBarrierElement) {
+            const barrierWidth = this.stage4TreasureBarrierElement.offsetWidth;
+            const barrierHeight = this.stage4TreasureBarrierElement.offsetHeight;
+            const barrierX = treasureBody.position.x - (barrierWidth / 2);
+            const barrierY = treasureBody.position.y - (barrierHeight / 2);
+
+            this.stage4TreasureBarrierElement.style.transform =
+                `translate3d(${barrierX}px, ${barrierY}px, 0)`;
+        }
     }
 
     renderStone(physicsModel) {
