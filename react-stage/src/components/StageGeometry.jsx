@@ -489,11 +489,11 @@ function Stage4Layout({
         <>
             <div className="spawn-pad stage4-spawn-pad" data-collider="solid" data-spawn="player"></div>
             <div className="stage3-frame stage4-main-floor" data-collider="solid"></div>
+            <div className="stage3-frame stage4-lower-floor" data-collider="solid"></div>
 
             <div className="stage3-frame stage4-tank-left-wall" data-collider="solid"></div>
             <div className="stage3-frame stage4-tank-right-wall" data-collider="solid"></div>
             <div className="stage3-frame stage4-tank-top" data-collider="solid"></div>
-            <div className="stage3-frame stage4-tank-divider" data-collider="solid"></div>
             <div
                 className="stage3-frame stage4-tank-gate stage4-tank-gate--upper"
                 data-collider="solid"
@@ -531,15 +531,12 @@ function Stage4Layout({
                 data-fluid-id="stage4-lower-lava"
             ></div>
 
-            <div className="stage3-frame stage4-monster-deck" data-collider="solid"></div>
-            <div className="stage3-frame stage4-monster-post" data-collider="solid"></div>
-
             <div
                 className="trigger-block stage4-contact-hitbox"
                 data-contact-trigger="true"
                 data-trigger-id="stage4-white-gate-trigger"
                 data-trigger-direction="top"
-                data-trigger-targets="stage4-white-horizontal,stage4-white-vertical"
+                data-trigger-targets="stage4-white-vertical"
                 data-contact-sources="character,stone,solidified"
             ></div>
             <div className="stage4-contact-button" aria-hidden="true"></div>
@@ -554,7 +551,6 @@ function Stage4Layout({
                 <div className="stage3-monster-teeth"></div>
             </div>
 
-            <div className="stage3-frame stage4-cannon-deck" data-collider="solid"></div>
             <div
                 className="jump-block stage4-jump-block stage4-jump-block--lower"
                 data-collider="solid"
@@ -578,10 +574,9 @@ function Stage4Layout({
             </div>
 
             <div
-                className="stage3-white-gate stage4-white-block stage4-white-block--horizontal"
+                className="jump-block stage4-jump-block stage4-jump-block--goal"
                 data-collider="solid"
-                data-triggerable="true"
-                data-collapse-id="stage4-white-horizontal"
+                data-effect="jump-boost"
             ></div>
             <div
                 className="stage3-white-gate stage4-white-block stage4-white-block--vertical"
@@ -597,11 +592,6 @@ function Stage4Layout({
             <TreasurePile ref={treasureRef} className="stage4-treasure-pile" />
 
             <div className="stage4-stone-anchor" ref={stoneAnchorRef}></div>
-            <div
-                className="stage4-stone-source throw-stone stage4-stone-source--left"
-                data-stone-source="true"
-                data-stone-source-id="stage4-stone-left"
-            ></div>
             <div
                 className="stage4-stone-source throw-stone stage4-stone-source--right"
                 data-stone-source="true"
