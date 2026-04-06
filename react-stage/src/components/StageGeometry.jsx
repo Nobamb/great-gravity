@@ -2,7 +2,7 @@ import BackgroundLayer from "./BackgroundLayer.jsx";
 import CharacterSprite from "./CharacterSprite.jsx";
 import ClearOverlay from "./ClearOverlay.jsx";
 import CustomMissionAlarm from "./CustomMissionAlarm.jsx";
-import Stage4MissionHud from "./Stage4MissionHud.jsx";
+import MissionHud from "./MissionHud.jsx";
 import TimerPanel from "./TimerPanel.jsx";
 import TreasurePile from "./TreasurePile.jsx";
 
@@ -690,6 +690,21 @@ export default function StageGeometry({
     stoneAimRef,
 }) {
     const isStage4 = stage.id === "stage4";
+    const stage4MissionFaces = [
+        (
+            <div className="mission-ui__monster" aria-hidden="true" key="stage4-guardian-face">
+                <div className="mission-ui__monster-eye"></div>
+                <div className="mission-ui__monster-teeth"></div>
+            </div>
+        ),
+    ];
+    const stage4MissionCounts = [
+        (
+            <span key="stage4-guardian-count">
+                x <span data-mission-count-id="stage4-guardian">1</span>
+            </span>
+        ),
+    ];
 
     return (
         <div
@@ -700,7 +715,13 @@ export default function StageGeometry({
         >
             <BackgroundLayer />
             <TimerPanel title={stage.title} />
-            {isStage4 ? <Stage4MissionHud /> : null}
+            {isStage4 ? (
+                <MissionHud
+                    missionFaces={stage4MissionFaces}
+                    missionCounts={stage4MissionCounts}
+                    ariaLabel="remaining monster mission"
+                />
+            ) : null}
 
             {renderStageLayout(
                 stage.id,
