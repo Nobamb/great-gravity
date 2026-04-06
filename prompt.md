@@ -181,3 +181,8 @@ stage3-frame stage4-tank-divider라는 요소 일단 제거하고, jump-block st
 ### 11-2. 이번에는 4스테이지에 새로운 기능 하나 추가해주었음 좋겠어
 
 우선 stage4-cannon 높이값 calc(var(--stage4-main-floor-top) - calc(82 * var(--cw)) + 20px)로 맞추고, 4스테이지는 몬스터를 한마리 처리해야 클리어를 할 수 있어, 게임화면 왼쪽 상단에 타이머 아래에 몬스터 이미지 x 1 의 형태로 하나 표시해주고, 만약에 몬스터를 처치하면 몬스터 이미지 x 0 으로 변경되면서 클리어 처리가 되도록 해줘, 그리고 몬스터를 처치한 후에 바로 보물(treasure-pile)에 접근하면 클리어를 하는 거야, 일단 보물에 추가적으로 barrier를 추가해서(보물을 감싸는 불투명한 붉은 원, opacity 50%, #ff0000) 보물에 접근하기 위해서는 barrier를 제거해야 하는 상황이 되도록 해줘, barrier는 몬스터를 없애면 해제되게 해 만약에 barrier가 있는 상태에서 보물에 접근할 때 마다 "지금은 보물에 접근할 수 없습니다!\n 몬스터를 처치하고 오세요!" 라는 알림을 띄워줘(\n을 하라는 의미는 해당 부분에서 줄바꿈을 하라는 의미야) 자바스크립트 자체 알림이 아닌 커스텀 알림을 띄우는 거야 커스텀 알림은 CustomMissionAlarm이라는 컴포넌트로 하나 만들고, 라운드 10px정도 주고, 게임 화면 전체 크기 기준 가로 300px, 세로 180px로 준 다음에 가운데 정렬을 해줘, 그리고 커스텀 알람이 뜰 때는 게임 화면 중앙에 0.3초의 fade in(아래에서 중앙 위치로 opacity 0=> 100 증가하면서 등장)=> 1초간 유지 => fade out(opacity 100=>0 감소하면서 아래로 사라짐) 순서로 진행되게 하고, 커스텀 팝업은 게임 화면이 줄어듦에도 줄어든 비율에 맞춰서 팝업 크기도 변화해야 돼
+
+
+### 11-3. 전체적으로 잘만들었는데 컴포넌트 하나 유지보수만 좀 더 잘되게 만들었으면 좋겠네
+
+react-stage/src/components/Stage4MissionHud.jsx이 지금 4stage에서만 사용할 수 있는 것 처럼 네이밍이 되어있는데, 다른 스테이지에서도 사용될 수 있는 것을 감안해서 Stage4MissionHud를 MissionHud로 변경해, MissionHud도 props로 2개를 받아서 각각 몬스터 얼굴을 받을 수 있는 리스트, 그리고 각 몬스터의 숫자를 확인할 수 있는 리스트도 추가해 컴포넌트 안의 요소명들도 stage4-mission-ui,stage4-mission-ui__monster, stage4-mission-ui__monster-eye, stage4-mission-ui__monster-teeth, stage4-mission-ui__count에서 각각 stage4-를 빼도록 하고, mission-ui에서 첫번째 요소에 몬스터 얼굴과 같은 요소를 받을 수 있고, 두번째요소에서는 처치해야 될 몬스터의 수를 표시할 수 있어야 돼
