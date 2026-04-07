@@ -206,3 +206,7 @@ trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--right도지금 너
 ### 12-4. 이제 버그라던지 5스테이지에서 전반적으로 조금 손보면 좋은 것들을 먼저 손봐보자
 
 trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--right랑 trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--left 부분 가로 세로 크기를 각각 바꿔, 그리고 white-block이랑 얼음들 높이 있잖아 조금 더 높여보자, 게임 화면에 전부 안들어와도 되니까 top값 10% 낮추자(기존 top값이 14.5%라면 4.5%로 낮추는 식으로) 그리고 treasure-pile도 용암 아래의 중앙에 위치하도록 바꾸고, stage5-frame stage5-grid-box stage5-grid-box--outer-top의 왼쪽에 trigger-block 하나 추가해 거기에 돌을 맞추거나 e키를 클릭하면 부모 블록 stage5-frame stage5-grid-box stage5-grid-box--outer-top까지 사라지는 형태로 만들어보자 그리고 jump-block stage5-jump-block stage5-jump-block--right도 left 값을 70%로 바꿔
+
+### 12-5. 5스테이지에서 보상이 계속 떨어지는 버그가 생기는 데, 이거 수정 좀 진행하면서 새로운 거 하나 추가해보자
+
+우선 treasure-pile이 계속 화면 바깥으로 떨어지는 현상이 발생을 해, white-block을 용암이 있는 곳 내에서 treature-pile 4군데(동서남북)에 white-block을 배치해, 그리고 stage5-goal-mound도 portalIn이라는 컴포넌트로 바꾸고, portalIn은 블랙홀 형태로 만들었으면 좋겠어(크기는 treasure-pile정도의 크기면 돼, 빨아들이는 느낌의 이펙트를 주고, 색은 검은색으로 지정해) 그리고 portalOut이라는 컴포넌트도 따로 stage5-bg-pillar stage5-bg-pillar--left의 오른쪽 맨 위에 추가한 다음에, 캐릭터가 portalIn에 들어가면 portalOut으로 나오게 만들어줘
