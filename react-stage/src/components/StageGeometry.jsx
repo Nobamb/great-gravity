@@ -647,8 +647,6 @@ function Stage5Layout({
             <div className="stage5-bg-pillar stage5-bg-pillar--right" aria-hidden="true"></div>
 
             <div className="spawn-pad stage5-spawn-pad" data-collider="solid" data-spawn="player"></div>
-            <div className="stage5-floor stage5-floor--left" data-collider="solid"></div>
-            <div className="stage5-floor stage5-floor--goal" data-collider="solid"></div>
 
             <div
                 className="stage5-white-block stage5-top-box stage5-top-box--left"
@@ -673,6 +671,8 @@ function Stage5Layout({
                 zoneId="stage5-upper-ice"
                 width="14.5%"
                 height="11%"
+                runtimeSolid={true}
+                anchored={false}
             />
 
             <div
