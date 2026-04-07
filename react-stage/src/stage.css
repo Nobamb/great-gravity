@@ -1981,6 +1981,362 @@ body {
   top: 90.2%;
 }
 
+.stage-shell--stage5 {
+  background:
+    radial-gradient(circle at 22% 76%, rgba(71, 207, 255, 0.08), transparent 18%),
+    radial-gradient(circle at 64% 68%, rgba(255, 114, 44, 0.08), transparent 20%),
+    radial-gradient(circle at 50% 8%, rgba(205, 240, 255, 0.08), transparent 16%),
+    #04070d !important;
+}
+
+.stage-shell--stage5 .bg-layer {
+  opacity: 0.12;
+  background-image:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04), transparent 40%),
+    radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    calc(26 * var(--cw)) calc(26 * var(--cw));
+}
+
+.stage-shell--stage5 .ambient-glow {
+  display: none;
+}
+
+.stage5-frame,
+.stage5-floor,
+.stage5-fire-post,
+.stage5-fire-bar {
+  position: absolute;
+  background: linear-gradient(180deg, rgba(166, 102, 111, 0.98), rgba(126, 76, 86, 0.98));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 228, 232, 0.08),
+    0 calc(6 * var(--cw)) calc(16 * var(--cw)) rgba(0, 0, 0, 0.22);
+  z-index: 10;
+}
+
+.stage5-bg-pillar {
+  position: absolute;
+  width: 1.7%;
+  background: linear-gradient(to bottom, rgba(153, 84, 94, 0.9), rgba(120, 70, 80, 0.7));
+  opacity: 0.6;
+}
+
+.stage5-bg-pillar--left {
+  left: 12.5%;
+  top: -1%;
+  height: 27%;
+}
+
+.stage5-bg-pillar--mid {
+  left: 39.5%;
+  top: -1%;
+  height: 15%;
+}
+
+.stage5-bg-pillar--right {
+  left: 66%;
+  top: -1%;
+  height: 15%;
+}
+
+.stage5-spawn-pad {
+  left: 12.8%;
+  top: 74%;
+  width: 10.6%;
+}
+
+.stage5-floor {
+  top: 84.5%;
+  height: 2.8%;
+}
+
+.stage5-floor--left {
+  left: 0;
+  width: 31.4%;
+}
+
+.stage5-floor--right {
+  left: 31.5%;
+  width: 49.5%;
+}
+
+.stage5-floor--goal {
+  left: 81%;
+  width: 19%;
+}
+
+.stage5-top-box--left {
+  left: 39.5%;
+  top: 0;
+  width: 1vw;
+  min-width: calc(12 * var(--cw));
+  height: 15.5%;
+}
+
+.stage5-top-box--right {
+  left: calc(68% - 1vw);
+  top: 0;
+  width: 1vw;
+  min-width: calc(12 * var(--cw));
+  height: 15.5%;
+}
+
+.stage5-top-box--bottom {
+  left: 39.5%;
+  top: 14.5%;
+  width: 28.5%;
+  height: 1vw;
+  min-height: calc(12 * var(--cw));
+}
+
+.stage5-ice-block {
+  position: absolute;
+  left: 47%;
+  top: 2%;
+  background: linear-gradient(to bottom, #d9f5ff, #b8e6f8);
+  border: 1px solid rgba(220, 248, 255, 0.7);
+  box-shadow:
+    0 0 calc(12 * var(--cw)) rgba(190, 240, 255, 0.24),
+    inset 0 0 calc(14 * var(--cw)) rgba(255, 255, 255, 0.18);
+  z-index: 11;
+}
+
+.stage5-grid-box--outer {
+  left: 31.5%;
+  top: 30.5%;
+  width: 49.5%;
+  height: 56%;
+  border: 1vw solid rgba(152, 94, 103, 0.95);
+  background: transparent;
+  box-shadow: 0 0 calc(16 * var(--cw)) rgba(255, 180, 180, 0.06);
+}
+
+.stage5-grid-box--mid-horizontal {
+  left: 31.5%;
+  top: 57%;
+  width: 49.5%;
+  height: 1vw;
+  min-height: calc(12 * var(--cw));
+}
+
+.stage5-grid-box--mid-vertical {
+  left: 55.75%;
+  top: 30.5%;
+  width: 1vw;
+  min-width: calc(12 * var(--cw));
+  height: 56%;
+}
+
+.stage5-fire-post,
+.stage5-fire-bar {
+  background: linear-gradient(to bottom, #ff1a1a 0 78%, #e33 78% 100%);
+  box-shadow:
+    0 0 calc(12 * var(--cw)) rgba(255, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.stage5-fire-post {
+  width: 1.8%;
+  min-width: calc(16 * var(--cw));
+}
+
+.stage5-fire-post--left-top {
+  left: 14.2%;
+  top: 19%;
+  width: 3.4%;
+  height: 7%;
+}
+
+.stage5-fire-post--grid-1 {
+  left: 31.4%;
+  top: 26.2%;
+  height: 6.3%;
+}
+
+.stage5-fire-post--grid-2 {
+  left: 54.7%;
+  top: 26.2%;
+  height: 6.3%;
+}
+
+.stage5-fire-post--grid-3 {
+  left: 78.6%;
+  top: 26.2%;
+  height: 6.3%;
+}
+
+.stage5-fire-bar {
+  width: 5.5%;
+  height: 2.5%;
+}
+
+.stage5-fire-bar--left {
+  left: 28%;
+  top: 57.5%;
+}
+
+.stage5-fire-bar--right {
+  left: 81%;
+  top: 57.5%;
+}
+
+.stage5-jump-block {
+  z-index: 14;
+}
+
+.stage5-jump-block--left-top {
+  left: 21%;
+  top: 48.5%;
+}
+
+.stage5-jump-block--left-bottom {
+  left: 21%;
+  top: 62.5%;
+}
+
+.stage5-jump-block--right {
+  left: 72.2%;
+  top: 48.8%;
+}
+
+.stage5-fluid-zone {
+  z-index: 8;
+}
+
+.stage5-fluid-zone--water {
+  left: 33%;
+  top: 40.3%;
+}
+
+.stage5-fluid-zone--lava {
+  left: 56.7%;
+  top: 67.5%;
+}
+
+.fluid-zone--fire {
+  background: linear-gradient(to bottom, rgba(255, 183, 48, 0.9), rgba(255, 60, 0, 0.95));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 248, 212, 0.12),
+    0 0 calc(18 * var(--cw)) rgba(255, 77, 0, 0.28);
+}
+
+.stage5-fluid-zone--fire {
+  left: 40.5%;
+  top: 69%;
+  clip-path: polygon(
+    50% 0%,
+    68% 18%,
+    88% 45%,
+    83% 70%,
+    67% 92%,
+    50% 100%,
+    33% 92%,
+    17% 70%,
+    12% 45%,
+    32% 18%
+  );
+  border-radius: 45% 45% 55% 55%;
+}
+
+.stage5-flame-glow {
+  position: absolute;
+  left: 38%;
+  top: 63%;
+  width: 10%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 77, 0, 0.55), rgba(255, 77, 0, 0.12), transparent 72%);
+  filter: blur(calc(10 * var(--cw)));
+  z-index: 7;
+}
+
+.stage5-stone-anchor {
+  position: absolute;
+  left: 48%;
+  top: 29.2%;
+  width: calc(28 * var(--cw));
+  height: calc(28 * var(--cw));
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stage5-stone-source {
+  z-index: 26;
+}
+
+.stage5-stone-source--top {
+  left: 48%;
+  top: 29.2%;
+}
+
+.stage5-stone-source--mid {
+  left: 65.2%;
+  top: 54.5%;
+}
+
+.stage5-projectile-stone {
+  left: 48%;
+  top: 29.2%;
+}
+
+.stage5-goal-mound {
+  position: absolute;
+  right: 13.7%;
+  bottom: 13.2%;
+  width: 4.6%;
+  height: 3.2%;
+  background: linear-gradient(to top, #8d9518, #a2a929);
+  border-radius: 100px 100px 0 0;
+  box-shadow: 0 0 calc(14 * var(--cw)) rgba(215, 208, 72, 0.16);
+  z-index: 9;
+}
+
+.stage5-goal-cross {
+  position: absolute;
+  right: 15.7%;
+  bottom: 16.8%;
+  width: 0.45%;
+  height: 3.2%;
+  background: #6a9e1c;
+  transform: rotate(12deg);
+  transform-origin: bottom center;
+  z-index: 11;
+}
+
+.stage5-goal-cross::before {
+  content: "";
+  position: absolute;
+  left: -130%;
+  top: 35%;
+  width: 360%;
+  height: 22%;
+  background: #6a9e1c;
+}
+
+.stage5-treasure-anchor,
+.stage5-treasure-pile {
+  position: absolute;
+  z-index: 22;
+}
+
+.stage5-treasure-anchor {
+  left: 86.5%;
+  top: 77%;
+  width: calc(96 * var(--cw));
+  height: calc(58 * var(--cw));
+  transform: translate(-50%, -100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stage5-treasure-pile {
+  left: 86.5%;
+  top: 77%;
+  transform: translate(-50%, -100%);
+}
+
 .fluid-zone.physics-fluid,
 .lava-fall.physics-fluid,
 .ice-water.physics-fluid {
@@ -2001,7 +2357,19 @@ body {
   z-index: 6;
 }
 
+.physics-fluid-canvas--ice-water {
+  z-index: 6;
+}
+
+.physics-fluid-canvas--fire {
+  z-index: 7;
+}
+
 .physics-fluid-canvas--lava {
+  z-index: 7;
+}
+
+.physics-fluid-canvas--super-lava {
   z-index: 7;
 }
 
