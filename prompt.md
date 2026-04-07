@@ -197,3 +197,8 @@ stage5-floor stage5-floor--right는 삭제해도 돼, 그리고 stage5-frame sta
 ### 12-2. 스테이지 요소 및 위치들 마저 수정 좀 진행해보자
 
 stage5-frame stage5-left-support 일단 삭제한 다음에 stage5-bg-pillar stage5-bg-pillar--left를 게임 화면 끝에 지정하면서,빨간버튼을 맨 밑의 오른쪽 면에 달아주었으면 좋겠어, 그리고 stage5-frame stage5-top-box stage5-top-box--bottom, stage5-frame stage5-top-box stage5-top-box--left, stage5-frame stage5-top-box stage5-top-box--right 모두 하얀색 블록으로 대체하고, 빨간 버튼을 건드리게 되면(돌로 맞추거나, e키를 누르면) 하얀색 블록들이 모두 사라지게 해줘
+
+### 12-3. 일단 물리엔진 기능 추가나 몇몇 요소들 수정 절차좀 진행해보려고 해
+
+우선 stage5-floor stage5-floor--left 삭제하고,stage5-ice-block도 중력의 영향을 받아서 떨어지는 기능이 추가되었으면 좋겠어 그리고 trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--left랑
+trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--right도지금 너무 작아서 잘 안보이는데 각각 부모요소의 높이값 만큼만 높이를 조금 더 늘렸으면 좋겠어 그리고 treasure-pile stage5-treasure-pile physics-managed도 용암이 있는 공간 내부에 같이 넣어주면서 stage5-floor stage5-floor--goal도 지워버리면 좋겠어
