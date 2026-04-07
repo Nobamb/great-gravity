@@ -210,3 +210,7 @@ trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--right랑 trigger-b
 ### 12-5. 5스테이지에서 보상이 계속 떨어지는 버그가 생기는 데, 이거 수정 좀 진행하면서 새로운 거 하나 추가해보자
 
 우선 treasure-pile이 계속 화면 바깥으로 떨어지는 현상이 발생을 해, white-block을 용암이 있는 곳 내에서 treature-pile 4군데(동서남북)에 white-block을 배치해, 그리고 stage5-goal-mound도 portalIn이라는 컴포넌트로 바꾸고, portalIn은 블랙홀 형태로 만들었으면 좋겠어(크기는 treasure-pile정도의 크기면 돼, 빨아들이는 느낌의 이펙트를 주고, 색은 검은색으로 지정해) 그리고 portalOut이라는 컴포넌트도 따로 stage5-bg-pillar stage5-bg-pillar--left의 오른쪽 맨 위에 추가한 다음에, 캐릭터가 portalIn에 들어가면 portalOut으로 나오게 만들어줘
+
+### 12-6. 이제 좀 더 5스테이지에 대해서 다듬어주었으면 좋겠어
+
+일단 treasure-pile을 가두고 있는 white-block은 trigger-block stage5-trigger stage5-top-box-gate-trigger(빨간 버튼)을 클릭했을 때 얼음을 가두고 있는 whiteblock이 없어질 때 같이 없어지는 형태로 갔으면 좋겠어 그리고 지금 얼음이 용암에 닿았을 때 물이 되지 않고 그대로 얼음의 상태를 유지하는데, 얼음이 용암을 만나면 물로 변하고, 그 전에 물을 만나게 되면 얼음물이 되는 형태로 바꿔줘(얼음물이 용암을 만나면 물만 남게 하는거야) 그리고 불 범위도 더 키워주고, 용암이 불을 만나게 되면 초용암이 되도록 잘 지정좀 해(초용암은 물을 만나게 되면 물을 증발시켜서 일반 용암으로 만들고, 얼음 물이 닿으면 굳은 용암으로 변하는 기능을 추가해), 그리고 캐릭터가 시작할 때 왼쪽으로 움직이면 다른 곳으로 순간이동하는 버그가 발생하거든 그 부분 수정해, 캐릭터 시작 위치는 왼쪽으로 10px 옮긴채로 시작하면 돼
