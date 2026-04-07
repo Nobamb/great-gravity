@@ -53,14 +53,19 @@ export function IceZone({
     height,
     style,
     effect = "ice-slip",
+    runtimeSolid = false,
+    anchored = true,
 }) {
     return (
         <div
             className={className}
-            data-collider="solid"
+            data-collider={runtimeSolid ? undefined : "solid"}
             data-element-type="ice"
             data-element-id={zoneId}
             data-effect={effect}
+            data-solidified-block={runtimeSolid ? "true" : undefined}
+            data-solidified-id={runtimeSolid ? zoneId : undefined}
+            data-solidified-anchored={runtimeSolid ? (anchored ? "true" : "false") : undefined}
             style={createZoneStyle(width, height, style)}
         ></div>
     );
