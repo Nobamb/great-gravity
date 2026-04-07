@@ -630,7 +630,19 @@ function Stage5Layout({
 }) {
     return (
         <>
-            <div className="stage5-bg-pillar stage5-bg-pillar--left" aria-hidden="true"></div>
+            <div
+                className="stage5-bg-pillar stage5-bg-pillar--left"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-top-box-gate-anchor"
+            >
+                <TriggerBlock
+                    className="trigger-block stage5-trigger stage5-top-box-gate-trigger"
+                    triggerId="stage5-top-box-gate-trigger"
+                    triggerDirection="right"
+                    triggerTargets="stage5-top-box-left,stage5-top-box-right,stage5-top-box-bottom"
+                />
+            </div>
             <div className="stage5-bg-pillar stage5-bg-pillar--mid" aria-hidden="true"></div>
             <div className="stage5-bg-pillar stage5-bg-pillar--right" aria-hidden="true"></div>
 
@@ -639,21 +651,23 @@ function Stage5Layout({
             <div className="stage5-floor stage5-floor--goal" data-collider="solid"></div>
 
             <div
-                className="stage5-frame stage5-left-support"
+                className="stage5-white-block stage5-top-box stage5-top-box--left"
                 data-collider="solid"
                 data-triggerable="true"
-                data-collapse-id="stage5-left-support"
-            >
-                <TriggerBlock
-                    className="trigger-block stage5-trigger stage5-fire-post stage5-fire-post--left-top"
-                    triggerId="stage5-left-support-trigger"
-                    triggerDirection="top"
-                />
-            </div>
-
-            <div className="stage5-frame stage5-top-box stage5-top-box--left" data-collider="solid"></div>
-            <div className="stage5-frame stage5-top-box stage5-top-box--right" data-collider="solid"></div>
-            <div className="stage5-frame stage5-top-box stage5-top-box--bottom" data-collider="solid"></div>
+                data-collapse-id="stage5-top-box-left"
+            ></div>
+            <div
+                className="stage5-white-block stage5-top-box stage5-top-box--right"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-top-box-right"
+            ></div>
+            <div
+                className="stage5-white-block stage5-top-box stage5-top-box--bottom"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-top-box-bottom"
+            ></div>
             <IceZone
                 className="stage5-ice-block"
                 zoneId="stage5-upper-ice"
