@@ -3,6 +3,7 @@ import CharacterSprite from "./CharacterSprite.jsx";
 import ClearOverlay from "./ClearOverlay.jsx";
 import CustomMissionAlarm from "./CustomMissionAlarm.jsx";
 import MissionHud from "./MissionHud.jsx";
+import { PortalIn, PortalOut } from "./Portal.jsx";
 import {
     FireZone,
     IceZone,
@@ -788,6 +789,10 @@ function Stage5Layout({
                 width="22.2%"
                 height="17%"
             />
+            <div className="stage5-white-block stage5-treasure-block stage5-treasure-block--north" data-collider="solid"></div>
+            <div className="stage5-white-block stage5-treasure-block stage5-treasure-block--south" data-collider="solid"></div>
+            <div className="stage5-white-block stage5-treasure-block stage5-treasure-block--west" data-collider="solid"></div>
+            <div className="stage5-white-block stage5-treasure-block stage5-treasure-block--east" data-collider="solid"></div>
             <div className="stage5-flame-glow" aria-hidden="true"></div>
             <FireZone
                 className="stage5-fluid-zone stage5-fluid-zone--fire fluid-zone fluid-zone--fire"
@@ -796,8 +801,16 @@ function Stage5Layout({
                 height="11%"
             />
 
-            <div className="stage5-goal-mound" data-collider="solid"></div>
-            <div className="stage5-goal-cross" aria-hidden="true"></div>
+            <PortalIn
+                className="stage5-portal stage5-portal--in"
+                portalId="stage5-portal-in"
+                targetId="stage5-portal-out"
+            />
+            <PortalOut
+                className="stage5-portal stage5-portal--out"
+                portalId="stage5-portal-out"
+                exitDirection="right"
+            />
             <div className="stage5-treasure-anchor" ref={treasureAnchorRef}></div>
             <TreasurePile ref={treasureRef} className="stage5-treasure-pile" />
 
