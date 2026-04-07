@@ -18,6 +18,28 @@ function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
 
+const FLUID_KEYS = [
+    "water",
+    "lava",
+    "fire",
+    "ice-water",
+    "super-lava",
+];
+
+const HAZARD_TYPES = new Set(["lava", "fire", "super-lava"]);
+
+function createFluidGroups() {
+    return {
+        water: [],
+        lava: [],
+        fire: [],
+        "ice-water": [],
+        "super-lava": [],
+        treasure: null,
+        stone: null,
+    };
+}
+
 export class PhysicsModel {
     constructor({
         container,
@@ -36,12 +58,7 @@ export class PhysicsModel {
 
         this.staticBodies = [];
         this.fluidZones = [];
-        this.dynamicBodies = {
-            lava: [],
-            water: [],
-            treasure: null,
-            stone: null,
-        };
+        this.dynamicBodies = createFluidGroups();
         this.stoneState = "missing";
         this.stoneSpawnRect = null;
         this.stoneHeldPosition = null;
@@ -56,6 +73,7 @@ export class PhysicsModel {
         this.solidifiedRects = [];
         this.solidifiedCellKeys = new Set();
         this.staticSolidRects = [];
+        this.staticIceRects = [];
         this.solidifiedIdCounter = 0;
         this.solidifyConfig = {
             maxBlocksPerStep: 6,
@@ -82,6 +100,21 @@ export class PhysicsModel {
                 pressureStrength: 0.00012,
                 targetSpacingScale: 2.8,
             },
+            "ice-water": {
+                key: "ice-water",
+                radiusScale: 0.075,
+                maxCols: 14,
+                maxRows: 8,
+                density: 0.0013,
+                friction: 0.006,
+                frictionAir: 0.02,
+                restitution: 0.04,
+                spreadForce: 0.000007,
+                downwardBias: 0.000018,
+                maxSpeed: 8,
+                pressureStrength: 0.00013,
+                targetSpacingScale: 2.7,
+            },
             lava: {
                 key: "lava",
                 radiusScale: 0.082,
@@ -96,6 +129,37 @@ export class PhysicsModel {
                 maxSpeed: 5,
                 pressureStrength: 0.00003,
                 targetSpacingScale: 2.4,
+            },
+            fire: {
+                key: "fire",
+                radiusScale: 0.064,
+                maxCols: 7,
+                maxRows: 5,
+                density: 0.0018,
+                friction: 0.01,
+                frictionAir: 0.08,
+                restitution: 0.0,
+                spreadForce: 0.0000007,
+                downwardBias: -0.000004,
+                maxSpeed: 2.6,
+                pressureStrength: 0.000018,
+                targetSpacingScale: 2.2,
+                lockedContainment: true,
+            },
+            "super-lava": {
+                key: "super-lava",
+                radiusScale: 0.086,
+                maxCols: 10,
+                maxRows: 7,
+                density: 0.0044,
+                friction: 0.36,
+                frictionAir: 0.04,
+                restitution: 0.0,
+                spreadForce: 0.0000014,
+                downwardBias: 0.000012,
+                maxSpeed: 4.6,
+                pressureStrength: 0.000035,
+                targetSpacingScale: 2.35,
             },
         };
 
@@ -128,12 +192,7 @@ export class PhysicsModel {
         this.world = this.engine.world;
         this.staticBodies = [];
         this.fluidZones = [];
-        this.dynamicBodies = {
-            lava: [],
-            water: [],
-            treasure: null,
-            stone: null,
-        };
+        this.dynamicBodies = createFluidGroups();
         this.stoneState = "missing";
         this.stoneSpawnRect = null;
         this.stoneHeldPosition = null;
@@ -147,6 +206,7 @@ export class PhysicsModel {
         this.solidifiedRects = [];
         this.solidifiedCellKeys = new Set();
         this.staticSolidRects = [];
+        this.staticIceRects = [];
         this.solidifiedIdCounter = 0;
     }
 
@@ -186,8 +246,7 @@ export class PhysicsModel {
 
     rebuildDynamicBodies() {
         this.removeBodies([
-            ...this.dynamicBodies.lava,
-            ...this.dynamicBodies.water,
+            ...this.getAllFluidBodies(),
             ...(this.dynamicBodies.treasure ? [this.dynamicBodies.treasure] : []),
             ...(this.dynamicBodies.stone ? [this.dynamicBodies.stone] : []),
         ]);
@@ -254,8 +313,7 @@ export class PhysicsModel {
         this.stoneReleaseOrigin = null;
 
         this.addBodies([
-            ...this.dynamicBodies.lava,
-            ...this.dynamicBodies.water,
+            ...this.getAllFluidBodies(),
             this.dynamicBodies.treasure,
         ]);
 
@@ -263,12 +321,25 @@ export class PhysicsModel {
     }
 
     rebuildDynamicBodyCache() {
-        this.dynamicBodies.lava = this.fluidZones
-            .filter((zone) => zone.key === "lava")
-            .flatMap((zone) => zone.bodies);
-        this.dynamicBodies.water = this.fluidZones
-            .filter((zone) => zone.key === "water")
-            .flatMap((zone) => zone.bodies);
+        FLUID_KEYS.forEach((key) => {
+            this.dynamicBodies[key] = [];
+        });
+
+        this.fluidZones.forEach((zone) => {
+            zone.bodies.forEach((body) => {
+                const elementType = body.plugin.elementType ?? zone.key;
+
+                if (!this.dynamicBodies[elementType]) {
+                    this.dynamicBodies[elementType] = [];
+                }
+
+                this.dynamicBodies[elementType].push(body);
+            });
+        });
+    }
+
+    getAllFluidBodies() {
+        return FLUID_KEYS.flatMap((key) => this.dynamicBodies[key] ?? []);
     }
 
     rebuildStaticBodies(stageModel) {
@@ -281,7 +352,11 @@ export class PhysicsModel {
             height: solid.height,
             right: solid.left + solid.width,
             bottom: solid.top + solid.height,
+            elementType: solid.elementType || null,
         }));
+        this.staticIceRects = this.staticSolidRects.filter(
+            (solid) => solid.elementType === "ice",
+        );
         this.projectileTriggers = Array.from(
             this.container.querySelectorAll('[data-projectile-trigger="true"]'),
         ).map((element, index) => {
@@ -623,6 +698,11 @@ export class PhysicsModel {
             const containerWidth = this.container.clientWidth;
             const containerHeight = this.container.clientHeight;
 
+            if (zone.config.lockedContainment) {
+                zone.containmentRect = containment;
+                return;
+            }
+
             if (!hasLeftWall) {
                 containment.left = 0;
             }
@@ -677,6 +757,7 @@ export class PhysicsModel {
                     slop: 0.001,
                 });
                 body.plugin.renderKind = config.key;
+                body.plugin.elementType = config.key;
                 body.plugin.fluidConfig = config;
                 bodies.push(body);
             }
@@ -754,12 +835,28 @@ export class PhysicsModel {
         this.elapsed += dt;
 
         this.fluidZones.forEach((zone) => {
-            this.applyFluidForces(zone.bodies, zone.config);
-            this.applyInternalPressure(zone);
+            const groupedBodies = new Map();
+
+            zone.bodies.forEach((body) => {
+                const key = body.plugin.elementType ?? zone.key;
+                const entry = groupedBodies.get(key) ?? [];
+                entry.push(body);
+                groupedBodies.set(key, entry);
+            });
+
+            groupedBodies.forEach((bodies, key) => {
+                const config = this.fluidConfigs[key] ?? zone.config;
+                this.applyFluidForces(bodies, config);
+                this.applyInternalPressure({
+                    ...zone,
+                    bodies,
+                    config,
+                });
+            });
         });
 
         this.Engine.update(this.engine, dt * 1000);
-        this.solidifyFluidContacts();
+        this.processElementInteractions();
         this.updateSolidifiedBlockPhysics(dt);
         this.clampFluidVelocities();
         this.removeOffscreenFluidBodies();
@@ -768,45 +865,165 @@ export class PhysicsModel {
         this.updateStoneState();
     }
 
-    solidifyFluidContacts() {
-        if (
-            this.dynamicBodies.water.length === 0 ||
-            this.dynamicBodies.lava.length === 0
-        ) {
+    processElementInteractions() {
+        this.resolveIceSurfaceInteractions();
+        this.resolveRemovalPair("fire", "water");
+        this.resolveConversionPair("lava", "fire", {
+            keep: "lava",
+            convertTo: "super-lava",
+            remove: "fire",
+        });
+        this.resolveConversionPair("super-lava", "water", {
+            keep: "super-lava",
+            convertTo: "lava",
+            remove: "water",
+        });
+        this.resolveSolidificationPair("ice-water", "super-lava");
+        this.resolveSolidificationPair("water", "lava");
+    }
+
+    resolveIceSurfaceInteractions() {
+        if (this.staticIceRects.length === 0) {
             return;
         }
 
+        this.dynamicBodies.water.forEach((body) => {
+            if (this.isBodyTouchingIce(body)) {
+                this.convertBodyType(body, "ice-water");
+            }
+        });
+
+        this.dynamicBodies.fire.forEach((body) => {
+            if (this.isBodyTouchingIce(body)) {
+                this.convertBodyType(body, "water");
+            }
+        });
+
+        this.dynamicBodies["super-lava"].forEach((body) => {
+            if (this.isBodyTouchingIce(body)) {
+                this.convertBodyType(body, "lava");
+            }
+        });
+
+        this.rebuildDynamicBodyCache();
+    }
+
+    resolveRemovalPair(typeA, typeB) {
+        const pair = this.findFirstContactPair(typeA, typeB);
+
+        if (!pair) {
+            return false;
+        }
+
+        this.removeBodyFromZones(pair.bodyA);
+        this.removeBodyFromZones(pair.bodyB);
+        this.rebuildDynamicBodyCache();
+        return true;
+    }
+
+    resolveConversionPair(typeA, typeB, { keep, convertTo, remove }) {
+        const pair = this.findFirstContactPair(typeA, typeB);
+
+        if (!pair) {
+            return false;
+        }
+
+        const keepBody = keep === typeA ? pair.bodyA : pair.bodyB;
+        const removeBody = remove === typeA ? pair.bodyA : pair.bodyB;
+
+        this.convertBodyType(keepBody, convertTo);
+        this.removeBodyFromZones(removeBody);
+        this.rebuildDynamicBodyCache();
+        return true;
+    }
+
+    resolveSolidificationPair(typeA, typeB) {
         let createdBlocks = 0;
 
-        for (const waterBody of this.dynamicBodies.water) {
-            for (const lavaBody of this.dynamicBodies.lava) {
-                const dx = lavaBody.position.x - waterBody.position.x;
-                const dy = lavaBody.position.y - waterBody.position.y;
-                const contactDistance =
-                    (waterBody.circleRadius + lavaBody.circleRadius) *
-                    this.solidifyConfig.contactRatio;
+        while (createdBlocks < this.solidifyConfig.maxBlocksPerStep) {
+            const pair = this.findFirstContactPair(typeA, typeB);
 
-                if (dx * dx + dy * dy > contactDistance * contactDistance) {
-                    continue;
-                }
+            if (!pair) {
+                return createdBlocks > 0;
+            }
 
-                const centerX = (waterBody.position.x + lavaBody.position.x) / 2;
-                const centerY = (waterBody.position.y + lavaBody.position.y) / 2;
-                const solidRect = this.getSolidifiedRectForPoint(centerX, centerY);
-                solidRect.id = `solidified-fluid-${this.solidifiedIdCounter}`;
-                this.solidifiedIdCounter += 1;
-                solidRect.isAnchored = false;
-                solidRect.velocityY = 0;
+            if (this.addSolidifiedBlock(this.createSolidRectFromBodies(pair.bodyA, pair.bodyB))) {
+                createdBlocks += 1;
+                this.rebuildDynamicBodyCache();
+                continue;
+            }
 
-                if (this.addSolidifiedBlock(solidRect)) {
-                    createdBlocks += 1;
-                }
+            break;
+        }
 
-                if (createdBlocks >= this.solidifyConfig.maxBlocksPerStep) {
-                    return;
+        return createdBlocks > 0;
+    }
+
+    createSolidRectFromBodies(bodyA, bodyB) {
+        const centerX = (bodyA.position.x + bodyB.position.x) / 2;
+        const centerY = (bodyA.position.y + bodyB.position.y) / 2;
+        const solidRect = this.getSolidifiedRectForPoint(centerX, centerY);
+        solidRect.id = `solidified-fluid-${this.solidifiedIdCounter}`;
+        this.solidifiedIdCounter += 1;
+        solidRect.isAnchored = false;
+        solidRect.velocityY = 0;
+        return solidRect;
+    }
+
+    findFirstContactPair(typeA, typeB) {
+        const bodiesA = [...(this.dynamicBodies[typeA] ?? [])];
+        const bodiesB = [...(this.dynamicBodies[typeB] ?? [])];
+
+        for (const bodyA of bodiesA) {
+            for (const bodyB of bodiesB) {
+                if (this.areBodiesTouching(bodyA, bodyB)) {
+                    return { bodyA, bodyB };
                 }
             }
         }
+
+        return null;
+    }
+
+    areBodiesTouching(bodyA, bodyB) {
+        const dx = bodyB.position.x - bodyA.position.x;
+        const dy = bodyB.position.y - bodyA.position.y;
+        const contactDistance =
+            (bodyA.circleRadius + bodyB.circleRadius) * this.solidifyConfig.contactRatio;
+
+        return dx * dx + dy * dy <= contactDistance * contactDistance;
+    }
+
+    isBodyTouchingIce(body) {
+        const radius = body.circleRadius;
+
+        return this.staticIceRects.some((iceRect) => !(
+            body.position.x + radius < iceRect.left ||
+            body.position.x - radius > iceRect.right ||
+            body.position.y + radius < iceRect.top ||
+            body.position.y - radius > iceRect.bottom
+        ));
+    }
+
+    convertBodyType(body, nextType) {
+        const config = this.fluidConfigs[nextType];
+
+        if (!config || !body) {
+            return false;
+        }
+
+        body.plugin.renderKind = nextType;
+        body.plugin.elementType = nextType;
+        body.plugin.fluidConfig = config;
+        return true;
+    }
+
+    removeBodyFromZones(bodyToRemove) {
+        this.fluidZones.forEach((zone) => {
+            zone.bodies = zone.bodies.filter((body) => body !== bodyToRemove);
+        });
+
+        this.removeBodies([bodyToRemove]);
     }
 
     getSolidifiedRects() {
@@ -822,19 +1039,43 @@ export class PhysicsModel {
         }));
     }
 
-    getLavaHazards() {
-        return this.dynamicBodies.lava.map((body, index) => {
-            const radius = body.circleRadius;
+    getHazards() {
+        return FLUID_KEYS
+            .filter((type) => HAZARD_TYPES.has(type))
+            .flatMap((type) =>
+                (this.dynamicBodies[type] ?? []).map((body, index) => {
+                    const radius = body.circleRadius;
 
-            return {
-                id: `lava-${index}`,
-                left: body.position.x - radius,
-                top: body.position.y - radius,
-                width: radius * 2,
-                height: radius * 2,
-                type: "lava",
-            };
+                    return {
+                        id: `${type}-${index}`,
+                        left: body.position.x - radius,
+                        top: body.position.y - radius,
+                        width: radius * 2,
+                        height: radius * 2,
+                        type,
+                    };
+                })
+            );
+    }
+
+    getFluidParticlesByType() {
+        const particlesByType = {};
+
+        FLUID_KEYS.forEach((type) => {
+            const bodies = this.dynamicBodies[type] ?? [];
+
+            if (bodies.length === 0) {
+                return;
+            }
+
+            particlesByType[type] = bodies.map((body) => ({
+                x: body.position.x,
+                y: body.position.y,
+                radius: body.circleRadius,
+            }));
         });
+
+        return particlesByType;
     }
 
     getTreasureBounds() {
@@ -1264,9 +1505,10 @@ export class PhysicsModel {
     clampFluidVelocities() {
         this.fluidZones.forEach((zone) => {
             const containment = zone.containmentRect;
-            const config = zone.config;
 
             zone.bodies.forEach((body) => {
+                const config = body.plugin.fluidConfig ?? zone.config;
+
                 if (body.velocity.y < -4) {
                     this.Body.setVelocity(body, {
                         x: body.velocity.x,
@@ -1370,19 +1612,13 @@ export class PhysicsModel {
 
         this.removeBodies([
             ...this.staticBodies,
-            ...this.dynamicBodies.lava,
-            ...this.dynamicBodies.water,
+            ...this.getAllFluidBodies(),
             ...(this.dynamicBodies.treasure ? [this.dynamicBodies.treasure] : []),
             ...(this.dynamicBodies.stone ? [this.dynamicBodies.stone] : []),
         ]);
         this.staticBodies = [];
         this.fluidZones = [];
-        this.dynamicBodies = {
-            lava: [],
-            water: [],
-            treasure: null,
-            stone: null,
-        };
+        this.dynamicBodies = createFluidGroups();
         this.stoneState = "missing";
         this.stoneSpawnRect = null;
         this.stoneHeldPosition = null;
@@ -1393,6 +1629,7 @@ export class PhysicsModel {
         this.pendingTriggerHits = [];
         this.solidifiedRects = [];
         this.solidifiedCellKeys.clear();
+        this.staticIceRects = [];
         this.initialized = false;
         this.Engine.clear(this.engine);
     }
