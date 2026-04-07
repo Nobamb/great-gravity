@@ -62,6 +62,7 @@ export class GameController {
         this.monsterStates = new Map();
         this.customMissionAlarm = null;
         this.customMissionAlarmToken = 0;
+        this.portalCooldownMs = 0;
         this.tick = this.tick.bind(this);
     }
 
@@ -85,6 +86,7 @@ export class GameController {
         this.activeCannon = null;
         this.isAimingCannon = false;
         this.customMissionAlarm = null;
+        this.portalCooldownMs = 0;
         this.gameView.bindControls({
             onRetry: () => {
                 this.restartStage();
@@ -186,6 +188,10 @@ export class GameController {
             this.beginCannonAimIfNeeded(input);
 
             let didDie = false;
+            this.portalCooldownMs = Math.max(
+                0,
+                this.portalCooldownMs - this.fixedDeltaTime * 1000,
+            );
 
             if (this.isAimingCannon) {
                 this.holdCharacterAtActiveCannon();
@@ -229,6 +235,7 @@ export class GameController {
             this.syncPhysicsRuntimeState();
             this.handleContactTriggerHits();
             this.updateMonsters(this.fixedDeltaTime);
+            this.handlePortalTraversal();
 
             if (this.isCharacterTouchingMonster()) {
                 this.handlePlayerDeath();
@@ -787,6 +794,7 @@ export class GameController {
         this.activeCannon = null;
         this.isAimingCannon = false;
         this.customMissionAlarm = null;
+        this.portalCooldownMs = 0;
         this.gameView.hideClearOverlay();
         this.gameView.setNextStageVisibility(false);
         this.gameView.updateTimer(this.formatTime(this.elapsedTimeMs));
@@ -820,6 +828,74 @@ export class GameController {
         }
 
         return false;
+    }
+
+    handlePortalTraversal() {
+        if (this.portalCooldownMs > 0) {
+            return false;
+        }
+
+        const portalPadding = Math.max(8, this.stageModel.bounds.width * 0.006);
+        const entryPortal = this.stageModel.getPortalEntry(
+            this.characterModel.getBounds(),
+            portalPadding,
+        );
+
+        if (!entryPortal?.targetId) {
+            return false;
+        }
+
+        const exitPortal = this.stageModel.getPortalById(entryPortal.targetId);
+
+        if (!exitPortal) {
+            return false;
+        }
+
+        const exitPosition = this.getPortalExitPosition(exitPortal);
+        this.characterModel.launch({
+            x: exitPosition.x,
+            y: exitPosition.y,
+            vx: 0,
+            vy: 0,
+        });
+        this.portalCooldownMs = 450;
+        this.isDraggingStone = false;
+        this.isPreparingStoneThrow = false;
+        this.stoneAim = null;
+        this.activeCannon = null;
+        this.isAimingCannon = false;
+        this.updateActiveTrigger();
+        return true;
+    }
+
+    getPortalExitPosition(portal) {
+        const bounds = portal.rect;
+        const characterWidth = this.characterModel.width;
+        const characterHeight = this.characterModel.height;
+        const margin = Math.max(10, this.stageModel.bounds.width * 0.01);
+        let x = bounds.left + (bounds.width - characterWidth) / 2;
+        let y = bounds.top + (bounds.height - characterHeight) / 2;
+
+        switch (portal.exitDirection) {
+            case "left":
+                x = bounds.left - characterWidth - margin;
+                break;
+            case "top":
+                y = bounds.top - characterHeight - margin;
+                break;
+            case "bottom":
+                y = bounds.bottom + margin;
+                break;
+            case "right":
+            default:
+                x = bounds.right + margin;
+                break;
+        }
+
+        return {
+            x: clamp(x, 0, Math.max(0, this.stageModel.bounds.width - characterWidth)),
+            y: clamp(y, 0, Math.max(0, this.stageModel.bounds.height - characterHeight)),
+        };
     }
 
     handleStageClear() {
