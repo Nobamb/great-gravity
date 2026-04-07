@@ -83,6 +83,22 @@ class FluidSurfaceRenderer {
         }
     }
 
+    getVariantValue() {
+        switch (this.variant) {
+            case "lava":
+                return 1;
+            case "fire":
+                return 2;
+            case "ice-water":
+                return 3;
+            case "super-lava":
+                return 4;
+            case "water":
+            default:
+                return 0;
+        }
+    }
+
     render(particles, obstacles, clipRect, time) {
         if (!this.ready) {
             return false;
@@ -126,7 +142,7 @@ class FluidSurfaceRenderer {
         this.gl.uniform1f(this.timeLocation, time);
         this.gl.uniform1i(this.countLocation, particleCount);
         this.gl.uniform3fv(this.pointsLocation, packedParticles);
-        this.gl.uniform1f(this.variantLocation, this.variant === "lava" ? 1 : 0);
+        this.gl.uniform1f(this.variantLocation, this.getVariantValue());
         this.gl.uniform4f(
             this.clipRectLocation,
             (clipRect?.left ?? 0) * scaleX,
@@ -168,7 +184,13 @@ class FluidSurfaceRenderer {
         ctx.clip();
         ctx.fillStyle = this.variant === "lava"
             ? "rgba(255, 116, 36, 0.9)"
-            : "rgba(78, 178, 255, 0.88)";
+            : this.variant === "fire"
+                ? "rgba(255, 94, 24, 0.9)"
+                : this.variant === "ice-water"
+                    ? "rgba(180, 242, 255, 0.9)"
+                    : this.variant === "super-lava"
+                        ? "rgba(210, 34, 12, 0.94)"
+                        : "rgba(78, 178, 255, 0.88)";
         ctx.beginPath();
 
         particles.forEach((particle) => {
@@ -193,6 +215,18 @@ class FluidSurfaceRenderer {
             gradient.addColorStop(0, "rgba(255, 214, 132, 0.96)");
             gradient.addColorStop(0.4, "rgba(255, 122, 44, 0.98)");
             gradient.addColorStop(1, "rgba(142, 28, 16, 0.98)");
+        } else if (this.variant === "fire") {
+            gradient.addColorStop(0, "rgba(255, 245, 166, 0.98)");
+            gradient.addColorStop(0.42, "rgba(255, 154, 38, 0.98)");
+            gradient.addColorStop(1, "rgba(216, 46, 8, 0.98)");
+        } else if (this.variant === "ice-water") {
+            gradient.addColorStop(0, "rgba(244, 254, 255, 0.98)");
+            gradient.addColorStop(0.45, "rgba(162, 232, 255, 0.96)");
+            gradient.addColorStop(1, "rgba(59, 139, 228, 0.98)");
+        } else if (this.variant === "super-lava") {
+            gradient.addColorStop(0, "rgba(255, 231, 162, 0.98)");
+            gradient.addColorStop(0.32, "rgba(255, 86, 28, 0.99)");
+            gradient.addColorStop(1, "rgba(52, 4, 2, 0.99)");
         } else {
             gradient.addColorStop(0, "rgba(224, 248, 255, 0.96)");
             gradient.addColorStop(0.45, "rgba(96, 195, 255, 0.94)");
@@ -286,7 +320,16 @@ class FluidSurfaceRenderer {
                     vec3 point = u_points[index];
                     vec2 delta = pixel - point.xy;
                     float distanceSquared = max(dot(delta, delta), 1.0);
-                    float influence = mix(1.18, 1.32, u_variant);
+                    float influence = 1.18;
+                    if (u_variant > 3.5) {
+                        influence = 1.38;
+                    } else if (u_variant > 2.5) {
+                        influence = 1.2;
+                    } else if (u_variant > 1.5) {
+                        influence = 1.1;
+                    } else if (u_variant > 0.5) {
+                        influence = 1.32;
+                    }
                     field += (point.z * point.z * influence) / distanceSquared;
                 }
 
@@ -310,7 +353,16 @@ class FluidSurfaceRenderer {
 
                 // 블록 근처에서 유체 표면을 타이트하게 조여 블록 밖으로 넘치지 않게 함
                 float obstacleTightening = smoothstep(0.0, 12.0, nearestObstacle);
-                float threshold = mix(1.08, 1.26, u_variant) + ((1.0 - obstacleTightening) * 0.58);
+                float threshold = 1.08 + ((1.0 - obstacleTightening) * 0.58);
+                if (u_variant > 3.5) {
+                    threshold = 1.3 + ((1.0 - obstacleTightening) * 0.52);
+                } else if (u_variant > 2.5) {
+                    threshold = 1.12 + ((1.0 - obstacleTightening) * 0.56);
+                } else if (u_variant > 1.5) {
+                    threshold = 1.02 + ((1.0 - obstacleTightening) * 0.5);
+                } else if (u_variant > 0.5) {
+                    threshold = 1.26 + ((1.0 - obstacleTightening) * 0.58);
+                }
                 float body = smoothstep(threshold - 0.08, threshold + 0.015, field);
 
                 if (body <= 0.01) {
@@ -329,7 +381,7 @@ class FluidSurfaceRenderer {
                     color += vec3(0.10, 0.18, 0.26) * spread * 0.14;
                     color += vec3(0.84, 0.97, 1.0) * highlight * 0.34;
                     alpha = body * 0.9;
-                } else {
+                } else if (u_variant < 1.5) {
                     float flow = noise((pixel / u_resolution.xy) * vec2(4.0, 7.0) + vec2(u_time * 0.18, -u_time * 0.08));
                     float embers = noise((pixel / u_resolution.xy) * vec2(10.0, 14.0) + vec2(-u_time * 0.12, u_time * 0.05));
                     float glow = smoothstep(0.45, 1.0, flow + (rim * 0.26));
@@ -337,6 +389,26 @@ class FluidSurfaceRenderer {
                     color = mix(color, vec3(1.0, 0.74, 0.28), glow * 0.55);
                     color += vec3(0.82, 0.22, 0.05) * smoothstep(0.74, 1.0, embers) * 0.18;
                     alpha = body * 0.96;
+                } else if (u_variant < 2.5) {
+                    float flicker = noise((pixel / u_resolution.xy) * vec2(12.0, 18.0) + vec2(u_time * 0.32, -u_time * 0.26));
+                    float glow = smoothstep(0.38, 1.0, flicker + (rim * 0.32));
+                    color = mix(vec3(0.92, 0.22, 0.02), vec3(1.0, 0.72, 0.08), glow);
+                    color += vec3(1.0, 0.98, 0.68) * smoothstep(0.78, 1.0, flicker) * 0.34;
+                    alpha = body * 0.92;
+                } else if (u_variant < 3.5) {
+                    float flow = sin((v_uv.x * 8.0) - (u_time * 2.4) + (v_uv.y * 6.0)) * 0.05;
+                    float glow = smoothstep(0.52, 1.0, v_uv.y + flow + (rim * 0.1));
+                    color = mix(vec3(0.20, 0.46, 0.88), vec3(0.72, 0.96, 1.0), v_uv.y + 0.18 + flow);
+                    color += vec3(0.92, 1.0, 1.0) * glow * 0.28;
+                    alpha = body * 0.9;
+                } else {
+                    float flow = noise((pixel / u_resolution.xy) * vec2(5.0, 8.5) + vec2(u_time * 0.24, -u_time * 0.1));
+                    float embers = noise((pixel / u_resolution.xy) * vec2(14.0, 16.0) + vec2(-u_time * 0.18, u_time * 0.06));
+                    float glow = smoothstep(0.4, 1.0, flow + (rim * 0.3));
+                    color = mix(vec3(0.12, 0.01, 0.01), vec3(0.78, 0.06, 0.02), flow + 0.08);
+                    color = mix(color, vec3(1.0, 0.64, 0.12), glow * 0.6);
+                    color += vec3(1.0, 0.18, 0.02) * smoothstep(0.76, 1.0, embers) * 0.24;
+                    alpha = body * 0.98;
                 }
 
                 gl_FragColor = vec4(color, alpha);
@@ -384,7 +456,6 @@ export class PhysicsView {
         this.stoneElement = stoneElement;
         this.fluidRenderers = new Map();
         this.solidifiedBlockPool = [];
-        this.particlePools = new Map();
     }
 
     initialize(physicsModel) {
@@ -394,63 +465,27 @@ export class PhysicsView {
 
         physicsModel.fluidZones.forEach((zone) => {
             zone.element.classList.add("physics-fluid");
-
-            if (!this.fluidRenderers.has(zone.id)) {
-                this.fluidRenderers.set(
-                    zone.id,
-                    new FluidSurfaceRenderer(this.containerElement, zone.key),
-                );
-            }
         });
 
-        this.cleanupFluidResources(physicsModel.fluidZones);
+        this.cleanupFluidResources(
+            Object.keys(physicsModel.getFluidParticlesByType?.() ?? {}),
+        );
         this.treasureElement.classList.add("physics-managed");
         this.stage4TreasureBarrierElement?.classList.add("physics-managed");
         this.stoneElement?.classList.add("physics-managed");
     }
 
-    cleanupFluidResources(fluidZones) {
-        const activeZoneIds = new Set(fluidZones.map((zone) => zone.id));
+    cleanupFluidResources(activeTypes) {
+        const activeTypeSet = new Set(activeTypes);
 
-        for (const [zoneId, renderer] of this.fluidRenderers.entries()) {
-            if (activeZoneIds.has(zoneId)) {
+        for (const [type, renderer] of this.fluidRenderers.entries()) {
+            if (activeTypeSet.has(type)) {
                 continue;
             }
 
             renderer?.canvas?.remove();
-            this.fluidRenderers.delete(zoneId);
+            this.fluidRenderers.delete(type);
         }
-
-        for (const [zoneId, pool] of this.particlePools.entries()) {
-            if (activeZoneIds.has(zoneId)) {
-                continue;
-            }
-
-            pool.forEach((particleElement) => {
-                particleElement.remove();
-            });
-            this.particlePools.delete(zoneId);
-        }
-    }
-
-    ensureParticlePool(zoneId, key, size) {
-        const className = key === "lava" ? "lava-particle" : "water-particle";
-        const pool = this.particlePools.get(zoneId) ?? [];
-
-        while (pool.length < size) {
-            const particleElement = document.createElement("span");
-            particleElement.className = `physics-particle physics-particle--${key} ${className}`;
-            this.containerElement.appendChild(particleElement);
-            pool.push(particleElement);
-        }
-
-        while (pool.length > size) {
-            const particleElement = pool.pop();
-            particleElement?.remove();
-        }
-
-        this.particlePools.set(zoneId, pool);
-        return pool;
     }
 
     render(physicsModel) {
@@ -458,8 +493,11 @@ export class PhysicsView {
             return;
         }
 
-        physicsModel.fluidZones.forEach((zone) => {
-            this.renderFluidZone(zone, physicsModel);
+        const particlesByType = physicsModel.getFluidParticlesByType?.() ?? {};
+        const activeTypes = Object.keys(particlesByType);
+        this.cleanupFluidResources(activeTypes);
+        activeTypes.forEach((type) => {
+            this.renderFluidType(type, particlesByType[type], physicsModel);
         });
         this.renderSolidifiedBlocks(physicsModel);
         this.renderTreasure(physicsModel);
@@ -497,32 +535,46 @@ export class PhysicsView {
         });
     }
 
-    renderFluidZone(zone, physicsModel) {
-        const renderScale = this.getFluidRenderScale(zone.key);
-        const particles = zone.bodies.map((body) => ({
-            x: body.position.x,
-            y: body.position.y,
-            radius: body.circleRadius * renderScale,
-        }));
-        const renderer = this.fluidRenderers.get(zone.id);
+    renderFluidType(type, particles, physicsModel) {
+        if (!this.fluidRenderers.has(type)) {
+            this.fluidRenderers.set(
+                type,
+                new FluidSurfaceRenderer(this.containerElement, type),
+            );
+        }
+
+        const renderer = this.fluidRenderers.get(type);
+        const renderScale = this.getFluidRenderScale(type);
         const renderedByWebGL = renderer?.render(
-            particles,
+            particles.map((particle) => ({
+                ...particle,
+                radius: particle.radius * renderScale,
+            })),
             physicsModel.renderObstacles,
-            zone.containmentRect,
+            null,
             physicsModel.elapsed,
         );
 
         if (!renderedByWebGL) {
-            const pool = this.particlePools.get(zone.id) ?? [];
-            pool.forEach((particleElement) => {
-                particleElement.remove();
-            });
-            this.particlePools.delete(zone.id);
+            renderer?.canvas?.remove();
+            this.fluidRenderers.delete(type);
         }
     }
 
     getFluidRenderScale(key) {
-        return key === "lava" ? 0.62 : 0.66;
+        switch (key) {
+            case "lava":
+                return 0.62;
+            case "fire":
+                return 0.58;
+            case "super-lava":
+                return 0.64;
+            case "ice-water":
+                return 0.68;
+            case "water":
+            default:
+                return 0.66;
+        }
     }
 
     renderTreasure(physicsModel) {
@@ -583,18 +635,11 @@ export class PhysicsView {
             renderer?.canvas?.remove();
         }
 
-        for (const pool of this.particlePools.values()) {
-            pool.forEach((particleElement) => {
-                particleElement.remove();
-            });
-        }
-
         this.solidifiedBlockPool.forEach((blockElement) => {
             blockElement.remove();
         });
 
         this.fluidRenderers = new Map();
-        this.particlePools = new Map();
         this.solidifiedBlockPool = [];
     }
 }
