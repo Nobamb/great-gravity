@@ -442,6 +442,7 @@ export class PhysicsModel {
             right: solid.left + solid.width,
             bottom: solid.top + solid.height,
             effect: solid.effect || null,
+            elementType: solid.elementType || null,
             isAnchored: solid.isAnchored === true,
             velocityY: solid.velocityY ?? 0,
         }));
@@ -996,8 +997,12 @@ export class PhysicsModel {
 
     isBodyTouchingIce(body) {
         const radius = body.circleRadius;
+        const iceRects = [
+            ...this.staticIceRects,
+            ...this.solidifiedRects.filter((solid) => solid.elementType === "ice"),
+        ];
 
-        return this.staticIceRects.some((iceRect) => !(
+        return iceRects.some((iceRect) => !(
             body.position.x + radius < iceRect.left ||
             body.position.x - radius > iceRect.right ||
             body.position.y + radius < iceRect.top ||
@@ -1034,6 +1039,7 @@ export class PhysicsModel {
             width: solid.width,
             height: solid.height,
             effect: solid.effect || null,
+            elementType: solid.elementType || null,
             isAnchored: solid.isAnchored === true,
             velocityY: solid.velocityY ?? 0,
         }));
