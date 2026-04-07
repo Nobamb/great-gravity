@@ -616,7 +616,10 @@ export class GameController {
                 intersects(stoneBounds, trigger.rect);
             const touchedByLava =
                 sources.includes("lava") &&
-                this.stageModel.hazards.some((hazard) => intersects(hazard, trigger.rect));
+                this.stageModel.hazards.some((hazard) =>
+                    (hazard.type === "lava" || hazard.type === "super-lava") &&
+                    intersects(hazard, trigger.rect)
+                );
             const touchedBySolidified =
                 sources.includes("solidified") &&
                 solidifiedBounds.some((block) => intersects(block, trigger.rect));
@@ -646,7 +649,7 @@ export class GameController {
 
             const monsterBounds = this.getMonsterBounds(monster);
 
-            if (this.isRectTouchingLava(monsterBounds)) {
+            if (this.isRectTouchingHazard(monsterBounds)) {
                 monster.isDead = true;
                 monster.isAlert = false;
                 return;
@@ -745,7 +748,7 @@ export class GameController {
         ));
     }
 
-    isRectTouchingLava(bounds) {
+    isRectTouchingHazard(bounds) {
         return this.stageModel.hazards.some((hazard) => intersects(bounds, hazard));
     }
 
@@ -856,7 +859,7 @@ export class GameController {
             this.physicsController?.getSolidifiedBlocks?.() ?? [],
         );
         this.stageModel.setRuntimeHazards(
-            this.physicsController?.getLavaHazards?.() ?? [],
+            this.physicsController?.getHazards?.() ?? [],
         );
     }
 
