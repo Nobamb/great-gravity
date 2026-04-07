@@ -835,10 +835,9 @@ export class GameController {
             return false;
         }
 
-        const portalPadding = Math.max(8, this.stageModel.bounds.width * 0.006);
         const entryPortal = this.stageModel.getPortalEntry(
             this.characterModel.getBounds(),
-            portalPadding,
+            0,
         );
 
         if (!entryPortal?.targetId) {
