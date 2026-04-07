@@ -85,6 +85,7 @@ export class StageModel {
     this.cannonSelector = '[data-cannon="true"]';
     this.monsterSelector = '[data-monster="true"]';
     this.initialSolidifiedSelector = '[data-solidified-block="true"]';
+    this.portalSelector = "[data-portal-id]";
 
     this.domSolids = [];
     this.runtimeSolids = [];
@@ -106,6 +107,7 @@ export class StageModel {
     this.timedBlocks = [];
     this.cannons = [];
     this.monsters = [];
+    this.portals = [];
     this.dirty = true;
     this.shouldSeedInitialSolidifiedBlocks = true;
     this.containerRect = container.getBoundingClientRect();
@@ -373,6 +375,16 @@ export class StageModel {
       rect: createRelativeRect(element.getBoundingClientRect(), containerRect),
       direction:
         (element.dataset.monsterDirection || "left") === "right" ? 1 : -1,
+    }));
+    this.portals = Array.from(
+      this.container.querySelectorAll(this.portalSelector),
+    ).map((element, index) => ({
+      id: element.dataset.portalId || `portal-${index}`,
+      kind: element.dataset.portalKind || "in",
+      targetId: element.dataset.portalTarget || null,
+      exitDirection: element.dataset.portalExitDirection || "right",
+      element,
+      rect: createRelativeRect(element.getBoundingClientRect(), containerRect),
     }));
 
     if (!this.initialTriggerStates) {
@@ -743,6 +755,31 @@ export class StageModel {
     });
 
     return bestMatch;
+  }
+
+  getPortalEntry(bounds, padding = 0) {
+    const expandedBounds = expandRect(bounds, padding);
+    let bestMatch = null;
+    let bestArea = 0;
+
+    this.portals.forEach((portal) => {
+      if (portal.kind !== "in") {
+        return;
+      }
+
+      const overlapArea = getOverlapArea(expandedBounds, portal.rect);
+
+      if (overlapArea > bestArea) {
+        bestArea = overlapArea;
+        bestMatch = portal;
+      }
+    });
+
+    return bestMatch;
+  }
+
+  getPortalById(portalId) {
+    return this.portals.find((portal) => portal.id === portalId) ?? null;
   }
 
   destroy() {
