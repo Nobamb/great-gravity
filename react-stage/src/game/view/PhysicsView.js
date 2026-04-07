@@ -529,6 +529,9 @@ export class PhysicsView {
                 return;
             }
 
+            blockElement.className = block.elementType === "ice"
+                ? "solidified-block solidified-block--ice"
+                : "solidified-block";
             blockElement.style.width = `${block.width}px`;
             blockElement.style.height = `${block.height}px`;
             blockElement.style.transform = `translate3d(${block.left}px, ${block.top}px, 0)`;
