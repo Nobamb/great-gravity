@@ -202,3 +202,7 @@ stage5-frame stage5-left-support 일단 삭제한 다음에 stage5-bg-pillar sta
 
 우선 stage5-floor stage5-floor--left 삭제하고,stage5-ice-block도 중력의 영향을 받아서 떨어지는 기능이 추가되었으면 좋겠어 그리고 trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--left랑
 trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--right도지금 너무 작아서 잘 안보이는데 각각 부모요소의 높이값 만큼만 높이를 조금 더 늘렸으면 좋겠어 그리고 treasure-pile stage5-treasure-pile physics-managed도 용암이 있는 공간 내부에 같이 넣어주면서 stage5-floor stage5-floor--goal도 지워버리면 좋겠어
+
+### 12-4. 이제 버그라던지 5스테이지에서 전반적으로 조금 손보면 좋은 것들을 먼저 손봐보자
+
+trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--right랑 trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--left 부분 가로 세로 크기를 각각 바꿔, 그리고 white-block이랑 얼음들 높이 있잖아 조금 더 높여보자, 게임 화면에 전부 안들어와도 되니까 top값 10% 낮추자(기존 top값이 14.5%라면 4.5%로 낮추는 식으로) 그리고 treasure-pile도 용암 아래의 중앙에 위치하도록 바꾸고, stage5-frame stage5-grid-box stage5-grid-box--outer-top의 왼쪽에 trigger-block 하나 추가해 거기에 돌을 맞추거나 e키를 클릭하면 부모 블록 stage5-frame stage5-grid-box stage5-grid-box--outer-top까지 사라지는 형태로 만들어보자 그리고 jump-block stage5-jump-block stage5-jump-block--right도 left 값을 70%로 바꿔
