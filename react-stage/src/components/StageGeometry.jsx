@@ -643,9 +643,6 @@ function Stage5Layout({
                     triggerTargets="stage5-top-box-left,stage5-top-box-right,stage5-top-box-bottom"
                 />
             </div>
-            <div className="stage5-bg-pillar stage5-bg-pillar--mid" aria-hidden="true"></div>
-            <div className="stage5-bg-pillar stage5-bg-pillar--right" aria-hidden="true"></div>
-
             <div className="spawn-pad stage5-spawn-pad" data-collider="solid" data-spawn="player"></div>
 
             <div
@@ -670,7 +667,7 @@ function Stage5Layout({
                 className="stage5-ice-block"
                 zoneId="stage5-upper-ice"
                 width="14.5%"
-                height="11%"
+                height="13%"
                 runtimeSolid={true}
                 anchored={false}
             />
@@ -687,7 +684,18 @@ function Stage5Layout({
                     triggerDirection="top"
                 />
             </div>
-            <div className="stage5-frame stage5-grid-box stage5-grid-box--outer-top" data-collider="solid"></div>
+            <div
+                className="stage5-frame stage5-grid-box stage5-grid-box--outer-top"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-grid-outer-top"
+            >
+                <TriggerBlock
+                    className="trigger-block stage5-trigger stage5-fire-post stage5-fire-post--outer-top-left"
+                    triggerId="stage5-grid-outer-top-trigger"
+                    triggerDirection="left"
+                />
+            </div>
             <div
                 className="stage5-frame stage5-grid-box stage5-grid-box--outer-right"
                 data-collider="solid"
