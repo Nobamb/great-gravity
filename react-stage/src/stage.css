@@ -2049,26 +2049,26 @@ body {
 
 .stage5-top-box--left {
   left: 39.5%;
-  top: 0;
+  top: -10%;
   width: 1vw;
   min-width: calc(12 * var(--cw));
-  height: 15.5%;
+  height: 17%;
 }
 
 .stage5-top-box--right {
   left: calc(68% - 1vw);
-  top: 0;
+  top: -10%;
   width: 1vw;
   min-width: calc(12 * var(--cw));
-  height: 15.5%;
+  height: 17%;
 }
 
 .stage5-top-box--bottom {
   left: 39.5%;
-  top: 14.5%;
+  top: 4.5%;
   width: 28.5%;
-  height: 1vw;
-  min-height: calc(12 * var(--cw));
+  height: 1.25vw;
+  min-height: calc(16 * var(--cw));
 }
 
 .stage5-white-block {
@@ -2084,7 +2084,7 @@ body {
 .stage5-ice-block {
   position: absolute;
   left: 47%;
-  top: 2%;
+  top: -10%;
   background: linear-gradient(to bottom, #d9f5ff, #b8e6f8);
   border: 1px solid rgba(220, 248, 255, 0.7);
   box-shadow:
@@ -2219,9 +2219,21 @@ body {
   transform: translate(-50%, -100%);
 }
 
+.stage5-fire-post--outer-top-left {
+  left: 0;
+  top: 50%;
+  width: calc(30 * var(--cw));
+  min-width: calc(30 * var(--cw));
+  height: 1.8%;
+  min-height: calc(16 * var(--cw));
+  transform: translate(-100%, -50%);
+}
+
 .stage5-trigger.stage5-fire-bar {
-  width: 5.5%;
-  height: calc(100% + 100%);
+  width: 20px;
+  min-width: 20px;
+  height: calc(18 * var(--cw));
+  min-height: calc(18 * var(--cw));
 }
 
 .stage5-fire-bar--left {
@@ -2259,7 +2271,7 @@ body {
 }
 
 .stage5-jump-block--right {
-  left: 72.2%;
+  left: 70%;
   top: 48.8%;
 }
 
@@ -2385,8 +2397,8 @@ body {
 }
 
 .stage5-treasure-anchor {
-  left: 68%;
-  top: 81.5%;
+  left: 67.8%;
+  top: 91%;
   width: calc(96 * var(--cw));
   height: calc(58 * var(--cw));
   transform: translate(-50%, -100%);
@@ -2395,8 +2407,8 @@ body {
 }
 
 .stage5-treasure-pile {
-  left: 68%;
-  top: 81.5%;
+  left: 67.8%;
+  top: 91%;
   transform: translate(-50%, -100%);
 }
 
