@@ -70,6 +70,7 @@ export class CharacterModel {
         this.onLadder = false;
         this.isClimbing = false;
         this.groundEffect = null; // 현재 밟고 있는 지형의 특수 효과
+        this.hitIceCeiling = false;
     }
 
     /**
@@ -113,6 +114,7 @@ export class CharacterModel {
         this.onLadder = false;
         this.isClimbing = false;
         this.groundEffect = null;
+        this.hitIceCeiling = false;
     }
 
     /**
@@ -127,6 +129,8 @@ export class CharacterModel {
         this.onGround = false;
         this.onLadder = false;
         this.isClimbing = false;
+        this.groundEffect = null;
+        this.hitIceCeiling = false;
     }
 
     /**
@@ -201,6 +205,10 @@ export class CharacterModel {
             return true;
         }
 
+        if (this.hitIceCeiling) {
+            return true;
+        }
+
         // 추락 리셋 여유분도 배율 적용
         const resetLimit = stage.bounds.height + (this.fallResetMargin * this.physicsScale);
         if (this.y > resetLimit) {
@@ -225,7 +233,10 @@ export class CharacterModel {
         const maxMoveSpeed = this.maxMoveSpeed * s;
         const groundAcceleration = this.groundAcceleration * s;
         const airAcceleration = this.airAcceleration * s;
-        const groundDeceleration = this.groundDeceleration * s;
+        const groundDeceleration =
+            (this.groundEffect === "ice-slip"
+                ? this.groundDeceleration * 0.12
+                : this.groundDeceleration) * s;
         const airDeceleration = this.airDeceleration * s;
         const gravity = this.gravity * s;
         const maxFallSpeed = this.maxFallSpeed * s;
@@ -323,6 +334,7 @@ export class CharacterModel {
     resolveVerticalCollisions(solids) {
         let bounds = this.getBounds();
         this.groundEffect = null;
+        this.hitIceCeiling = false;
 
         for (const solid of solids) {
             if (!intersects(bounds, solid)) {
@@ -335,6 +347,10 @@ export class CharacterModel {
                 this.groundEffect = solid.effect;
             } else if (this.vy < 0) {
                 this.y = solid.bottom;
+
+                if (solid.elementType === "ice") {
+                    this.hitIceCeiling = true;
+                }
             }
 
             this.vy = 0;
