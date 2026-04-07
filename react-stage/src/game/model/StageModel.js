@@ -42,6 +42,7 @@ function normalizeSolidRect(rect) {
         right: rect.left + rect.width,
         bottom: rect.top + rect.height,
         effect: rect.effect || null,
+        elementType: rect.elementType || null,
         isAnchored: rect.isAnchored === true,
         velocityY: rect.velocityY ?? 0,
     };
@@ -154,6 +155,7 @@ export class StageModel {
             return normalizeSolidRect({
                 ...rect,
                 effect: element.dataset.effect || null,
+                elementType: element.dataset.elementType || null,
             });
         });
 
