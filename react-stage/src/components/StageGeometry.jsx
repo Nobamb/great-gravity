@@ -641,7 +641,7 @@ function Stage5Layout({
                     className="trigger-block stage5-trigger stage5-top-box-gate-trigger"
                     triggerId="stage5-top-box-gate-trigger"
                     triggerDirection="right"
-                    triggerTargets="stage5-top-box-left,stage5-top-box-right,stage5-top-box-bottom"
+                    triggerTargets="stage5-top-box-left,stage5-top-box-right,stage5-top-box-bottom,stage5-treasure-block-north,stage5-treasure-block-south,stage5-treasure-block-west,stage5-treasure-block-east"
                 />
             </div>
             <div className="spawn-pad stage5-spawn-pad" data-collider="solid" data-spawn="player"></div>
@@ -770,11 +770,6 @@ function Stage5Layout({
                 data-stone-source="true"
                 data-stone-source-id="stage5-stone-top"
             ></div>
-            <div
-                className="stage5-stone-source throw-stone stage5-stone-source--mid"
-                data-stone-source="true"
-                data-stone-source-id="stage5-stone-mid"
-            ></div>
             <div className="throw-stone stage5-projectile-stone" ref={stoneRef}></div>
 
             <WaterZone
@@ -789,16 +784,36 @@ function Stage5Layout({
                 width="22.2%"
                 height="17%"
             />
-            <div className="stage5-white-block stage5-treasure-block stage5-treasure-block--north" data-collider="solid"></div>
-            <div className="stage5-white-block stage5-treasure-block stage5-treasure-block--south" data-collider="solid"></div>
-            <div className="stage5-white-block stage5-treasure-block stage5-treasure-block--west" data-collider="solid"></div>
-            <div className="stage5-white-block stage5-treasure-block stage5-treasure-block--east" data-collider="solid"></div>
+            <div
+                className="stage5-white-block stage5-treasure-block stage5-treasure-block--north"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-treasure-block-north"
+            ></div>
+            <div
+                className="stage5-white-block stage5-treasure-block stage5-treasure-block--south"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-treasure-block-south"
+            ></div>
+            <div
+                className="stage5-white-block stage5-treasure-block stage5-treasure-block--west"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-treasure-block-west"
+            ></div>
+            <div
+                className="stage5-white-block stage5-treasure-block stage5-treasure-block--east"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-treasure-block-east"
+            ></div>
             <div className="stage5-flame-glow" aria-hidden="true"></div>
             <FireZone
                 className="stage5-fluid-zone stage5-fluid-zone--fire fluid-zone fluid-zone--fire"
                 zoneId="stage5-main-fire"
-                width="3.4%"
-                height="11%"
+                width="6.8%"
+                height="18%"
             />
 
             <PortalIn
