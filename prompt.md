@@ -193,3 +193,7 @@ react-stage/src/components/Stage4MissionHud.jsx이 지금 4stage에서만 사용
 ### 12-1. 5 스테이지 관련해서 버그들이나 수정 작업 좀 진행해보자
 
 stage5-floor stage5-floor--right는 삭제해도 돼, 그리고 stage5-frame stage5-grid-box stage5-grid-box--mid-horizontal도 왼쪽, 오른쪽 두개로 분해해서 나누어 주고, trigger-block도 일반 블록요소들 안에 넣은 채로 각 요소들의 끝에 달아두면 좋겠어 예를 들어서 stage5-frame stage5-grid-box stage5-grid-box--mid-vertical 안에 stage5-fire-post stage5-fire-post--grid-2 요소를 넣어서 맨 끝에 달아주고(5스테이지 내에 있는 것들 모두 fire-post말고 rigger-block으로 바꿔서 trigger-block에 돌을 맞추거나 e키를 누르면 해당 trigger-block에 종속된 부모요소까지 사라지는 형태야, 다른 스테이지의 trigger-block 참고해도 돼),stage5-fire-bar stage5-fire-bar--right도 stage5-frame stage5-grid-box stage5-grid-box--mid-horizontal를 나눴을 때 오른쪽에 있는 블록 안에 넣은 채로 오른쪽 끝에 달고,stage5-fire-bar stage5-fire-bar--left도 stage5-frame stage5-grid-box stage5-grid-box--mid-horizontal를 나눴을 때 왼쪽에 있는 블록 안에 넣은 채로 왼쪽 끝에 달고, stage5-frame stage5-grid-box stage5-grid-box--outer도 각각의 면을 하나의 일반 블록으로 만든 다음에, stage5-grid-box--outer의 오른쪽 블록에는 stage5-fire-post stage5-fire-post--grid-3를 자식 요소로 넣어서 맨 위에 놓도록 하고, stage5-fire-post stage5-fire-post--grid-1도 stage5-grid-box--outer의 왼쪽 블록의 자식요소로 넣고 맨 위에 달게 해줘
+
+### 12-2. 스테이지 요소 및 위치들 마저 수정 좀 진행해보자
+
+stage5-frame stage5-left-support 일단 삭제한 다음에 stage5-bg-pillar stage5-bg-pillar--left를 게임 화면 끝에 지정하면서,빨간버튼을 맨 밑의 오른쪽 면에 달아주었으면 좋겠어, 그리고 stage5-frame stage5-top-box stage5-top-box--bottom, stage5-frame stage5-top-box stage5-top-box--left, stage5-frame stage5-top-box stage5-top-box--right 모두 하얀색 블록으로 대체하고, 빨간 버튼을 건드리게 되면(돌로 맞추거나, e키를 누르면) 하얀색 블록들이 모두 사라지게 해줘
