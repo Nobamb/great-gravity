@@ -3,6 +3,12 @@ import CharacterSprite from "./CharacterSprite.jsx";
 import ClearOverlay from "./ClearOverlay.jsx";
 import CustomMissionAlarm from "./CustomMissionAlarm.jsx";
 import MissionHud from "./MissionHud.jsx";
+import {
+    FireZone,
+    IceZone,
+    LavaZone,
+    WaterZone,
+} from "./StageElements.jsx";
 import TimerPanel from "./TimerPanel.jsx";
 import TreasurePile from "./TreasurePile.jsx";
 
@@ -87,16 +93,8 @@ function Stage1Layout({ treasureRef }) {
                 />
             </div>
 
-            <div
-                className="lava-fall fluid-zone fluid-zone--lava"
-                data-fluid-type="lava"
-                data-fluid-id="stage1-lava"
-            ></div>
-            <div
-                className="ice-water fluid-zone fluid-zone--water"
-                data-fluid-type="water"
-                data-fluid-id="stage1-water"
-            ></div>
+            <LavaZone className="lava-fall fluid-zone fluid-zone--lava" zoneId="stage1-lava" />
+            <WaterZone className="ice-water fluid-zone fluid-zone--water" zoneId="stage1-water" />
             <div className="bottom-bar zIndex100" data-collider="solid"></div>
             <div className="goal-ledge" data-collider="solid"></div>
         </>
@@ -144,26 +142,22 @@ function Stage2Layout({
                 />
             </div>
 
-            <div
+            <LavaZone
                 className="stage2-fluid-zone stage2-fluid-zone--left-lava fluid-zone fluid-zone--lava"
-                data-fluid-type="lava"
-                data-fluid-id="stage2-left-lava"
-            ></div>
-            <div
+                zoneId="stage2-left-lava"
+            />
+            <WaterZone
                 className="stage2-fluid-zone stage2-fluid-zone--left-water fluid-zone fluid-zone--water"
-                data-fluid-type="water"
-                data-fluid-id="stage2-left-water"
-            ></div>
-            <div
+                zoneId="stage2-left-water"
+            />
+            <WaterZone
                 className="stage2-fluid-zone stage2-fluid-zone--right-water fluid-zone fluid-zone--water"
-                data-fluid-type="water"
-                data-fluid-id="stage2-right-water"
-            ></div>
-            <div
+                zoneId="stage2-right-water"
+            />
+            <LavaZone
                 className="stage2-fluid-zone stage2-fluid-zone--right-lava fluid-zone fluid-zone--lava"
-                data-fluid-type="lava"
-                data-fluid-id="stage2-right-lava"
-            ></div>
+                zoneId="stage2-right-lava"
+            />
 
             <div
                 className="stage2-fluid-divider stage2-fluid-divider--left"
@@ -304,18 +298,16 @@ function Stage3Layout({
             <div className="stage3-left-shaft stage3-frame" data-collider="solid"></div>
             <div className="stage3-left-bottom-floor stage3-frame" data-collider="solid"></div>
 
-            <div
+            <LavaZone
                 className="stage3-fluid-zone stage3-fluid-zone--left-lava fluid-zone fluid-zone--lava"
-                data-fluid-type="lava"
-                data-fluid-id="stage3-left-lava"
-            ></div>
-            <div
+                zoneId="stage3-left-lava"
+            />
+            <WaterZone
                 className="stage3-fluid-zone stage3-fluid-zone--left-water fluid-zone fluid-zone--water"
-                data-fluid-type="water"
-                data-fluid-id="stage3-left-water"
-            ></div>
-            <div className="stage3-left-bottom-lava fluid-zone fluid-zone--lava" data-fluid-type="lava" data-fluid-id="stage3-bottom-lava"></div>
-            <div className="stage3-left-bottom-water fluid-zone fluid-zone--water" data-fluid-type="water" data-fluid-id="stage3-bottom-water"></div>
+                zoneId="stage3-left-water"
+            />
+            <LavaZone className="stage3-left-bottom-lava fluid-zone fluid-zone--lava" zoneId="stage3-bottom-lava" />
+            <WaterZone className="stage3-left-bottom-water fluid-zone fluid-zone--water" zoneId="stage3-bottom-water" />
 
             <div className="spawn-pad stage3-spawn-pad" data-collider="solid" data-spawn="player"></div>
             <div
@@ -421,16 +413,14 @@ function Stage3Layout({
             </div>
             <div className="stage3-right-floor stage3-frame" data-collider="solid"></div>
 
-            <div
+            <WaterZone
                 className="stage3-fluid-zone stage3-fluid-zone--right-water fluid-zone fluid-zone--water"
-                data-fluid-type="water"
-                data-fluid-id="stage3-right-water"
-            ></div>
-            <div
+                zoneId="stage3-right-water"
+            />
+            <LavaZone
                 className="stage3-fluid-zone stage3-fluid-zone--right-lava fluid-zone fluid-zone--lava"
-                data-fluid-type="lava"
-                data-fluid-id="stage3-right-lava"
-            ></div>
+                zoneId="stage3-right-lava"
+            />
 
             <div
                 className="stage3-white-gate"
@@ -522,16 +512,14 @@ function Stage4Layout({
                 triggerTargets="stage4-lower-gate"
             />
 
-            <div
+            <WaterZone
                 className="stage4-fluid-zone stage4-fluid-zone--water fluid-zone fluid-zone--water"
-                data-fluid-type="water"
-                data-fluid-id="stage4-upper-water"
-            ></div>
-            <div
+                zoneId="stage4-upper-water"
+            />
+            <LavaZone
                 className="stage4-fluid-zone stage4-fluid-zone--lava fluid-zone fluid-zone--lava"
-                data-fluid-type="lava"
-                data-fluid-id="stage4-lower-lava"
-            ></div>
+                zoneId="stage4-lower-lava"
+            />
 
             <div
                 className="trigger-block stage4-contact-hitbox"
@@ -633,6 +621,126 @@ function Stage4Layout({
     );
 }
 
+function Stage5Layout({
+    treasureRef,
+    treasureAnchorRef,
+    stoneRef,
+    stoneAnchorRef,
+    stoneAimRef,
+}) {
+    return (
+        <>
+            <div className="stage5-bg-pillar stage5-bg-pillar--left" aria-hidden="true"></div>
+            <div className="stage5-bg-pillar stage5-bg-pillar--mid" aria-hidden="true"></div>
+            <div className="stage5-bg-pillar stage5-bg-pillar--right" aria-hidden="true"></div>
+
+            <div className="spawn-pad stage5-spawn-pad" data-collider="solid" data-spawn="player"></div>
+            <div className="stage5-floor stage5-floor--left" data-collider="solid"></div>
+            <div className="stage5-floor stage5-floor--right" data-collider="solid"></div>
+            <div className="stage5-floor stage5-floor--goal" data-collider="solid"></div>
+
+            <div className="stage5-frame stage5-top-box stage5-top-box--left" data-collider="solid"></div>
+            <div className="stage5-frame stage5-top-box stage5-top-box--right" data-collider="solid"></div>
+            <div className="stage5-frame stage5-top-box stage5-top-box--bottom" data-collider="solid"></div>
+            <IceZone
+                className="stage5-ice-block"
+                zoneId="stage5-upper-ice"
+                width="14.5%"
+                height="11%"
+            />
+
+            <div className="stage5-frame stage5-grid-box stage5-grid-box--outer" data-collider="solid"></div>
+            <div className="stage5-frame stage5-grid-box stage5-grid-box--mid-horizontal" data-collider="solid"></div>
+            <div className="stage5-frame stage5-grid-box stage5-grid-box--mid-vertical" data-collider="solid"></div>
+
+            <div className="stage5-fire-post stage5-fire-post--left-top" data-collider="solid"></div>
+            <div className="stage5-fire-post stage5-fire-post--grid-1" data-collider="solid"></div>
+            <div className="stage5-fire-post stage5-fire-post--grid-2" data-collider="solid"></div>
+            <div className="stage5-fire-post stage5-fire-post--grid-3" data-collider="solid"></div>
+            <div className="stage5-fire-bar stage5-fire-bar--left" data-collider="solid"></div>
+            <div className="stage5-fire-bar stage5-fire-bar--right" data-collider="solid"></div>
+
+            <div
+                className="jump-block stage5-jump-block stage5-jump-block--left-top"
+                data-collider="solid"
+                data-effect="jump-boost"
+            ></div>
+            <div
+                className="jump-block stage5-jump-block stage5-jump-block--left-bottom"
+                data-collider="solid"
+                data-effect="jump-boost"
+            ></div>
+            <div
+                className="jump-block stage5-jump-block stage5-jump-block--right"
+                data-collider="solid"
+                data-effect="jump-boost"
+            ></div>
+
+            <div className="stage5-stone-anchor" ref={stoneAnchorRef}></div>
+            <div
+                className="stage5-stone-source throw-stone stage5-stone-source--top"
+                data-stone-source="true"
+                data-stone-source-id="stage5-stone-top"
+            ></div>
+            <div
+                className="stage5-stone-source throw-stone stage5-stone-source--mid"
+                data-stone-source="true"
+                data-stone-source-id="stage5-stone-mid"
+            ></div>
+            <div className="throw-stone stage5-projectile-stone" ref={stoneRef}></div>
+
+            <WaterZone
+                className="stage5-fluid-zone stage5-fluid-zone--water fluid-zone fluid-zone--water"
+                zoneId="stage5-main-water"
+                width="21.9%"
+                height="16.5%"
+            />
+            <LavaZone
+                className="stage5-fluid-zone stage5-fluid-zone--lava fluid-zone fluid-zone--lava"
+                zoneId="stage5-main-lava"
+                width="22.2%"
+                height="17%"
+            />
+            <div className="stage5-flame-glow" aria-hidden="true"></div>
+            <FireZone
+                className="stage5-fluid-zone stage5-fluid-zone--fire fluid-zone fluid-zone--fire"
+                zoneId="stage5-main-fire"
+                width="3.4%"
+                height="11%"
+            />
+
+            <div className="stage5-goal-mound" data-collider="solid"></div>
+            <div className="stage5-goal-cross" aria-hidden="true"></div>
+            <div className="stage5-treasure-anchor" ref={treasureAnchorRef}></div>
+            <TreasurePile ref={treasureRef} className="stage5-treasure-pile" />
+
+            <svg className="stone-aim-overlay" width="100%" height="100%" aria-hidden="true">
+                <line
+                    className="stone-aim-line"
+                    data-stone-aim-line
+                    ref={stoneAimRef}
+                    hidden
+                ></line>
+                <circle
+                    className="stone-aim-reticle"
+                    data-stone-aim-reticle
+                    hidden
+                ></circle>
+                <line
+                    className="stone-aim-reticle-axis"
+                    data-stone-aim-reticle-axis="horizontal"
+                    hidden
+                ></line>
+                <line
+                    className="stone-aim-reticle-axis"
+                    data-stone-aim-reticle-axis="vertical"
+                    hidden
+                ></line>
+            </svg>
+        </>
+    );
+}
+
 function renderStageLayout(
     stageId,
     treasureRef,
@@ -642,6 +750,16 @@ function renderStageLayout(
     stoneAimRef,
 ) {
     switch (stageId) {
+        case "stage5":
+            return (
+                <Stage5Layout
+                    treasureRef={treasureRef}
+                    treasureAnchorRef={treasureAnchorRef}
+                    stoneRef={stoneRef}
+                    stoneAnchorRef={stoneAnchorRef}
+                    stoneAimRef={stoneAimRef}
+                />
+            );
         case "stage4":
             return (
                 <Stage4Layout
