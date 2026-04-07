@@ -636,8 +636,20 @@ function Stage5Layout({
 
             <div className="spawn-pad stage5-spawn-pad" data-collider="solid" data-spawn="player"></div>
             <div className="stage5-floor stage5-floor--left" data-collider="solid"></div>
-            <div className="stage5-floor stage5-floor--right" data-collider="solid"></div>
             <div className="stage5-floor stage5-floor--goal" data-collider="solid"></div>
+
+            <div
+                className="stage5-frame stage5-left-support"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-left-support"
+            >
+                <TriggerBlock
+                    className="trigger-block stage5-trigger stage5-fire-post stage5-fire-post--left-top"
+                    triggerId="stage5-left-support-trigger"
+                    triggerDirection="top"
+                />
+            </div>
 
             <div className="stage5-frame stage5-top-box stage5-top-box--left" data-collider="solid"></div>
             <div className="stage5-frame stage5-top-box stage5-top-box--right" data-collider="solid"></div>
@@ -649,16 +661,69 @@ function Stage5Layout({
                 height="11%"
             />
 
-            <div className="stage5-frame stage5-grid-box stage5-grid-box--outer" data-collider="solid"></div>
-            <div className="stage5-frame stage5-grid-box stage5-grid-box--mid-horizontal" data-collider="solid"></div>
-            <div className="stage5-frame stage5-grid-box stage5-grid-box--mid-vertical" data-collider="solid"></div>
+            <div
+                className="stage5-frame stage5-grid-box stage5-grid-box--outer-left"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-grid-outer-left"
+            >
+                <TriggerBlock
+                    className="trigger-block stage5-trigger stage5-fire-post stage5-fire-post--grid-1"
+                    triggerId="stage5-grid-outer-left-trigger"
+                    triggerDirection="top"
+                />
+            </div>
+            <div className="stage5-frame stage5-grid-box stage5-grid-box--outer-top" data-collider="solid"></div>
+            <div
+                className="stage5-frame stage5-grid-box stage5-grid-box--outer-right"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-grid-outer-right"
+            >
+                <TriggerBlock
+                    className="trigger-block stage5-trigger stage5-fire-post stage5-fire-post--grid-3"
+                    triggerId="stage5-grid-outer-right-trigger"
+                    triggerDirection="top"
+                />
+            </div>
+            <div className="stage5-frame stage5-grid-box stage5-grid-box--outer-bottom" data-collider="solid"></div>
 
-            <div className="stage5-fire-post stage5-fire-post--left-top" data-collider="solid"></div>
-            <div className="stage5-fire-post stage5-fire-post--grid-1" data-collider="solid"></div>
-            <div className="stage5-fire-post stage5-fire-post--grid-2" data-collider="solid"></div>
-            <div className="stage5-fire-post stage5-fire-post--grid-3" data-collider="solid"></div>
-            <div className="stage5-fire-bar stage5-fire-bar--left" data-collider="solid"></div>
-            <div className="stage5-fire-bar stage5-fire-bar--right" data-collider="solid"></div>
+            <div
+                className="stage5-frame stage5-grid-box stage5-grid-box--mid-horizontal-left"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-grid-mid-horizontal-left"
+            >
+                <TriggerBlock
+                    className="trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--left"
+                    triggerId="stage5-grid-mid-horizontal-left-trigger"
+                    triggerDirection="left"
+                />
+            </div>
+            <div
+                className="stage5-frame stage5-grid-box stage5-grid-box--mid-horizontal-right"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-grid-mid-horizontal-right"
+            >
+                <TriggerBlock
+                    className="trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--right"
+                    triggerId="stage5-grid-mid-horizontal-right-trigger"
+                    triggerDirection="right"
+                />
+            </div>
+            <div
+                className="stage5-frame stage5-grid-box stage5-grid-box--mid-vertical"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage5-grid-mid-vertical"
+            >
+                <TriggerBlock
+                    className="trigger-block stage5-trigger stage5-fire-post stage5-fire-post--grid-2"
+                    triggerId="stage5-grid-mid-vertical-trigger"
+                    triggerDirection="top"
+                />
+            </div>
 
             <div
                 className="jump-block stage5-jump-block stage5-jump-block--left-top"
