@@ -2042,7 +2042,7 @@ body {
 }
 
 .stage5-spawn-pad {
-  left: 12.8%;
+  left: calc(12.8% - 10px);
   top: 74%;
   width: 10.6%;
 }
@@ -2335,8 +2335,8 @@ body {
 }
 
 .stage5-fluid-zone--fire {
-  left: 40.5%;
-  top: 69%;
+  left: 38.8%;
+  top: 64.8%;
   clip-path: polygon(
     50% 0%,
     68% 18%,
@@ -2354,9 +2354,9 @@ body {
 
 .stage5-flame-glow {
   position: absolute;
-  left: 38%;
-  top: 63%;
-  width: 10%;
+  left: 35%;
+  top: 56.8%;
+  width: 16%;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 77, 0, 0.55), rgba(255, 77, 0, 0.12), transparent 72%);
