@@ -2004,7 +2004,8 @@ body {
 }
 
 .stage5-frame,
-.stage5-floor {
+.stage5-floor,
+.stage5-bg-pillar[data-collider="solid"] {
   position: absolute;
   background: linear-gradient(180deg, rgba(166, 102, 111, 0.98), rgba(126, 76, 86, 0.98));
   box-shadow:
@@ -2021,9 +2022,11 @@ body {
 }
 
 .stage5-bg-pillar--left {
-  left: 12.5%;
+  left: 0;
   top: -1%;
   height: 27%;
+  width: 2.2%;
+  min-width: calc(18 * var(--cw));
 }
 
 .stage5-bg-pillar--mid {
@@ -2059,13 +2062,6 @@ body {
   width: 19%;
 }
 
-.stage5-left-support {
-  left: 14.2%;
-  top: 26%;
-  width: 3.4%;
-  height: 58.5%;
-}
-
 .stage5-top-box--left {
   left: 39.5%;
   top: 0;
@@ -2088,6 +2084,16 @@ body {
   width: 28.5%;
   height: 1vw;
   min-height: calc(12 * var(--cw));
+}
+
+.stage5-white-block {
+  position: absolute;
+  background:
+    linear-gradient(180deg, rgba(252, 252, 252, 0.98), rgba(221, 228, 236, 0.98));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.86),
+    0 calc(4 * var(--cw)) calc(12 * var(--cw)) rgba(0, 0, 0, 0.16);
+  z-index: 11;
 }
 
 .stage5-ice-block {
@@ -2173,12 +2179,33 @@ body {
   min-width: calc(16 * var(--cw));
 }
 
-.stage5-fire-post--left-top {
-  left: 50%;
-  top: 0;
-  width: 3.4%;
-  height: 7%;
-  transform: translate(-50%, -100%);
+.stage5-top-box-gate-trigger {
+  left: 100%;
+  top: 100%;
+  width: calc(18 * var(--cw));
+  min-width: calc(18 * var(--cw));
+  height: calc(28 * var(--cw));
+  min-height: calc(28 * var(--cw));
+  background: linear-gradient(to right, #ff1208 0 72%, #cf291f 72% 100%);
+  box-shadow:
+    0 0 calc(16 * var(--cw)) rgba(255, 30, 18, 0.34),
+    0 0 calc(24 * var(--cw)) rgba(255, 96, 48, 0.16),
+    inset 0 calc(-2 * var(--cw)) 0 rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 222, 216, 0.45);
+  border-radius: calc(2 * var(--cw));
+  transform: translate(0, -100%);
+  opacity: 1;
+  z-index: 24;
+}
+
+.stage5-top-box-gate-trigger.is-used {
+  transform: translate(0, calc(-100% + (10 * var(--cw))));
+  height: calc(18 * var(--cw));
+  min-height: calc(18 * var(--cw));
+  filter: brightness(0.92);
+  box-shadow:
+    0 0 calc(10 * var(--cw)) rgba(255, 24, 13, 0.18),
+    inset 0 calc(2 * var(--cw)) 0 rgba(0, 0, 0, 0.18);
 }
 
 .stage5-fire-post--grid-1 {
@@ -2232,8 +2259,8 @@ body {
 }
 
 .stage5-jump-block--left-top {
-  left: 21%;
-  top: 48.5%;
+  left: 10%;
+  top: 40%;
 }
 
 .stage5-jump-block--left-bottom {
