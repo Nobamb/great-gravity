@@ -759,6 +759,9 @@ export class StageModel {
 
   getPortalEntry(bounds, padding = 0) {
     const expandedBounds = expandRect(bounds, padding);
+    const centerX = (bounds.left + bounds.right) / 2;
+    const centerY = (bounds.top + bounds.bottom) / 2;
+    const boundsArea = Math.max(1, (bounds.right - bounds.left) * (bounds.bottom - bounds.top));
     let bestMatch = null;
     let bestArea = 0;
 
@@ -768,6 +771,19 @@ export class StageModel {
       }
 
       const overlapArea = getOverlapArea(expandedBounds, portal.rect);
+      const portalContainsCenter =
+        centerX >= portal.rect.left &&
+        centerX <= portal.rect.right &&
+        centerY >= portal.rect.top &&
+        centerY <= portal.rect.bottom;
+
+      if (!portalContainsCenter) {
+        return;
+      }
+
+      if (overlapArea < boundsArea * 0.18) {
+        return;
+      }
 
       if (overlapArea > bestArea) {
         bestArea = overlapArea;
