@@ -2289,6 +2289,44 @@ body {
   top: 67.5%;
 }
 
+.stage5-treasure-block {
+  z-index: 12;
+}
+
+.stage5-treasure-block--north,
+.stage5-treasure-block--south {
+  width: 8.8%;
+  height: 1.15vw;
+  min-height: calc(14 * var(--cw));
+}
+
+.stage5-treasure-block--north {
+  left: 63.4%;
+  top: 75.2%;
+}
+
+.stage5-treasure-block--south {
+  left: 63.4%;
+  top: 87.4%;
+}
+
+.stage5-treasure-block--west,
+.stage5-treasure-block--east {
+  width: 1vw;
+  min-width: calc(12 * var(--cw));
+  height: 9.8%;
+}
+
+.stage5-treasure-block--west {
+  left: 62.2%;
+  top: 77.1%;
+}
+
+.stage5-treasure-block--east {
+  left: 72%;
+  top: 77.1%;
+}
+
 .fluid-zone--fire {
   background: linear-gradient(to bottom, rgba(255, 183, 48, 0.9), rgba(255, 60, 0, 0.95));
   box-shadow:
@@ -2356,38 +2394,217 @@ body {
   top: 29.2%;
 }
 
-.stage5-goal-mound {
+.stage5-portal {
   position: absolute;
-  right: 13.7%;
-  bottom: 13.2%;
-  width: 4.6%;
-  height: 3.2%;
-  background: linear-gradient(to top, #8d9518, #a2a929);
-  border-radius: 100px 100px 0 0;
-  box-shadow: 0 0 calc(14 * var(--cw)) rgba(215, 208, 72, 0.16);
-  z-index: 9;
+  width: calc(96 * var(--cw));
+  height: calc(62 * var(--cw));
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 20;
+  isolation: isolate;
 }
 
-.stage5-goal-cross {
-  position: absolute;
-  right: 15.7%;
-  bottom: 16.8%;
-  width: 0.45%;
-  height: 3.2%;
-  background: #6a9e1c;
-  transform: rotate(12deg);
-  transform-origin: bottom center;
-  z-index: 11;
+.stage5-portal--in {
+  left: 83.8%;
+  top: 87.4%;
 }
 
-.stage5-goal-cross::before {
-  content: "";
+.stage5-portal--out {
+  left: 5.8%;
+  top: 9.2%;
+  width: calc(82 * var(--cw));
+  height: calc(54 * var(--cw));
+  z-index: 23;
+}
+
+.portal__halo,
+.portal__core,
+.portal__swirl,
+.portal__spark {
   position: absolute;
-  left: -130%;
-  top: 35%;
-  width: 360%;
-  height: 22%;
-  background: #6a9e1c;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.portal__halo {
+  animation: portalPulse 2.4s ease-in-out infinite;
+}
+
+.portal__core {
+  inset: 12%;
+}
+
+.portal__swirl {
+  inset: 8%;
+  mix-blend-mode: screen;
+}
+
+.portal__swirl--a {
+  animation: portalSpin 2.6s linear infinite;
+}
+
+.portal__swirl--b {
+  inset: 18%;
+  animation: portalSpinReverse 3.6s linear infinite;
+}
+
+.portal__spark {
+  inset: 6%;
+  animation: portalSpark 1.8s ease-in-out infinite;
+}
+
+.portal__spark--b {
+  animation-delay: -0.9s;
+}
+
+.portal--in .portal__halo {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 34%),
+    radial-gradient(circle, rgba(54, 54, 54, 0.62) 0 42%, rgba(7, 7, 7, 0.92) 63%, rgba(0, 0, 0, 0) 78%);
+  filter: blur(calc(8 * var(--cw)));
+}
+
+.portal--in .portal__core {
+  background:
+    radial-gradient(circle at 34% 30%, rgba(96, 96, 96, 0.26), rgba(11, 11, 11, 0.96) 48%, #000 76%);
+  box-shadow:
+    inset 0 0 calc(20 * var(--cw)) rgba(255, 255, 255, 0.08),
+    0 0 calc(24 * var(--cw)) rgba(0, 0, 0, 0.55);
+}
+
+.portal--in .portal__swirl--a {
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0.12),
+    rgba(45, 45, 45, 0.06) 22%,
+    rgba(0, 0, 0, 0.78) 54%,
+    rgba(255, 255, 255, 0.1) 84%,
+    rgba(255, 255, 255, 0.12)
+  );
+}
+
+.portal--in .portal__swirl--b {
+  background: conic-gradient(
+    from 40deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(68, 68, 68, 0.22) 20%,
+    rgba(0, 0, 0, 0.92) 55%,
+    rgba(255, 255, 255, 0.06) 86%,
+    rgba(255, 255, 255, 0.04)
+  );
+}
+
+.portal--in .portal__spark {
+  inset: 20%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 62%);
+  filter: blur(calc(3 * var(--cw)));
+}
+
+.portal--out .portal__halo {
+  background:
+    radial-gradient(circle, rgba(139, 255, 255, 0.18), rgba(139, 255, 255, 0) 34%),
+    radial-gradient(circle, rgba(30, 49, 58, 0.86) 0 44%, rgba(8, 14, 18, 0.92) 66%, rgba(0, 0, 0, 0) 79%);
+  filter: blur(calc(6 * var(--cw)));
+}
+
+.portal--out .portal__core {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(124, 255, 239, 0.34), rgba(17, 26, 30, 0.94) 50%, rgba(2, 6, 8, 1) 80%);
+  box-shadow:
+    inset 0 0 calc(16 * var(--cw)) rgba(196, 255, 252, 0.12),
+    0 0 calc(18 * var(--cw)) rgba(92, 255, 233, 0.24);
+}
+
+.portal--out .portal__swirl--a {
+  background: conic-gradient(
+    from 10deg,
+    rgba(166, 255, 246, 0.2),
+    rgba(31, 117, 122, 0.14) 26%,
+    rgba(6, 13, 14, 0.9) 56%,
+    rgba(175, 255, 248, 0.16) 84%,
+    rgba(166, 255, 246, 0.2)
+  );
+}
+
+.portal--out .portal__swirl--b {
+  background: conic-gradient(
+    from 80deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(59, 215, 207, 0.22) 24%,
+    rgba(2, 11, 14, 0.92) 56%,
+    rgba(255, 255, 255, 0.08) 86%,
+    rgba(255, 255, 255, 0.08)
+  );
+}
+
+.portal--out .portal__spark {
+  inset: 18%;
+  background: radial-gradient(circle, rgba(193, 255, 247, 0.3), rgba(193, 255, 247, 0) 58%);
+  filter: blur(calc(2 * var(--cw)));
+}
+
+@keyframes portalSpin {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(180deg) scale(0.96);
+  }
+
+  to {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes portalSpinReverse {
+  from {
+    transform: rotate(360deg) scale(0.92);
+  }
+
+  50% {
+    transform: rotate(180deg) scale(1);
+  }
+
+  to {
+    transform: rotate(0deg) scale(0.92);
+  }
+}
+
+@keyframes portalPulse {
+  from {
+    transform: scale(0.94);
+    opacity: 0.88;
+  }
+
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+
+  to {
+    transform: scale(0.94);
+    opacity: 0.88;
+  }
+}
+
+@keyframes portalSpark {
+  from {
+    transform: scale(0.7);
+    opacity: 0.32;
+  }
+
+  50% {
+    transform: scale(1.12);
+    opacity: 0.72;
+  }
+
+  to {
+    transform: scale(0.7);
+    opacity: 0.32;
+  }
 }
 
 .stage5-treasure-anchor,
@@ -2398,7 +2615,7 @@ body {
 
 .stage5-treasure-anchor {
   left: 67.8%;
-  top: 91%;
+  top: 84.8%;
   width: calc(96 * var(--cw));
   height: calc(58 * var(--cw));
   transform: translate(-50%, -100%);
@@ -2408,7 +2625,7 @@ body {
 
 .stage5-treasure-pile {
   left: 67.8%;
-  top: 91%;
+  top: 84.8%;
   transform: translate(-50%, -100%);
 }
 
