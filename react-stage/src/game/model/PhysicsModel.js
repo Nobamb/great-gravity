@@ -18,6 +18,29 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function parseOptionalNumber(value) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : null;
+}
+
+function parseFluidSpawnProfile(value) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function isPointInsideRect(point, rect) {
   return (
     point.x >= rect.left &&
@@ -325,17 +348,29 @@ export class PhysicsModel {
           element.getBoundingClientRect(),
           containerRect,
         );
+        const densityScale = Math.max(
+          1,
+          parseOptionalNumber(element.dataset.fluidDensityScale) ?? 1,
+        );
+        const spawnProfile = parseFluidSpawnProfile(
+          element.dataset.fluidSpawnProfile,
+        );
 
         return {
           id: element.dataset.fluidId || `${key}-${index}`,
           key,
           element,
           config,
+          densityScale,
+          spawnProfile,
           originRect,
           containmentRect: {
             ...originRect,
           },
-          bodies: this.createFluidBodies(originRect, config),
+          bodies: this.createFluidBodies(originRect, config, {
+            densityScale,
+            spawnProfile,
+          }),
         };
       })
       .filter(Boolean);
@@ -828,26 +863,89 @@ export class PhysicsModel {
       minParticleRadius,
       maxParticleRadius,
     );
-    const cols = clamp(
+    let cols = clamp(
       Math.floor(rect.width / (particleRadius * colCountSpacingMultiplier)),
       4,
       maxCols,
     );
-    const rows = clamp(
+    let rows = clamp(
       Math.floor(rect.height / (particleRadius * rowCountSpacingMultiplier)),
       3,
       maxRows,
     );
+    const fitToRect = spawnProfile?.fitToRect === true;
+    const maxParticles =
+      spawnProfile?.maxParticles === undefined ||
+      spawnProfile?.maxParticles === null
+        ? null
+        : Math.max(12, Math.floor(spawnProfile.maxParticles));
+    let resolvedParticleRadius = particleRadius;
+
+    if (fitToRect) {
+      if (maxParticles && cols * rows > maxParticles) {
+        const aspectRatio = Math.max(cols / Math.max(rows, 1), 1);
+        rows = clamp(
+          Math.floor(Math.sqrt(maxParticles / aspectRatio)),
+          3,
+          rows,
+        );
+        cols = clamp(Math.floor(maxParticles / Math.max(rows, 1)), 4, cols);
+
+        while (cols * rows > maxParticles && cols > 4) {
+          cols -= 1;
+        }
+      }
+
+      const widthRadius =
+        rect.width /
+        Math.max(
+          1,
+          (cols - 1) * colStepMultiplier +
+            spawnInsetMultiplier * 2 +
+            rowOffsetMultiplier +
+            1,
+        );
+      const heightRadius =
+        rect.height /
+        Math.max(
+          1,
+          (rows - 1) * rowStepMultiplier + spawnInsetMultiplier * 2 + 1,
+        );
+
+      resolvedParticleRadius = clamp(
+        Math.min(widthRadius, heightRadius),
+        minParticleRadius,
+        maxParticleRadius,
+      );
+    }
+
     const bodies = [];
-    const startX = rect.left + particleRadius * spawnInsetMultiplier;
-    const startY = rect.top + particleRadius * spawnInsetMultiplier;
+    const occupiedWidth =
+      ((cols - 1) * colStepMultiplier +
+        spawnInsetMultiplier * 2 +
+        rowOffsetMultiplier +
+        1) *
+      resolvedParticleRadius;
+    const occupiedHeight =
+      ((rows - 1) * rowStepMultiplier + spawnInsetMultiplier * 2 + 1) *
+      resolvedParticleRadius;
+    const startX =
+      rect.left +
+      (fitToRect ? Math.max(0, (rect.width - occupiedWidth) * 0.5) : 0) +
+      resolvedParticleRadius * spawnInsetMultiplier;
+    const startY =
+      rect.top +
+      (fitToRect ? Math.max(0, (rect.height - occupiedHeight) * 0.5) : 0) +
+      resolvedParticleRadius * spawnInsetMultiplier;
 
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
-        const offsetX = (row % 2) * particleRadius * rowOffsetMultiplier;
-        const x = startX + col * particleRadius * colStepMultiplier + offsetX;
-        const y = startY + row * particleRadius * rowStepMultiplier;
-        const body = this.Bodies.circle(x, y, particleRadius, {
+        const offsetX =
+          (row % 2) * resolvedParticleRadius * rowOffsetMultiplier;
+        const x =
+          startX + col * resolvedParticleRadius * colStepMultiplier + offsetX;
+        const y = startY + row * resolvedParticleRadius * rowStepMultiplier;
+        const body = this.Bodies.circle(x, y, resolvedParticleRadius, {
           friction: config.friction,
           frictionAir: config.frictionAir,
           restitution: config.restitution,
