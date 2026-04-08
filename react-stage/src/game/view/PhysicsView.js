@@ -467,24 +467,25 @@ export class PhysicsView {
             zone.element.classList.add("physics-fluid");
         });
 
-        this.cleanupFluidResources(
-            Object.keys(physicsModel.getFluidParticlesByType?.() ?? {}),
-        );
+        const activeRendererIds = (
+            physicsModel.getFluidRenderGroups?.() ?? []
+        ).map((group) => group.rendererId);
+        this.cleanupFluidResources(activeRendererIds);
         this.treasureElement.classList.add("physics-managed");
         this.stage4TreasureBarrierElement?.classList.add("physics-managed");
         this.stoneElement?.classList.add("physics-managed");
     }
 
-    cleanupFluidResources(activeTypes) {
-        const activeTypeSet = new Set(activeTypes);
+    cleanupFluidResources(activeRendererIds) {
+        const activeRendererIdSet = new Set(activeRendererIds);
 
-        for (const [type, renderer] of this.fluidRenderers.entries()) {
-            if (activeTypeSet.has(type)) {
+        for (const [rendererId, renderer] of this.fluidRenderers.entries()) {
+            if (activeRendererIdSet.has(rendererId)) {
                 continue;
             }
 
             renderer?.canvas?.remove();
-            this.fluidRenderers.delete(type);
+            this.fluidRenderers.delete(rendererId);
         }
     }
 
@@ -493,11 +494,11 @@ export class PhysicsView {
             return;
         }
 
-        const particlesByType = physicsModel.getFluidParticlesByType?.() ?? {};
-        const activeTypes = Object.keys(particlesByType);
-        this.cleanupFluidResources(activeTypes);
-        activeTypes.forEach((type) => {
-            this.renderFluidType(type, particlesByType[type], physicsModel);
+        const fluidRenderGroups = physicsModel.getFluidRenderGroups?.() ?? [];
+        const activeRendererIds = fluidRenderGroups.map((group) => group.rendererId);
+        this.cleanupFluidResources(activeRendererIds);
+        fluidRenderGroups.forEach((group) => {
+            this.renderFluidGroup(group, physicsModel);
         });
         this.renderSolidifiedBlocks(physicsModel);
         this.renderTreasure(physicsModel);
@@ -538,15 +539,17 @@ export class PhysicsView {
         });
     }
 
-    renderFluidType(type, particles, physicsModel) {
-        if (!this.fluidRenderers.has(type)) {
+    renderFluidGroup(group, physicsModel) {
+        const { rendererId, type, particles, clipRect } = group;
+
+        if (!this.fluidRenderers.has(rendererId)) {
             this.fluidRenderers.set(
-                type,
+                rendererId,
                 new FluidSurfaceRenderer(this.containerElement, type),
             );
         }
 
-        const renderer = this.fluidRenderers.get(type);
+        const renderer = this.fluidRenderers.get(rendererId);
         const renderScale = this.getFluidRenderScale(type);
         const renderedByWebGL = renderer?.render(
             particles.map((particle) => ({
@@ -554,13 +557,13 @@ export class PhysicsView {
                 radius: particle.radius * renderScale,
             })),
             physicsModel.renderObstacles,
-            null,
+            clipRect,
             physicsModel.elapsed,
         );
 
         if (!renderedByWebGL) {
             renderer?.canvas?.remove();
-            this.fluidRenderers.delete(type);
+            this.fluidRenderers.delete(rendererId);
         }
     }
 
