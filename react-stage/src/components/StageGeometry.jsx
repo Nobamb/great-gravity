@@ -334,16 +334,6 @@ function Stage3Layout({
                 data-solidified-anchored="true"
             ></div>
             <div
-                className="stage3-initial-solidified stage3-bottom-seal-solid stage3-bottom-seal-solid--upper"
-                data-solidified-block="true"
-                data-solidified-id="stage3-bottom-seal-solid-upper"
-            ></div>
-            <div
-                className="stage3-initial-solidified stage3-bottom-seal-solid stage3-bottom-seal-solid--lower"
-                data-solidified-block="true"
-                data-solidified-id="stage3-bottom-seal-solid-lower"
-            ></div>
-            <div
                 className="stage3-timed-block stage3-timed-block--low"
                 data-collider="solid"
                 data-triggerable="true"
