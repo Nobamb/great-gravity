@@ -407,18 +407,31 @@ export class GameController {
         this.characterModel.resizeWorld(stageState.scaleX, stageState.scaleY, characterSize);
         this.characterModel.updateSpawn(this.stageModel.getSpawnPoint(characterSize));
         this.gameView.refreshStageAnchors?.();
-        this.scaleMonsterStates(stageState.scaleX, stageState.scaleY);
+        this.resetMonsterStatesToStageLayout();
         this.updateActiveTrigger();
     }
 
-    scaleMonsterStates(scaleX, scaleY) {
-        this.monsterStates.forEach((monster) => {
-            monster.spawnX *= scaleX;
-            monster.spawnY *= scaleY;
-            monster.x *= scaleX;
-            monster.y *= scaleY;
-            monster.width *= scaleX;
-            monster.height *= scaleY;
+    resetMonsterStatesToStageLayout() {
+        const stageMonstersById = new Map(
+            this.stageModel.monsters.map((monster) => [monster.id, monster]),
+        );
+
+        this.monsterStates.forEach((monsterState, monsterId) => {
+            const stageMonster = stageMonstersById.get(monsterId);
+
+            if (!stageMonster) {
+                return;
+            }
+
+            monsterState.spawnX = stageMonster.rect.left;
+            monsterState.spawnY = stageMonster.rect.top;
+            monsterState.x = stageMonster.rect.left;
+            monsterState.y = stageMonster.rect.top;
+            monsterState.width = stageMonster.rect.width;
+            monsterState.height = stageMonster.rect.height;
+            monsterState.direction = stageMonster.direction;
+            monsterState.defaultDirection = stageMonster.direction;
+            monsterState.isAlert = false;
         });
     }
 
