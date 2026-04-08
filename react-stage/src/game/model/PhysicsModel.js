@@ -1074,34 +1074,76 @@ export class PhysicsModel {
     let createdBlocks = 0;
 
     while (createdBlocks < this.solidifyConfig.maxBlocksPerStep) {
-      const pair = this.findFirstContactPair(typeA, typeB, {
+      const contactPairs = this.findContactPairs(typeA, typeB, {
         ignoreReactionLock,
+        maxPairs: this.solidifyConfig.maxBlocksPerStep * 3,
       });
 
-      if (!pair) {
+      if (contactPairs.length === 0) {
         return createdBlocks > 0;
       }
 
-      if (
-        this.addSolidifiedBlock(
-          this.createSolidRectFromBodies(pair.bodyA, pair.bodyB),
-        )
-      ) {
-        createdBlocks += 1;
-        this.rebuildDynamicBodyCache();
-        continue;
+      let createdThisPass = false;
+
+      for (const pair of contactPairs) {
+        const candidateRects = this.createSolidRectCandidatesFromBodies(
+          pair.bodyA,
+          pair.bodyB,
+        );
+
+        for (const candidateRect of candidateRects) {
+          if (!this.addSolidifiedBlock(candidateRect)) {
+            continue;
+          }
+
+          createdBlocks += 1;
+          createdThisPass = true;
+          this.rebuildDynamicBodyCache();
+          break;
+        }
+
+        if (createdBlocks >= this.solidifyConfig.maxBlocksPerStep) {
+          break;
+        }
       }
 
-      break;
+      if (!createdThisPass) {
+        break;
+      }
     }
 
     return createdBlocks > 0;
   }
 
-  createSolidRectFromBodies(bodyA, bodyB) {
+  createSolidRectCandidatesFromBodies(bodyA, bodyB) {
+    const cellSize = this.getSolidifyCellSize();
     const centerX = (bodyA.position.x + bodyB.position.x) / 2;
     const centerY = (bodyA.position.y + bodyB.position.y) / 2;
-    return this.createSolidRectForPoint(centerX, centerY);
+    const candidatePoints = [
+      { x: centerX, y: centerY },
+      { x: bodyA.position.x, y: bodyA.position.y },
+      { x: bodyB.position.x, y: bodyB.position.y },
+      { x: centerX - cellSize, y: centerY },
+      { x: centerX + cellSize, y: centerY },
+      { x: centerX, y: centerY - cellSize },
+      { x: centerX, y: centerY + cellSize },
+    ];
+    const seenCellKeys = new Set();
+    const candidateRects = [];
+
+    candidatePoints.forEach((point) => {
+      const rect = this.createSolidRectForPoint(point.x, point.y);
+      const cellKey = this.getSolidifiedCellKey(rect);
+
+      if (seenCellKeys.has(cellKey)) {
+        return;
+      }
+
+      seenCellKeys.add(cellKey);
+      candidateRects.push(rect);
+    });
+
+    return candidateRects;
   }
 
   createSolidRectForPoint(x, y) {
@@ -1114,8 +1156,22 @@ export class PhysicsModel {
   }
 
   findFirstContactPair(typeA, typeB, { ignoreReactionLock = false } = {}) {
+    const [firstPair] = this.findContactPairs(typeA, typeB, {
+      ignoreReactionLock,
+      maxPairs: 1,
+    });
+
+    return firstPair ?? null;
+  }
+
+  findContactPairs(
+    typeA,
+    typeB,
+    { ignoreReactionLock = false, maxPairs = Number.POSITIVE_INFINITY } = {},
+  ) {
     const bodiesA = [...(this.dynamicBodies[typeA] ?? [])];
     const bodiesB = [...(this.dynamicBodies[typeB] ?? [])];
+    const contactPairs = [];
 
     for (const bodyA of bodiesA) {
       if (!ignoreReactionLock && this.isBodyReactionLocked(bodyA)) {
@@ -1128,12 +1184,16 @@ export class PhysicsModel {
         }
 
         if (this.areBodiesTouching(bodyA, bodyB)) {
-          return { bodyA, bodyB };
+          contactPairs.push({ bodyA, bodyB });
+
+          if (contactPairs.length >= maxPairs) {
+            return contactPairs;
+          }
         }
       }
     }
 
-    return null;
+    return contactPairs;
   }
 
   areBodiesTouching(bodyA, bodyB) {
@@ -1390,24 +1450,40 @@ export class PhysicsModel {
     );
   }
 
-  getFluidParticlesByType() {
-    const particlesByType = {};
+  getFluidRenderGroups() {
+    const renderGroups = [];
 
-    FLUID_KEYS.forEach((type) => {
-      const bodies = this.dynamicBodies[type] ?? [];
+    this.fluidZones.forEach((zone) => {
+      const groupedBodies = new Map();
 
-      if (bodies.length === 0) {
-        return;
-      }
+      zone.bodies.forEach((body) => {
+        const type = body.plugin.elementType ?? zone.key;
+        const group = groupedBodies.get(type) ?? [];
+        group.push({
+          x: body.position.x,
+          y: body.position.y,
+          radius: body.circleRadius,
+        });
+        groupedBodies.set(type, group);
+      });
 
-      particlesByType[type] = bodies.map((body) => ({
-        x: body.position.x,
-        y: body.position.y,
-        radius: body.circleRadius,
-      }));
+      groupedBodies.forEach((particles, type) => {
+        renderGroups.push({
+          rendererId: `${zone.id}:${type}`,
+          zoneId: zone.id,
+          type,
+          particles,
+          clipRect: {
+            left: zone.containmentRect.left,
+            top: zone.containmentRect.top,
+            width: zone.containmentRect.width,
+            height: zone.containmentRect.height,
+          },
+        });
+      });
     });
 
-    return particlesByType;
+    return renderGroups;
   }
 
   getTreasureBounds() {
