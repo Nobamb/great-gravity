@@ -11,6 +11,20 @@ function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
 
+function expandTreasureInteractionBounds(bounds) {
+    const horizontalPadding = bounds.width * 0.08;
+    const topExpansion = bounds.height * 0.7;
+
+    return {
+        left: bounds.left - horizontalPadding,
+        right: bounds.right + horizontalPadding,
+        top: bounds.top - topExpansion,
+        bottom: bounds.bottom,
+        width: bounds.width + horizontalPadding * 2,
+        height: bounds.height + topExpansion,
+    };
+}
+
 const TIMED_BLOCK_DURATION_MS = 1000;
 const CUSTOM_MISSION_ALARM_DURATION_MS = 1600;
 const STAGE4_LOCKED_TREASURE_MESSAGE =
@@ -811,7 +825,10 @@ export class GameController {
             return false;
         }
 
-        return intersects(this.characterModel.getBounds(), treasureBounds);
+        return intersects(
+            this.characterModel.getBounds(),
+            expandTreasureInteractionBounds(treasureBounds),
+        );
     }
 
     handleTreasureInteraction() {
