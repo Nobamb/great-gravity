@@ -357,6 +357,13 @@ export class StageModel {
         id: element.dataset.cannonId || `cannon-${index}`,
         element,
         rect,
+        variant: element.dataset.cannonVariant || "normal",
+        singleUse: element.dataset.cannonSingleUse === "true",
+        launchMultiplier: Math.max(
+          1,
+          Number(element.dataset.cannonLaunchMultiplier || 1),
+        ),
+        isDisabled: element.dataset.cannonDisabled === "true",
         seatPoint: {
           x: seatRect.left + seatRect.width / 2,
           y: seatRect.top + seatRect.height / 2,
@@ -411,6 +418,11 @@ export class StageModel {
           element: source.element,
           hidden: source.element.hidden,
           sourceState: source.element.dataset.stoneSourceState || null,
+        })),
+        cannons: this.cannons.map((cannon) => ({
+          id: cannon.id,
+          element: cannon.element,
+          disabled: cannon.element.dataset.cannonDisabled || null,
         })),
       };
     }
@@ -643,6 +655,14 @@ export class StageModel {
       }
     });
 
+    this.initialTriggerStates.cannons?.forEach((state) => {
+      if (state.disabled === null) {
+        delete state.element.dataset.cannonDisabled;
+      } else {
+        state.element.dataset.cannonDisabled = state.disabled;
+      }
+    });
+
     this.markDirty();
   }
 
@@ -746,6 +766,10 @@ export class StageModel {
     let bestArea = 0;
 
     this.cannons.forEach((cannon) => {
+      if (cannon.isDisabled) {
+        return;
+      }
+
       const overlapArea = getOverlapArea(expandedBounds, cannon.rect);
 
       if (overlapArea > bestArea) {
@@ -755,6 +779,19 @@ export class StageModel {
     });
 
     return bestMatch;
+  }
+
+  disableCannon(cannonId) {
+    const cannon = this.cannons.find((item) => item.id === cannonId);
+
+    if (!cannon || cannon.isDisabled) {
+      return false;
+    }
+
+    cannon.isDisabled = true;
+    cannon.element.dataset.cannonDisabled = "true";
+    this.markDirty();
+    return true;
   }
 
   getPortalEntry(bounds, padding = 0) {
