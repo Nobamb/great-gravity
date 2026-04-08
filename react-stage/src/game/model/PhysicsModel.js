@@ -18,6 +18,67 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function isPointInsideRect(point, rect) {
+  return (
+    point.x >= rect.left &&
+    point.x <= rect.right &&
+    point.y >= rect.top &&
+    point.y <= rect.bottom
+  );
+}
+
+function doesSegmentIntersectRect(start, end, rect, padding = 0) {
+  const expandedRect = {
+    left: rect.left - padding,
+    right: rect.right + padding,
+    top: rect.top - padding,
+    bottom: rect.bottom + padding,
+  };
+
+  if (
+    isPointInsideRect(start, expandedRect) ||
+    isPointInsideRect(end, expandedRect)
+  ) {
+    return true;
+  }
+
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const p = [-dx, dx, -dy, dy];
+  const q = [
+    start.x - expandedRect.left,
+    expandedRect.right - start.x,
+    start.y - expandedRect.top,
+    expandedRect.bottom - start.y,
+  ];
+  let tMin = 0;
+  let tMax = 1;
+
+  for (let index = 0; index < 4; index += 1) {
+    if (p[index] === 0) {
+      if (q[index] < 0) {
+        return false;
+      }
+
+      continue;
+    }
+
+    const ratio = q[index] / p[index];
+
+    if (p[index] < 0) {
+      tMin = Math.max(tMin, ratio);
+    } else {
+      tMax = Math.min(tMax, ratio);
+    }
+
+    if (tMin > tMax) {
+      return false;
+    }
+  }
+
+  return tMin <= tMax && tMax >= 0 && tMin <= 1;
+}
+
 const FLUID_KEYS = ["water", "lava", "fire", "ice-water", "super-lava"];
 
 const HAZARD_TYPES = new Set(["lava", "fire", "super-lava"]);
@@ -927,6 +988,7 @@ export class PhysicsModel {
     this.resolveSolidificationPair("water", "lava", {
       ignoreReactionLock: true,
     });
+    this.resolveWaterPercolationThroughSolidified();
   }
 
   resolveRuntimeIceInteractions() {
@@ -1203,7 +1265,24 @@ export class PhysicsModel {
       (bodyA.circleRadius + bodyB.circleRadius) *
       this.solidifyConfig.contactRatio;
 
-    return dx * dx + dy * dy <= contactDistance * contactDistance;
+    if (dx * dx + dy * dy > contactDistance * contactDistance) {
+      return false;
+    }
+
+    return !this.isReactionPathBlocked(bodyA, bodyB);
+  }
+
+  isReactionPathBlocked(bodyA, bodyB) {
+    const start = bodyA.position;
+    const end = bodyB.position;
+    const padding = Math.max(
+      1.5,
+      Math.min(bodyA.circleRadius, bodyB.circleRadius) * 0.3,
+    );
+
+    return this.staticSolidRects.some((solid) =>
+      doesSegmentIntersectRect(start, end, solid, padding),
+    );
   }
 
   isBodyTouchingRect(body, rects) {
@@ -1226,6 +1305,76 @@ export class PhysicsModel {
         !this.isBodyReactionLocked(body) &&
         this.isBodyTouchingRect(body, [rect]),
     );
+  }
+
+  resolveWaterPercolationThroughSolidified() {
+    if (this.dynamicBodies.water.length === 0 || this.solidifiedRects.length === 0) {
+      return false;
+    }
+
+    const lavaSolidifiedBlocks = this.solidifiedRects.filter(
+      (solid) => solid.elementType !== "ice",
+    );
+
+    if (lavaSolidifiedBlocks.length === 0) {
+      return false;
+    }
+
+    let hasMoved = false;
+
+    this.dynamicBodies.water.forEach((body) => {
+      const radius = body.circleRadius;
+      const targetBlock = lavaSolidifiedBlocks.find((block) => {
+        const horizontalOverlap =
+          body.position.x + radius > block.left &&
+          body.position.x - radius < block.right;
+        const isAboveBlock =
+          body.position.y >= block.top - radius * 2.4 &&
+          body.position.y <= block.top + radius * 0.8;
+
+        return horizontalOverlap && isAboveBlock;
+      });
+
+      if (!targetBlock) {
+        return;
+      }
+
+      const nextX = clamp(
+        body.position.x,
+        targetBlock.left + radius,
+        targetBlock.right - radius,
+      );
+      const nextY = targetBlock.bottom + radius + Math.max(2, radius * 0.45);
+
+      if (this.isCircleBlockedByStaticSolid(nextX, nextY, radius, targetBlock)) {
+        return;
+      }
+
+      this.Body.setPosition(body, { x: nextX, y: nextY });
+      this.Body.setVelocity(body, {
+        x: body.velocity.x * 0.35,
+        y: Math.max(body.velocity.y, 1.8),
+      });
+      this.setBodyReactionLock(body, this.reactionLockDurationMs);
+      hasMoved = true;
+    });
+
+    return hasMoved;
+  }
+
+  isCircleBlockedByStaticSolid(x, y, radius, ignoredRect = null) {
+    return this.staticSolidRects.some((solid) => {
+      if (solid === ignoredRect) {
+        return false;
+      }
+
+      return !(
+        x + radius <= solid.left ||
+        x - radius >= solid.right ||
+        y + radius <= solid.top ||
+        y - radius >= solid.bottom
+      );
+    });
   }
 
   convertBodyType(body, nextType, { reactionLockMs = 0 } = {}) {
