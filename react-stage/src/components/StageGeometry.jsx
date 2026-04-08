@@ -239,11 +239,6 @@ function Stage2Layout({
                 data-stone-source="true"
                 data-stone-source-id="stage2-stone-left"
             ></div>
-            <div
-                className="throw-stone stage2-stone-source stage2-stone-source--upper-right"
-                data-stone-source="true"
-                data-stone-source-id="stage2-stone-upper-right"
-            ></div>
             <div className="throw-stone stage2-projectile-stone" ref={stoneRef}></div>
             <svg className="stone-aim-overlay" width="100%" height="100%" aria-hidden="true">
                 <line
