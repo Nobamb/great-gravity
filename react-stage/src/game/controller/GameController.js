@@ -581,6 +581,7 @@ export class GameController {
             return;
         }
 
+        const usedCannon = this.activeCannon;
         const velocity = this.getCannonLaunchVelocity(muzzlePoint, pointerPosition);
         const speed = Math.hypot(velocity.x, velocity.y);
         const direction = speed > 0
@@ -604,6 +605,11 @@ export class GameController {
             vx: velocity.x,
             vy: velocity.y,
         });
+
+        if (usedCannon.singleUse) {
+            this.stageModel.disableCannon?.(usedCannon.id);
+        }
+
         this.activeCannon = null;
     }
 
@@ -613,8 +619,14 @@ export class GameController {
         const dragDistance = Math.sqrt(dx * dx + dy * dy);
         const safeDistance = Math.max(dragDistance, 1);
         const normalizedStrength = clamp((dragDistance - 30) / 390, 0, 1);
+        const launchMultiplier = Math.max(
+            1,
+            Number(this.activeCannon?.launchMultiplier ?? 1),
+        );
         const launchSpeed =
-            (620 + normalizedStrength * 420) * this.characterModel.physicsScale;
+            (620 + normalizedStrength * 420) *
+            this.characterModel.physicsScale *
+            launchMultiplier;
 
         return {
             x: (dx / safeDistance) * launchSpeed,
