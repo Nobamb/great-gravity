@@ -223,3 +223,7 @@ trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--right랑 trigger-b
 
 우선 굳은 용암 위에 물이 있으면,물이 그 굳은 용암 밑으로 흘러내려가는 기믹을 추가해보았으면 좋겠어 그리고 3스테이지에 보면 캐릭터가 있는 공간 하단에 용암과 물이
 stage3-mid-vertical-block stage3-frame로 서로 가로 막혀있어야 하는데 내가 그 stage3-mid-vertical-block stage3-frame를 치우지 않아도 물과 용암이 섞이면서 굳은 용암으로 바뀌지 않은 경향도 종종 있어 그래서 stage3-mid-vertical-block stage3-frame를 치워야만 물과 용암이 흐르면서 굳은 용암으로 바뀌게 만들어주었으면 좋겠어 지금 보니까 3스테이지 아래의 물 영역의 너비가 좀 커서 stage3-mid-vertical-block stage3-frame를 넘어서 용암 영역으로 넘어오는 거 같거든? .stage3-left-bottom-water width 8%로 수정하고 left 값은 25%로 수정해
+
+### 13-2. treasure-pile에서 보상을 받는 범위를 좀 넓혀주면 좋겠어
+
+treasure-pile의 보상 범위가 지금은 coin 범위정도까지 되어있는데 그렇게 되면 3스테이지에서 클리어를 하지 못할 가능성도 발생해 그래서 treasure-pile의 보상 범위를 일단 sword요소의 윗부분까지 넓혀주었으면 좋겠고, throw-stone stage2-stone-source stage2-stone-source--upper-right도 일단 없애줘
