@@ -218,3 +218,8 @@ trigger-block stage5-trigger stage5-fire-bar stage5-fire-bar--right랑 trigger-b
 ## 13. 스테이지 1,2,3에서 버그가 발생하는데 이 부분들 좀 고쳐주었으면 좋겠어
 
 우선 1스테이지에서는 용암과 물이 닿았을 때 바로 굳은용암으로 변화하지 않고 main-support zIndex100에 있는 trigger-block trigger-block--top를 건드려야 겨우 굳은용암으로 변화하거든? 그 부분에 있어서 우선 서로 용암과 물이 닿자마자 굳은 용암으로 변화하도록 수정되었으면 하고, 2스테이지에서는 stage2-fluid-divider stage2-fluid-divider--right의 위아래에 있는 용암과 물이 제대로 렌더링이 되지 않아서 실제로는 보이지 않은 상태야 이 부분도 바로 용암과 물이 렌더링되어 보여줄 수 있도록 고쳐주었으면 좋겠고,stage2-fluid-divider stage2-fluid-divider--left의 위아래에 있는 용암과 물이 종종 서로 닿았는데도 굳은 용암으로 변화하지 않는 문제가 발생해 둘이 서로 닿았을 때 바로 굳은 용암이 될 수 있게 만들어줘 그리고 3스테이지에서 stage3-left-bottom-floor stage3-frame 위에 있는 물이랑 용암,그리고 stage3-right-water-shelf stage3-frame의 위아래에 있는 용암, 물이 렌더링이 되지 않아서 보이지를 않아 3스테이지에 있는 용암과 물이 제대로 보일 수 있도록 수정해보자
+
+### 13-1. 원소 부분들은 잘 수정 되었고, 이제 일부 부분들만 좀 수정해보자
+
+우선 굳은 용암 위에 물이 있으면,물이 그 굳은 용암 밑으로 흘러내려가는 기믹을 추가해보았으면 좋겠어 그리고 3스테이지에 보면 캐릭터가 있는 공간 하단에 용암과 물이
+stage3-mid-vertical-block stage3-frame로 서로 가로 막혀있어야 하는데 내가 그 stage3-mid-vertical-block stage3-frame를 치우지 않아도 물과 용암이 섞이면서 굳은 용암으로 바뀌지 않은 경향도 종종 있어 그래서 stage3-mid-vertical-block stage3-frame를 치워야만 물과 용암이 흐르면서 굳은 용암으로 바뀌게 만들어주었으면 좋겠어 지금 보니까 3스테이지 아래의 물 영역의 너비가 좀 커서 stage3-mid-vertical-block stage3-frame를 넘어서 용암 영역으로 넘어오는 거 같거든? .stage3-left-bottom-water width 8%로 수정하고 left 값은 25%로 수정해
