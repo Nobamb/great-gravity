@@ -235,3 +235,8 @@ treasure-pile의 보상 범위가 지금은 coin 범위정도까지 되어있는
 ## 15. 이번에는 react-stage에서 6스테이지를 만들어보려고 해
 
 6스테이지는 image/basic-design/stage6.html(코드 참조)와 image/basic-design/stage6.png(각 요소들 참조), image/basic-design/stage6-concept.png(디자인 참조)를 참고해서 만들어주었으면 좋겠어 주로 들어가게 될 것은 용암과 물(stageElement),돌,포탈(portalIn, portalOut, Portal 참조), 그리고 일반 블록을 사라지게 만들 trigger-block, 붉은 버튼 및 해당 버튼과 상호작용 시, 사라지는 하얀 블록과 황금대포(기존의 대포와는 다르게 노란색으로 이루어진 대포)가 필요하게 되거든 일단은 내가 말한 stage6.html, stage6.png, stage6-concept.png를 참고해서 맵 디자인을 먼저 만들어둬, 그밖의 내용으로는 plan.md,AGENTS.md, GEMINI.md를 참고해보아도 좋아, 그리고 대포의 경우에는 src/components 폴더 내에 Cannon이라는 대포 컴포넌트를 따로 하나 만들어놓고, props를 받아서 받는 props의 값이 normal일 때는 일반 대포, 그리고 gold일 때는 황금 대포로 렌더링하게 하면서,기존의 3,4 스테이지에서 사용하던 대포도 기존에 사용하던 대포 요소에서 해당 컴포넌트에서 normal로 렌더링되게 수정해서 바꿔줘
+
+### 15-1. 6스테이지에서 stage6-fluid-zone stage6-fluid-zone--water fluid-zone fluid-zone--water physics-fluid가 공간 상에 다 채워지지 않는 문제가 발생하거든?
+
+그런데 정작 게임화면이 작으면 공간 내에 꽉차서 내 예상대로 동작을 하는데, 게임 화면이 커지면 물의 크기가 줄어들어서 stage6-fluid-zone stage6-fluid-zone--water fluid-zone fluid-zone--water physics-fluid가 공간 상에 다 채워지지 않는 문제가 발생해, 가능하면 설정으로 물의 너비가 설정한 요소의 크기와 동일하도록 수정해보자
+그리고 일단은 지금 너비 부분을 width 100%로 하는 것보다는 200vw로 더 넉넉하게 수정해보았으면 좋겠어 stage6-fluid-zone stage6-fluid-zone--water fluid-zone fluid-zone--water physics-fluid요소를 직접 접근해서 너비를 더 늘려보는 것이 좋을 것으로 보여
