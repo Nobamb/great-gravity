@@ -771,6 +771,7 @@ body {
 
 .stage2-white-block--right {
   left: 69.1%;
+  transform: rotate(165deg)
 }
 
 .stage2-button-hitbox,
@@ -1010,18 +1011,18 @@ body {
 }
 
 .stage2-treasure-base {
-  left: 84.7%;
+  left: 78%;
   top: 91.8%;
-  width: 8.8%;
+  width: 16%;
   height: 3.4%;
   z-index: 12;
 }
 
 .stage2-treasure-support {
-  left: 84.7%;
+  left: 78%;
   top: 80.5%;
   width: 2.1%;
-  height: 16.3%;
+  height: 14%;
   z-index: 12;
 }
 
