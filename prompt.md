@@ -231,3 +231,7 @@ treasure-pile의 보상 범위가 지금은 coin 범위정도까지 되어있는
 ## 14. 지금 3, 4스테이지에서는 화면의 크기를 바꾸면 몬스터의 위치도 바뀌는 버그가 있거든
 
 우선 초기 시작할 때 몬스터의 위치를 지정이 되고, 그 지정된 위치를 기억을 하면서, 만약에 화면 크기가 바뀌어도 초기에 지정한 몬스터의 위치를 지정을 해서 몬스터가 벗어나지 않는 버그를 수정해주었으면 좋겠어
+
+## 15. 이번에는 react-stage에서 6스테이지를 만들어보려고 해
+
+6스테이지는 image/basic-design/stage6.html(코드 참조)와 image/basic-design/stage6.png(각 요소들 참조), image/basic-design/stage6-concept.png(디자인 참조)를 참고해서 만들어주었으면 좋겠어 주로 들어가게 될 것은 용암과 물(stageElement),돌,포탈(portalIn, portalOut, Portal 참조), 그리고 일반 블록을 사라지게 만들 trigger-block, 붉은 버튼 및 해당 버튼과 상호작용 시, 사라지는 하얀 블록과 황금대포(기존의 대포와는 다르게 노란색으로 이루어진 대포)가 필요하게 되거든 일단은 내가 말한 stage6.html, stage6.png, stage6-concept.png를 참고해서 맵 디자인을 먼저 만들어둬, 그밖의 내용으로는 plan.md,AGENTS.md, GEMINI.md를 참고해보아도 좋아, 그리고 대포의 경우에는 src/components 폴더 내에 Cannon이라는 대포 컴포넌트를 따로 하나 만들어놓고, props를 받아서 받는 props의 값이 normal일 때는 일반 대포, 그리고 gold일 때는 황금 대포로 렌더링하게 하면서,기존의 3,4 스테이지에서 사용하던 대포도 기존에 사용하던 대포 요소에서 해당 컴포넌트에서 normal로 렌더링되게 수정해서 바꿔줘
