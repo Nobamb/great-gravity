@@ -1,4 +1,5 @@
 import BackgroundLayer from "./BackgroundLayer.jsx";
+import Cannon from "./Cannon.jsx";
 import CharacterSprite from "./CharacterSprite.jsx";
 import ClearOverlay from "./ClearOverlay.jsx";
 import CustomMissionAlarm from "./CustomMissionAlarm.jsx";
@@ -362,16 +363,11 @@ function Stage3Layout({
             ></div>
             <div className="stage3-contact-button" aria-hidden="true"></div>
 
-            <div
+            <Cannon
                 className="stage3-cannon"
-                data-cannon="true"
-                data-cannon-id="stage3-main-cannon"
-            >
-                <div className="stage3-cannon-seat" data-cannon-seat="true"></div>
-                <div className="stage3-cannon-barrel" data-cannon-muzzle="true"></div>
-                <div className="stage3-cannon-wheel stage3-cannon-wheel--left"></div>
-                <div className="stage3-cannon-wheel stage3-cannon-wheel--right"></div>
-            </div>
+                cannonId="stage3-main-cannon"
+                variant="normal"
+            />
 
             <div className="stage3-right-chamber stage3-frame stage3-frame--right-outer" data-collider="solid" data-triggerable="true" data-collapse-id="stage3-right-chamber-outer" id="stage3-right-chamber-outer">
                 <div className="trigger-block trigger-block--bottom stage3-right-chamber-trigger--left" data-trigger="true" data-trigger-id="stage3-right-chamber-outer-trigger" data-trigger-direction="bottom" data-trigger-targets="stage3-right-chamber-outer" data-projectile-trigger="true"></div>
@@ -538,16 +534,12 @@ function Stage4Layout({
                 data-effect="jump-boost"
             ></div>
 
-            <div
+            <Cannon
                 className="stage3-cannon stage4-cannon"
-                data-cannon="true"
-                data-cannon-id="stage4-main-cannon"
-            >
-                <div className="stage3-cannon-seat stage4-cannon-seat" data-cannon-seat="true"></div>
-                <div className="stage3-cannon-barrel" data-cannon-muzzle="true"></div>
-                <div className="stage3-cannon-wheel stage3-cannon-wheel--left"></div>
-                <div className="stage3-cannon-wheel stage3-cannon-wheel--right"></div>
-            </div>
+                cannonId="stage4-main-cannon"
+                variant="normal"
+                seatClassName="stage4-cannon-seat"
+            />
 
             <div
                 className="jump-block stage4-jump-block stage4-jump-block--goal"
@@ -841,6 +833,147 @@ function Stage5Layout({
     );
 }
 
+function Stage6Layout({
+    treasureRef,
+    treasureAnchorRef,
+    stoneRef,
+    stoneAnchorRef,
+    stoneAimRef,
+}) {
+    return (
+        <>
+            <div className="spawn-pad stage6-spawn-pad" data-collider="solid" data-spawn="player"></div>
+
+            <LavaZone
+                className="stage6-fluid-zone stage6-fluid-zone--ceiling fluid-zone fluid-zone--lava"
+                zoneId="stage6-ceiling-lava"
+                width="100%"
+                height="12%"
+            />
+
+            <div className="stage6-frame stage6-frame--top" data-collider="solid"></div>
+            <div className="stage6-frame stage6-frame--mid" data-collider="solid"></div>
+            <div className="stage6-frame stage6-frame--left" data-collider="solid"></div>
+            <div className="stage6-frame stage6-frame--right" data-collider="solid"></div>
+            <div className="stage6-frame stage6-frame--center" data-collider="solid"></div>
+            <div className="stage6-floor" data-collider="solid"></div>
+
+            <div
+                className="stage6-frame stage6-upper-gate"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage6-upper-gate"
+            ></div>
+            <TriggerBlock
+                className="trigger-block stage6-trigger stage6-trigger--left"
+                triggerId="stage6-upper-gate-trigger"
+                triggerDirection="right"
+                triggerTargets="stage6-upper-gate"
+            />
+
+            <PortalOut
+                className="stage6-portal stage6-portal--out"
+                portalId="stage6-portal-out"
+                exitDirection="right"
+            />
+
+            <Cannon
+                className="stage6-cannon"
+                cannonId="stage6-gold-cannon"
+                variant="gold"
+                singleUse={true}
+                launchMultiplier={2}
+            />
+
+            <div className="stage6-door" aria-hidden="true">
+                <div className="stage6-door-frame"></div>
+                <div className="stage6-door-inner"></div>
+                <div className="stage6-door-mound"></div>
+                <div className="stage6-door-sword"></div>
+            </div>
+
+            <div
+                className="stage6-white-block stage6-white-block--left"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage6-white-left"
+            ></div>
+            <div
+                className="stage6-white-block stage6-white-block--right"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage6-white-right"
+            ></div>
+            <div
+                className="stage6-white-block stage6-white-block--bottom"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage6-white-bottom"
+            ></div>
+
+            <div
+                className="trigger-block stage6-contact-hitbox"
+                data-contact-trigger="true"
+                data-trigger-id="stage6-door-contact-trigger"
+                data-trigger-direction="top"
+                data-trigger-targets="stage6-white-left,stage6-white-right,stage6-white-bottom"
+                data-contact-sources="character,stone,solidified"
+            ></div>
+            <div className="stage6-contact-button" aria-hidden="true"></div>
+
+            <WaterZone
+                className="stage6-fluid-zone stage6-fluid-zone--water fluid-zone fluid-zone--water"
+                zoneId="stage6-main-water"
+                width="100%"
+                height="46%"
+            />
+
+            <PortalIn
+                className="stage6-portal stage6-portal--in"
+                portalId="stage6-portal-in"
+                targetId="stage6-portal-out"
+            />
+
+            <div className="stage6-stone-anchor" ref={stoneAnchorRef}></div>
+            <div
+                className="stage6-stone-source throw-stone"
+                data-stone-source="true"
+                data-stone-source-id="stage6-stone-center"
+            ></div>
+            <div className="throw-stone stage6-projectile-stone" ref={stoneRef}></div>
+
+            <div className="stage6-treasure-anchor" ref={treasureAnchorRef}></div>
+            <TreasurePile ref={treasureRef} className="stage6-treasure-pile" />
+
+            <div className="stage6-left-glow" aria-hidden="true"></div>
+
+            <svg className="stone-aim-overlay" width="100%" height="100%" aria-hidden="true">
+                <line
+                    className="stone-aim-line"
+                    data-stone-aim-line
+                    ref={stoneAimRef}
+                    hidden
+                ></line>
+                <circle
+                    className="stone-aim-reticle"
+                    data-stone-aim-reticle
+                    hidden
+                ></circle>
+                <line
+                    className="stone-aim-reticle-axis"
+                    data-stone-aim-reticle-axis="horizontal"
+                    hidden
+                ></line>
+                <line
+                    className="stone-aim-reticle-axis"
+                    data-stone-aim-reticle-axis="vertical"
+                    hidden
+                ></line>
+            </svg>
+        </>
+    );
+}
+
 function renderStageLayout(
     stageId,
     treasureRef,
@@ -850,6 +983,16 @@ function renderStageLayout(
     stoneAimRef,
 ) {
     switch (stageId) {
+        case "stage6":
+            return (
+                <Stage6Layout
+                    treasureRef={treasureRef}
+                    treasureAnchorRef={treasureAnchorRef}
+                    stoneRef={stoneRef}
+                    stoneAnchorRef={stoneAnchorRef}
+                    stoneAimRef={stoneAimRef}
+                />
+            );
         case "stage5":
             return (
                 <Stage5Layout
