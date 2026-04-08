@@ -1,4 +1,4 @@
-const MAX_FLUID_PARTICLES = 64;
+const MAX_FLUID_PARTICLES = 128;
 const MAX_OBSTACLES = 64;
 
 class FluidSurfaceRenderer {
