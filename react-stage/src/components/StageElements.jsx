@@ -23,12 +23,16 @@ function ElementZone({
     width,
     height,
     style,
+    fluidDensityScale,
+    fluidSpawnProfile,
 }) {
     return (
         <div
             className={className}
             data-fluid-type={elementType}
             data-fluid-id={zoneId}
+            data-fluid-density-scale={typeof fluidDensityScale === "number" ? String(fluidDensityScale) : undefined}
+            data-fluid-spawn-profile={fluidSpawnProfile ? JSON.stringify(fluidSpawnProfile) : undefined}
             style={createZoneStyle(width, height, style)}
         ></div>
     );
