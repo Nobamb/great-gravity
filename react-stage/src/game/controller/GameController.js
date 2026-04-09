@@ -978,6 +978,15 @@ export class GameController {
         this.stageModel.setRuntimeHazards(
             this.physicsController?.getHazards?.() ?? [],
         );
+        const activeWaterZones =
+            this.physicsController?.getActiveWaterZones?.() ?? null;
+
+        if (activeWaterZones === null) {
+            this.stageModel.clearRuntimeWaterZones();
+            return;
+        }
+
+        this.stageModel.setRuntimeWaterZones(activeWaterZones);
     }
 
     canThrowStone() {
