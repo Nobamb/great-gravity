@@ -849,6 +849,21 @@ function Stage6Layout({
                 zoneId="stage6-ceiling-lava"
                 width="100%"
                 height="12%"
+                fluidRenderScale={1.08}
+                fluidSpawnProfile={{
+                    fitToRect: true,
+                    maxParticles: 120,
+                    maxCols: 60,
+                    maxRows: 8,
+                    minParticleRadius: 5,
+                    maxParticleRadius: 40,
+                    colCountSpacingMultiplier: 1.85,
+                    rowCountSpacingMultiplier: 1.7,
+                    colStepMultiplier: 1.78,
+                    rowStepMultiplier: 1.62,
+                    rowOffsetMultiplier: 0.18,
+                    spawnInsetMultiplier: 0.35,
+                }}
             />
 
             <div className="stage6-frame stage6-frame--top" data-collider="solid"></div>
