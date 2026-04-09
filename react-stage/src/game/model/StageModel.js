@@ -23,6 +23,10 @@ function getOverlapArea(a, b) {
   return overlapX * overlapY;
 }
 
+function intersects(a, b) {
+  return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+}
+
 function expandRect(rect, padding) {
   return {
     left: rect.left - padding,
@@ -86,6 +90,7 @@ export class StageModel {
     this.monsterSelector = '[data-monster="true"]';
     this.initialSolidifiedSelector = '[data-solidified-block="true"]';
     this.portalSelector = "[data-portal-id]";
+    this.waterZoneSelector = '[data-fluid-type="water"]';
 
     this.domSolids = [];
     this.runtimeSolids = [];
@@ -94,6 +99,7 @@ export class StageModel {
     this.solids = [];
     this.hazards = [];
     this.ladders = [];
+    this.waterZones = [];
     this.bounds = {
       width: 0,
       height: 0,
@@ -228,6 +234,12 @@ export class StageModel {
 
     this.rebuildSolidList();
     this.hazards = [...this.runtimeHazards];
+    this.waterZones = Array.from(
+      this.container.querySelectorAll(this.waterZoneSelector),
+    ).map((element, index) => ({
+      id: element.dataset.fluidId || `water-zone-${index}`,
+      rect: createRelativeRect(element.getBoundingClientRect(), containerRect),
+    }));
 
     this.ladders = Array.from(
       this.container.querySelectorAll(this.ladderSelector),
@@ -475,6 +487,26 @@ export class StageModel {
       if (overlapArea > bestArea) {
         bestArea = overlapArea;
         bestMatch = ladder;
+      }
+    }
+
+    return bestMatch;
+  }
+
+  getWaterZoneForBounds(bounds) {
+    let bestMatch = null;
+    let bestArea = 0;
+
+    for (const zone of this.waterZones) {
+      if (!intersects(bounds, zone.rect)) {
+        continue;
+      }
+
+      const overlapArea = getOverlapArea(bounds, zone.rect);
+
+      if (overlapArea > bestArea) {
+        bestArea = overlapArea;
+        bestMatch = zone.rect;
       }
     }
 
