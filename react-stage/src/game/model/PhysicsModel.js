@@ -362,6 +362,7 @@ export class PhysicsModel {
           element,
           config,
           densityScale,
+          renderScale: parseOptionalNumber(element.dataset.fluidRenderScale),
           spawnProfile,
           originRect,
           containmentRect: {
@@ -1719,6 +1720,7 @@ export class PhysicsModel {
           rendererId: `${zone.id}:${type}`,
           zoneId: zone.id,
           type,
+          renderScale: zone.renderScale,
           particles,
           clipRect: {
             left: zone.containmentRect.left,
