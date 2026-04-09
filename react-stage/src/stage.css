@@ -253,6 +253,95 @@ body {
   z-index: 100;
 }
 
+.breath-ui {
+  --breath-color: #8ee8ff;
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--cw));
+  min-width: calc(110 * var(--cw));
+  padding: calc(6 * var(--cw)) calc(8 * var(--cw));
+  border: 1px solid color-mix(in srgb, var(--breath-color) 55%, white 10%);
+  border-radius: calc(999 * var(--cw));
+  background: rgba(6, 16, 32, 0.84);
+  box-shadow:
+    0 0 calc(18 * var(--cw))
+      color-mix(in srgb, var(--breath-color) 28%, transparent),
+    inset 0 0 0 calc(1 * var(--cw)) rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  z-index: 70;
+}
+
+.breath-ui[hidden] {
+  display: none;
+}
+
+.breath-ui[data-level="mid"] {
+  --breath-color: #ffd457;
+}
+
+.breath-ui[data-level="low"] {
+  --breath-color: #ff5f57;
+}
+
+.breath-ui__label {
+  width: calc(30 * var(--cw));
+  height: calc(16 * var(--cw));
+  flex: 0 0 auto;
+}
+
+.breath-ui__label-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.breath-ui__label-text,
+.breath-ui__label-sub {
+  fill: var(--breath-color);
+  font-family: "Inter", "Roboto", sans-serif;
+  font-weight: 800;
+  letter-spacing: calc(0.3 * var(--cw));
+}
+
+.breath-ui__label-text {
+  font-size: 14px;
+}
+
+.breath-ui__label-sub {
+  font-size: 9px;
+}
+
+.breath-ui__bar {
+  position: relative;
+  width: calc(88 * var(--cw));
+  height: calc(10 * var(--cw));
+  border-radius: calc(999 * var(--cw));
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 calc(1 * var(--cw)) rgba(255, 255, 255, 0.08);
+}
+
+.breath-ui__fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--breath-color) 92%, white 8%),
+      color-mix(in srgb, var(--breath-color) 72%, #ffffff 28%)
+    );
+  box-shadow:
+    0 0 calc(14 * var(--cw))
+      color-mix(in srgb, var(--breath-color) 38%, transparent);
+}
+
 .mission-ui {
   position: absolute;
   left: 2%;
