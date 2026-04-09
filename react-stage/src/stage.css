@@ -3302,6 +3302,13 @@ body {
     0 0 calc(28 * var(--cw)) rgba(0, 255, 255, 0.28);
 }
 
+.character.is-swimming {
+  filter: brightness(1.08) saturate(1.1);
+  box-shadow:
+    0 0 calc(18 * var(--cw)) rgba(103, 183, 255, 0.78),
+    0 0 calc(30 * var(--cw)) rgba(60, 120, 222, 0.24);
+}
+
 .character.is-throw-ready {
   cursor: grab;
 }
