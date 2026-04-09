@@ -65,6 +65,10 @@ export class GameView {
       this.containerElement?.querySelector(".custom-mission-alarm") ?? null;
     this.customMissionAlarmTextElement =
       this.customMissionAlarmElement?.querySelector("[data-custom-mission-alarm-text='true']") ?? null;
+    this.breathElement =
+      this.containerElement?.querySelector("[data-breath-ui='true']") ?? null;
+    this.breathFillElement =
+      this.breathElement?.querySelector("[data-breath-fill='true']") ?? null;
     this.activeTriggerElement = null;
     this.collapseTimers = new Map();
     this.customMissionAlarmTimer = null;
@@ -183,6 +187,7 @@ export class GameView {
         this.renderCannonState(interaction.cannonState ?? null);
         this.renderStageMission(interaction.stageMission ?? null);
         this.renderMissionAlarm(interaction.missionAlarm ?? null);
+        this.renderBreathHud(character);
 
         if (
             this.activeTriggerElement &&
@@ -402,6 +407,35 @@ export class GameView {
     if (this.stage4TreasureBarrierElement) {
       this.stage4TreasureBarrierElement.hidden = !stageMission?.isTreasureBarrierActive;
     }
+  }
+
+  renderBreathHud(character) {
+    if (!this.breathElement || !this.breathFillElement) {
+      return;
+    }
+
+    const breathRatio = Math.max(0, Math.min(1, Number(character.breathRatio ?? 1)));
+    const shouldShow = Boolean(character.isHeadUnderwater) || breathRatio < 1;
+
+    if (!shouldShow || typeof character.getHeadBounds !== "function") {
+      this.breathElement.hidden = true;
+      this.breathElement.dataset.level = "high";
+      this.breathFillElement.style.width = "100%";
+      return;
+    }
+
+    const headBounds = character.getHeadBounds();
+    const centerX = headBounds.left + headBounds.width / 2;
+    const offsetY = Math.max(headBounds.height * 0.35, 12);
+    const anchorY = headBounds.top - offsetY;
+    const level =
+      breathRatio <= 0.2 ? "low" : breathRatio <= 0.5 ? "mid" : "high";
+
+    this.breathElement.hidden = false;
+    this.breathElement.dataset.level = level;
+    this.breathElement.style.transform =
+      `translate3d(${centerX}px, ${anchorY}px, 0) translate(-50%, -100%)`;
+    this.breathFillElement.style.width = `${breathRatio * 100}%`;
   }
 
   renderMissionAlarm(missionAlarm) {
