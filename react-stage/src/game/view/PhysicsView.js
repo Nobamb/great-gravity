@@ -540,7 +540,7 @@ export class PhysicsView {
     }
 
     renderFluidGroup(group, physicsModel) {
-        const { rendererId, type, particles, clipRect } = group;
+        const { rendererId, type, particles, clipRect, renderScale: zoneRenderScale } = group;
 
         if (!this.fluidRenderers.has(rendererId)) {
             this.fluidRenderers.set(
@@ -550,7 +550,10 @@ export class PhysicsView {
         }
 
         const renderer = this.fluidRenderers.get(rendererId);
-        const renderScale = this.getFluidRenderScale(type);
+        const renderScale =
+            typeof zoneRenderScale === "number"
+                ? zoneRenderScale
+                : this.getFluidRenderScale(type);
         const renderedByWebGL = renderer?.render(
             particles.map((particle) => ({
                 ...particle,
