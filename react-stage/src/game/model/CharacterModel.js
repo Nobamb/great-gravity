@@ -200,6 +200,25 @@ export class CharacterModel {
     };
   }
 
+  getSwimmingWaterZone(bounds = this.getBounds(), stage) {
+    const waterZone = stage.getWaterZoneForBounds?.(bounds) ?? null;
+
+    if (!waterZone) {
+      return null;
+    }
+
+    const overlapHeight =
+      Math.min(bounds.bottom, waterZone.bottom) -
+      Math.max(bounds.top, waterZone.top);
+    const minimumSwimDepth = (bounds.bottom - bounds.top) * 0.5;
+
+    if (overlapHeight < minimumSwimDepth) {
+      return null;
+    }
+
+    return waterZone;
+  }
+
   /**
    * 매 프레임 캐릭터의 상태를 업데이트하는 핵심 함수입니다.
    */
@@ -207,7 +226,7 @@ export class CharacterModel {
     const ladderPadding = Math.max(8, stage.bounds.width * 0.008);
     const currentBounds = this.getBounds();
     const ladder = stage.getLadderForBounds(currentBounds, ladderPadding);
-    const waterZone = stage.getWaterZoneForBounds?.(currentBounds) ?? null;
+    const waterZone = this.getSwimmingWaterZone(currentBounds, stage);
     const isInWater = Boolean(waterZone);
 
     this.moveIntent = input.horizontal;
@@ -444,7 +463,7 @@ export class CharacterModel {
     if (!ladder) {
       this.isClimbing = false;
       this.onLadder = false;
-      if (stage.getWaterZoneForBounds?.(this.getBounds())) {
+      if (this.getSwimmingWaterZone(this.getBounds(), stage)) {
         this.updateSwimming(dt, stage, input);
       } else {
         this.updatePlatforming(dt, stage, input);
