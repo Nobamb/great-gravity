@@ -240,3 +240,8 @@ treasure-pile의 보상 범위가 지금은 coin 범위정도까지 되어있는
 
 그런데 정작 게임화면이 작으면 공간 내에 꽉차서 내 예상대로 동작을 하는데, 게임 화면이 커지면 물의 크기가 줄어들어서 stage6-fluid-zone stage6-fluid-zone--water fluid-zone fluid-zone--water physics-fluid가 공간 상에 다 채워지지 않는 문제가 발생해, 가능하면 설정으로 물의 너비가 설정한 요소의 크기와 동일하도록 수정해보자
 그리고 일단은 지금 너비 부분을 width 100%로 하는 것보다는 200vw로 더 넉넉하게 수정해보았으면 좋겠어 stage6-fluid-zone stage6-fluid-zone--water fluid-zone fluid-zone--water physics-fluid요소를 직접 접근해서 너비를 더 늘려보는 것이 좋을 것으로 보여
+
+### 15-2. 6스테이지에서 상단에 용암이 상단의 공간을 다 채워줬으면 좋겠어
+
+stage6-fluid-zone stage6-fluid-zone--ceiling fluid-zone fluid-zone--lava physics-fluid도
+전에 물처럼 공간을 가득 채우는 로직을 같이 적용해보자
