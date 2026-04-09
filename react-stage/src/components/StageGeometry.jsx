@@ -867,24 +867,35 @@ function Stage6Layout({
                 }}
             />
 
-            <div className="stage6-frame stage6-frame--top" data-collider="solid"></div>
+            <div
+                className="stage6-white-block stage6-white-block--top"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage6-white-top"
+            ></div>
             <div className="stage6-frame stage6-frame--mid" data-collider="solid"></div>
             <div className="stage6-frame stage6-frame--left" data-collider="solid"></div>
             <div className="stage6-frame stage6-frame--right" data-collider="solid"></div>
-            <div className="stage6-frame stage6-frame--center" data-collider="solid"></div>
-            <div className="stage6-floor" data-collider="solid"></div>
-
             <div
-                className="stage6-frame stage6-upper-gate"
+                className="stage6-frame stage6-frame--center"
                 data-collider="solid"
                 data-triggerable="true"
-                data-collapse-id="stage6-upper-gate"
-            ></div>
+                data-collapse-id="stage6-center-frame"
+            >
+                <TriggerBlock
+                    className="trigger-block stage6-trigger-block"
+                    triggerId="stage6-center-frame-trigger"
+                    triggerDirection="right"
+                    triggerTargets="stage6-center-frame"
+                />
+            </div>
+            <div className="stage6-floor" data-collider="solid"></div>
+
             <TriggerBlock
-                className="trigger-block stage6-trigger stage6-trigger--left"
-                triggerId="stage6-upper-gate-trigger"
+                className="trigger-block stage6-contact-button stage6-upper-gate"
+                triggerId="stage6-white-blocks-trigger"
                 triggerDirection="right"
-                triggerTargets="stage6-upper-gate"
+                triggerTargets="stage6-white-top,stage6-white-left,stage6-white-right,stage6-white-bottom"
             />
 
             <PortalOut
@@ -918,16 +929,6 @@ function Stage6Layout({
                 data-triggerable="true"
                 data-collapse-id="stage6-white-bottom"
             ></div>
-
-            <div
-                className="trigger-block stage6-contact-hitbox"
-                data-contact-trigger="true"
-                data-trigger-id="stage6-door-contact-trigger"
-                data-trigger-direction="top"
-                data-trigger-targets="stage6-white-left,stage6-white-right,stage6-white-bottom"
-                data-contact-sources="character,stone,solidified"
-            ></div>
-            <div className="stage6-contact-button" aria-hidden="true"></div>
 
             <WaterZone
                 className="stage6-fluid-zone stage6-fluid-zone--water fluid-zone fluid-zone--water"
