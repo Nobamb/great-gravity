@@ -67,6 +67,14 @@ export class PhysicsController {
         return this.physicsModel.getHazards();
     }
 
+    getActiveWaterZones() {
+        if (!this.physicsModel.enabled) {
+            return null;
+        }
+
+        return this.physicsModel.getActiveWaterZones();
+    }
+
     getTreasureBounds() {
         if (!this.physicsModel.enabled) {
             return null;
