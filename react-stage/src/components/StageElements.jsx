@@ -25,6 +25,7 @@ function ElementZone({
     style,
     fluidDensityScale,
     fluidSpawnProfile,
+    fluidRenderScale,
 }) {
     return (
         <div
@@ -33,6 +34,7 @@ function ElementZone({
             data-fluid-id={zoneId}
             data-fluid-density-scale={typeof fluidDensityScale === "number" ? String(fluidDensityScale) : undefined}
             data-fluid-spawn-profile={fluidSpawnProfile ? JSON.stringify(fluidSpawnProfile) : undefined}
+            data-fluid-render-scale={typeof fluidRenderScale === "number" ? String(fluidRenderScale) : undefined}
             style={createZoneStyle(width, height, style)}
         ></div>
     );
