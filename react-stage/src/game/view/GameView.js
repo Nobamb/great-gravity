@@ -160,9 +160,10 @@ export class GameView {
     );
     this.characterElement.classList.toggle(
       "is-jumping",
-      !character.onGround && !character.isClimbing,
+      !character.onGround && !character.isClimbing && !character.isSwimming,
     );
     this.characterElement.classList.toggle("is-climbing", character.isClimbing);
+        this.characterElement.classList.toggle("is-swimming", character.isSwimming);
         this.characterElement.classList.toggle(
             "is-facing-left",
             character.facing < 0,
