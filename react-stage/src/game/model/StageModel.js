@@ -65,6 +65,28 @@ function normalizeHazardRect(rect) {
   };
 }
 
+function normalizeWaterRect(rect) {
+  const width =
+    typeof rect.width === "number"
+      ? rect.width
+      : Math.max(0, (rect.right ?? rect.left) - rect.left);
+  const height =
+    typeof rect.height === "number"
+      ? rect.height
+      : Math.max(0, (rect.bottom ?? rect.top) - rect.top);
+
+  return {
+    id: rect.id || rect.zoneId || null,
+    zoneId: rect.zoneId || null,
+    left: rect.left,
+    top: rect.top,
+    width,
+    height,
+    right: rect.right ?? rect.left + width,
+    bottom: rect.bottom ?? rect.top + height,
+  };
+}
+
 function parseTargetIds(rawValue) {
   if (!rawValue) {
     return [];
@@ -100,6 +122,8 @@ export class StageModel {
     this.hazards = [];
     this.ladders = [];
     this.waterZones = [];
+    this.runtimeWaterZones = [];
+    this.hasRuntimeWaterZonesSnapshot = false;
     this.bounds = {
       width: 0,
       height: 0,
@@ -496,17 +520,22 @@ export class StageModel {
   getWaterZoneForBounds(bounds) {
     let bestMatch = null;
     let bestArea = 0;
+    const zoneSource = this.hasRuntimeWaterZonesSnapshot
+      ? this.runtimeWaterZones
+      : this.waterZones;
 
-    for (const zone of this.waterZones) {
-      if (!intersects(bounds, zone.rect)) {
+    for (const zone of zoneSource) {
+      const rect = this.hasRuntimeWaterZonesSnapshot ? zone : zone.rect;
+
+      if (!intersects(bounds, rect)) {
         continue;
       }
 
-      const overlapArea = getOverlapArea(bounds, zone.rect);
+      const overlapArea = getOverlapArea(bounds, rect);
 
       if (overlapArea > bestArea) {
         bestArea = overlapArea;
-        bestMatch = zone.rect;
+        bestMatch = rect;
       }
     }
 
@@ -637,6 +666,7 @@ export class StageModel {
 
     this.clearRuntimeSolids();
     this.clearRuntimeHazards();
+    this.clearRuntimeWaterZones();
     this.shouldSeedInitialSolidifiedBlocks = true;
 
     [...(this.allTriggers ?? [])].forEach((trigger) => {
@@ -716,6 +746,21 @@ export class StageModel {
   clearRuntimeHazards() {
     this.runtimeHazards = [];
     this.hazards = [];
+  }
+
+  setRuntimeWaterZones(zones = null) {
+    if (!Array.isArray(zones)) {
+      this.clearRuntimeWaterZones();
+      return;
+    }
+
+    this.runtimeWaterZones = zones.map((zone) => normalizeWaterRect(zone));
+    this.hasRuntimeWaterZonesSnapshot = true;
+  }
+
+  clearRuntimeWaterZones() {
+    this.runtimeWaterZones = [];
+    this.hasRuntimeWaterZonesSnapshot = false;
   }
 
   rebuildSolidList() {
@@ -868,6 +913,7 @@ export class StageModel {
   }
 
   destroy() {
+    this.clearRuntimeWaterZones();
     this.resizeObserver?.disconnect();
     window.removeEventListener("resize", this.markDirty);
   }
