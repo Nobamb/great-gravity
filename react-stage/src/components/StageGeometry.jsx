@@ -1,4 +1,5 @@
 import BackgroundLayer from "./BackgroundLayer.jsx";
+import BreathHud from "./BreathHud.jsx";
 import Cannon from "./Cannon.jsx";
 import CharacterSprite from "./CharacterSprite.jsx";
 import ClearOverlay from "./ClearOverlay.jsx";
@@ -899,14 +900,6 @@ function Stage6Layout({
                 singleUse={true}
                 launchMultiplier={2}
             />
-
-            <div className="stage6-door" aria-hidden="true">
-                <div className="stage6-door-frame"></div>
-                <div className="stage6-door-inner"></div>
-                <div className="stage6-door-mound"></div>
-                <div className="stage6-door-sword"></div>
-            </div>
-
             <div
                 className="stage6-white-block stage6-white-block--left"
                 data-collider="solid"
@@ -1123,6 +1116,7 @@ export default function StageGeometry({
             )}
 
             <CharacterSprite ref={characterRef} heldStoneRef={heldStoneRef} />
+            <BreathHud />
             {isStage4 ? <CustomMissionAlarm /> : null}
             <ClearOverlay />
 
