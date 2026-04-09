@@ -58,6 +58,8 @@ export class CharacterModel {
     this.swimMoveSpeedMultiplier = 0.9;
     this.swimStrokeSpeedMultiplier = 0.3;
     this.swimFallSpeedMultiplier = 0.3;
+    this.maxBreathTime = 5;
+    this.breathRecoveryMultiplier = 5;
 
     this.resetState();
   }
@@ -77,6 +79,8 @@ export class CharacterModel {
     this.isSwimming = false;
     this.swimPhase = "idle";
     this.swimTargetY = null;
+    this.isHeadUnderwater = false;
+    this.breathRatio = 1;
     this.groundEffect = null; // 현재 밟고 있는 지형의 특수 효과
     this.hitIceCeiling = false;
   }
@@ -124,6 +128,8 @@ export class CharacterModel {
     this.isSwimming = false;
     this.swimPhase = "idle";
     this.swimTargetY = null;
+    this.isHeadUnderwater = false;
+    this.breathRatio = 1;
     this.groundEffect = null;
     this.hitIceCeiling = false;
   }
@@ -143,6 +149,8 @@ export class CharacterModel {
     this.isSwimming = false;
     this.swimPhase = "idle";
     this.swimTargetY = null;
+    this.isHeadUnderwater = false;
+    this.breathRatio = 1;
     this.groundEffect = null;
     this.hitIceCeiling = false;
   }
@@ -173,6 +181,22 @@ export class CharacterModel {
       top,
       right: left + this.width,
       bottom: top + this.height,
+    };
+  }
+
+  getHeadBounds(position = {}) {
+    const left = position.x ?? this.x;
+    const top = position.y ?? this.y;
+    const headSize = this.width * (30 / 42);
+    const headTop = top - headSize * 0.5;
+
+    return {
+      left: left + (this.width - headSize) / 2,
+      top: headTop,
+      right: left + (this.width + headSize) / 2,
+      bottom: headTop + headSize,
+      width: headSize,
+      height: headSize,
     };
   }
 
@@ -232,6 +256,10 @@ export class CharacterModel {
       return true;
     }
 
+    if (this.updateBreath(dt, stage)) {
+      return true;
+    }
+
     // 추락 리셋 여유분도 배율 적용
     const resetLimit =
       stage.bounds.height + this.fallResetMargin * this.physicsScale;
@@ -246,6 +274,24 @@ export class CharacterModel {
     this.isSwimming = false;
     this.swimPhase = "idle";
     this.swimTargetY = null;
+  }
+
+  updateBreath(dt, stage) {
+    const isHeadUnderwater = Boolean(
+      stage.getWaterZoneForBounds?.(this.getHeadBounds()),
+    );
+    const drainRate = 1 / this.maxBreathTime;
+    const recoverRate = drainRate * this.breathRecoveryMultiplier;
+
+    this.isHeadUnderwater = isHeadUnderwater;
+
+    if (isHeadUnderwater) {
+      this.breathRatio = clamp(this.breathRatio - drainRate * dt, 0, 1);
+      return this.breathRatio <= 0;
+    }
+
+    this.breathRatio = clamp(this.breathRatio + recoverRate * dt, 0, 1);
+    return false;
   }
 
   isTouchingHazard(hazards = []) {
