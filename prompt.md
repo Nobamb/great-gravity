@@ -257,3 +257,9 @@ stage6-fluid-zone stage6-fluid-zone--ceiling fluid-zone fluid-zone--lava physics
 ## 17. 이번에는 캐릭터가 물 속에 들어오게 되면 일정 시간 동안만 호흡을 할 수 있는 기능을 추가해보고 싶어
 
 캐릭터의 머리 영역(character-head)에 fluid-zone--water가 닿으면 일정 시간 동안만 호흡을 할 수 있는 기능을 추가해줘, 호흡 가능 시간은 5초로 지정하고, 캐릭터 머리위의 게이지가 만들어져 게이지는 5초 동안 서서히 줄어들게 만들어줘, 그리고 게이지가 다 줄어들면 캐릭터가 숨을 쉴 수 없게 되면서 사망하는 기능을 추가해 그리고 캐릭터가 물 밖으로 나오면 게이지가 서서히 차오르게 만들어줘(게이지는 물 속에서 감소할 때보다 5배는 더 빠르게 차오르도록 해, 최대 1초까지 최대 게이지까지 차도록) 게이지는 100%일 때에는 표시가 되지는 않지만 만약에 캐릭터가 물 속에서 호흡 중일 때에는 게이지바가 나타나게 해주고 관련 디자인의 형태는 왼쪽에 O2라는 텍스트(SVG로 좀 더 부드럽게 표현)와 그 옆에 게이지가 표시되도록 만들어줘, 게이지의 색깔(99%~51%)은 기본 연한 하늘색의 느낌으로 하고, 게이지가 줄어들 때 50%~21%일 때에는 노란색, 20%이하일 때에는 빨간색으로 변하게 만들어줘
+
+
+
+## 18. 이번에는 6스테이지와 관련해서 요소들 여러개 수정작업좀 거쳐보았으면 좋겠어
+
+stage6-frame stage6-frame--center요소 내부에 stage6-trigger-block를 추가하도록 하고, stage6-contact-button도 삭제를 해주었으면 좋겠어 stage6-trigger-block를 상호작용을 하게 되면(stone을 던지거나 캐릭터가 e키를 클릭할 때) 그에 맞춰서 stage6-frame stage6-frame--center도 삭제가 되도록 하는 거지, 그리고 stage6-frame stage6-frame--top도 하얀색 블록으로 바꾼 다음에 stage6-frame stage6-upper-gate를 빨간 버튼(stage6-contact-button)으로 바꿔가지고 해당 버튼에 e키를 누르거나 돌을 던지게 되면 동작을 해서 하얀 블록을 모두 제거하도록 해 그리고 cannon cannon--gold stage6-cannon도 레이아웃이 맞지 않은 상태인데 top 33%로 맞춰주고, 내부의 cannon__barrel는 top 12% => 50%, cannon__mouth 7% => 45%, cannon__seat top 41% => 79%로 수정해줘
