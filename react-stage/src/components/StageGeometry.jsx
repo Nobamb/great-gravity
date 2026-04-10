@@ -1098,6 +1098,12 @@ function Stage7Layout({
             />
 
             <div
+                className="stage7-white-block stage7-monster-wall stage7-monster-wall--left-top"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-cage-white-left"
+            ></div>
+            <div
                 className="stage7-white-block stage7-monster-wall stage7-monster-wall--left"
                 data-collider="solid"
                 data-triggerable="true"
@@ -1154,11 +1160,11 @@ function Stage7Layout({
                 <div className="stage3-monster-eye"></div>
                 <div className="stage3-monster-teeth"></div>
             </div>
-            <div
+            {/* <div
                 className="stage7-stone-source throw-stone stage7-stone-source--start"
                 data-stone-source="true"
                 data-stone-source-id="stage7-stone-start"
-            ></div>
+            ></div> */}
             <div
                 className="stage7-stone-source throw-stone stage7-stone-source--upper"
                 data-stone-source="true"
