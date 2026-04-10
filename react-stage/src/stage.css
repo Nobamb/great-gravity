@@ -3012,7 +3012,7 @@ body {
 .stage7-left-top-floor {
   left: 0;
   top: 29.5%;
-  width: 30%;
+  width: 8%;
   height: 3.6%;
 }
 
@@ -3023,9 +3023,13 @@ body {
   height: 3.6%;
 }
 
-
-
-
+.stage7-left-mid-trigger {
+  left: 100%;
+  top: 0;
+  width: calc(28 * var(--cw));
+  height: 100%;
+  border-radius: calc(3 * var(--cw));
+}
 
 .stage7-left-vert {
   top: 29.5%;
@@ -3160,7 +3164,7 @@ body {
 .stage7-monster-wall--left {
   left: 50%;
   top: 15%;
-  width: 1.2%;
+  width: 2%;
   height: 22%;
 }
 
@@ -3215,7 +3219,7 @@ body {
 }
 
 .stage7-monster {
-  left: 56.4%;
+  left: 63%;
   top: 24.7%;
   width: calc(52 * var(--cw));
   height: calc(58 * var(--cw));
@@ -3247,6 +3251,11 @@ body {
 
 .stage7-stone-source--upper {
   left: 87.7%;
+  top: 30.1%;
+}
+
+.stage7-stone-source--upper-right {
+  left: 92.4%;
   top: 30.1%;
 }
 
