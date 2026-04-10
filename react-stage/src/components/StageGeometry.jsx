@@ -1009,7 +1009,17 @@ function Stage7Layout({
             <div className="spawn-pad stage7-spawn-pad" data-collider="solid" data-spawn="player"></div>
 
             <div className="stage7-frame stage7-left-top-floor" data-collider="solid"></div>
-            <div className="stage7-frame stage7-left-mid-floor" data-collider="solid">
+            <div
+                className="stage7-frame stage7-left-mid-floor"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-left-mid-floor"
+            >
+                <TriggerBlock
+                    className="trigger-block stage7-left-mid-trigger"
+                    triggerId="stage7-left-mid-floor-trigger"
+                    triggerDirection="right"
+                />
             </div>
             <div
                 className="stage7-frame stage7-left-vert stage7-left-vert--left"
@@ -1061,7 +1071,7 @@ function Stage7Layout({
                 data-collider="solid"
                 data-triggerable="true"
                 data-timed-block="true"
-                data-collapse-id="stage7-left-timed-block"
+                data-collapse-id="stage7-right-timed-block"
             >
             </div>
 
@@ -1136,6 +1146,11 @@ function Stage7Layout({
                 className="stage7-stone-source throw-stone stage7-stone-source--upper"
                 data-stone-source="true"
                 data-stone-source-id="stage7-stone-upper"
+            ></div>
+            <div
+                className="stage7-stone-source throw-stone stage7-stone-source--upper-right"
+                data-stone-source="true"
+                data-stone-source-id="stage7-stone-upper-right"
             ></div>
             <div className="stage7-stone-anchor" ref={stoneAnchorRef}></div>
             <div className="throw-stone stage7-projectile-stone" ref={stoneRef}></div>
