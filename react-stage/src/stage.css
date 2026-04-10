@@ -3206,7 +3206,7 @@ body {
 
 .stage7-monster-release-button {
   left: 55.7%;
-  top: 19%;
+  top: 18.5%;
   width: 5.8%;
   height: 3.9%;
   border-radius: calc(4 * var(--cw));
@@ -3223,6 +3223,10 @@ body {
   top: 24.7%;
   width: calc(52 * var(--cw));
   height: calc(58 * var(--cw));
+}
+
+.stage7-monster--extra-1 {
+  left: 62%;
 }
 
 .stage7-stone-anchor,
@@ -3363,6 +3367,24 @@ body {
   position: absolute;
   z-index: 22;
   transform: translate(-50%, -100%);
+}
+
+.stage7-treasure-barrier {
+  position: absolute;
+  left: 94%;
+  top: 67.5%;
+  width: calc(92 * var(--cw));
+  height: calc(92 * var(--cw));
+  border-radius: 50%;
+  background: rgba(255, 0, 0, 0.5);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 calc(22 * var(--cw)) rgba(255, 0, 0, 0.28);
+  z-index: 24;
+  pointer-events: none;
+}
+
+.stage7-treasure-barrier[hidden] {
+  display: none;
 }
 
 .stage5-projectile-stone {
