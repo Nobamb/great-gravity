@@ -3168,6 +3168,14 @@ body {
   height: 22%;
 }
 
+.stage7-monster-wall--left-top{
+  left: 50%;
+  top: -59%;
+  width: 2%;
+  height: 60%;
+}
+
+
 .stage7-monster-wall--bottom {
   left: 50%;
   top: 33.5%;
