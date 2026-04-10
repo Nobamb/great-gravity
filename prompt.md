@@ -265,3 +265,7 @@ stage6-frame stage6-frame--center요소 내부에 stage6-trigger-block를 추가
 ### 19-1. 이제 react-stage에서 구현하던 7스테이지에 대해서 수정 작업만 진행해보면 좋겠어
 
 stage7-frame stage7-left-mid-floor의 자식 요소로 trigger-block 하나 추가해주고(stage7-left-mid-floor의 오른쪽 끝에서부터 absolute를 잡아서 left 100%를 지정해서 맵의 오른쪽 끝에 위치하도록 해줘) 그러면 이제 해당 trigger-block이 상호작용을 하게 된다면, 부모 요소인 stage7-left-mid-floor까지 사라지는 형태가 되고, stage7-stone-source throw-stone stage7-stone-source--upper의 오른쪽에도 stone 하나를 놓았으면 해 그리고 stage7-timed-block stage7-timed-block--right를 밟은 후에 1초가 지나면 stage7-timed-block stage7-timed-block--right를 사라지게 해야 되는데 stage7-timed-block stage7-timed-block--left가 사라지거든? stage7-timed-block stage7-timed-block--right를 밟으면 stage7-timed-block stage7-timed-block--right가 사라지게 하고, stage7-timed-block stage7-timed-block--left를 밟으면 stage7-timed-block stage7-timed-block--left가 사라지게 해야돼 이것들 종합적으로 파악해서 수정 진행해
+
+### 19-2. 7스테이지 기능 추가 및 몬스터 자체의 특성도 조금 더 바뀌었으면 좋겠다.
+
+일단 기존의 7스테이지에 있는 몬스터 오른쪽 가까이에 몬스터 한마리 더 추가해주고(7스테이지 상 몬스터는 총 2마리) 몬스터가 쫓아올 때의 속도가 기본보다 1.5배가 되도록 수정 좀 해주고, 몬스터가 벽에 가로막히지 않는다면 높이가 맞는다면 플레이어가 아무리 멀리있든 캐릭터라도 쫓아오게 해야 돼 그리고 stage7-frame stage7-monster-wall stage7-monster-wall--top 밑에 contact-button 하나 추가해줘서 contact-button 하나 상호작용하게 되면 모든 하얀 블록이 사라지도록 하면 돼 그리고 몬스터도 중력의 영향을 받아서 같이 떨어질 수 있게 하고 missionhud 컴포넌트 추가하면서 몬스터 2마리 잡게 되면 treasure-pile에 접근했을 때 클리어가 되게 해주면서 2마리를 잡지 못하게 되면 treasure-pile에 접근해도 클리어하지 못하게 하면 돼(미션 관련 기믹은 스테이지 4 참조)
