@@ -561,6 +561,7 @@ function Stage4Layout({
             <div
                 className="stage4-treasure-barrier"
                 data-stage4-treasure-barrier="true"
+                data-treasure-barrier-id="stage4-guardian"
                 aria-hidden="true"
             ></div>
             <TreasurePile ref={treasureRef} className="stage4-treasure-pile" />
@@ -1114,6 +1115,12 @@ function Stage7Layout({
                 data-triggerable="true"
                 data-collapse-id="stage7-monster-top"
             ></div>
+            <TriggerBlock
+                className="trigger-block stage7-monster-release-button"
+                triggerId="stage7-monster-release-trigger"
+                triggerDirection="bottom"
+                triggerTargets="stage7-cage-white-left,stage7-cage-white-bottom,stage7-lava-white-left,stage7-lava-white-top,stage7-lava-white-bottom,stage7-door-white-left,stage7-door-white-top"
+            />
             <div
                 className="stage7-frame stage7-monster-wall stage7-monster-wall--right"
                 data-collider="solid"
@@ -1132,11 +1139,21 @@ function Stage7Layout({
                 data-monster="true"
                 data-monster-id="stage7-guardian"
                 data-monster-direction="left"
+                data-monster-speed-multiplier="1.5"
             >
                 <div className="stage3-monster-eye"></div>
                 <div className="stage3-monster-teeth"></div>
             </div>
-
+            <div
+                className="stage3-monster stage7-monster stage7-monster--extra-1"
+                data-monster="true"
+                data-monster-id="stage7-guardian-extra-1"
+                data-monster-direction="left"
+                data-monster-speed-multiplier="1.5"
+            >
+                <div className="stage3-monster-eye"></div>
+                <div className="stage3-monster-teeth"></div>
+            </div>
             <div
                 className="stage7-stone-source throw-stone stage7-stone-source--start"
                 data-stone-source="true"
@@ -1220,6 +1237,11 @@ function Stage7Layout({
             <div className="stage7-frame stage7-door-base" data-collider="solid"></div>
             <div className="stage7-door-inner" aria-hidden="true"></div>
             <div className="stage7-treasure-anchor" ref={treasureAnchorRef}></div>
+            <div
+                className="stage7-treasure-barrier"
+                data-treasure-barrier-id="stage7-guardian"
+                aria-hidden="true"
+            ></div>
             <TreasurePile ref={treasureRef} className="stage7-treasure-pile" />
 
             <svg className="stone-aim-overlay" width="100%" height="100%" aria-hidden="true">
@@ -1335,19 +1357,21 @@ export default function StageGeometry({
     stoneAnchorRef,
     stoneAimRef,
 }) {
-    const isStage4 = stage.id === "stage4";
-    const stage4MissionFaces = [
+    const hasMonsterMission = stage.id === "stage4" || stage.id === "stage7";
+    const missionCountId = stage.id === "stage7" ? "stage7-guardian" : "stage4-guardian";
+    const missionInitialCount = stage.id === "stage7" ? 2 : 1;
+    const monsterMissionFaces = [
         (
-            <div className="mission-ui__monster" aria-hidden="true" key="stage4-guardian-face">
+            <div className="mission-ui__monster" aria-hidden="true" key={`${missionCountId}-face`}>
                 <div className="mission-ui__monster-eye"></div>
                 <div className="mission-ui__monster-teeth"></div>
             </div>
         ),
     ];
-    const stage4MissionCounts = [
+    const monsterMissionCounts = [
         (
-            <span key="stage4-guardian-count">
-                x <span data-mission-count-id="stage4-guardian">1</span>
+            <span key={`${missionCountId}-count`}>
+                x <span data-mission-count-id={missionCountId}>{missionInitialCount}</span>
             </span>
         ),
     ];
@@ -1361,10 +1385,10 @@ export default function StageGeometry({
         >
             <BackgroundLayer />
             <TimerPanel title={stage.title} />
-            {isStage4 ? (
+            {hasMonsterMission ? (
                 <MissionHud
-                    missionFaces={stage4MissionFaces}
-                    missionCounts={stage4MissionCounts}
+                    missionFaces={monsterMissionFaces}
+                    missionCounts={monsterMissionCounts}
                     ariaLabel="remaining monster mission"
                 />
             ) : null}
@@ -1380,7 +1404,7 @@ export default function StageGeometry({
 
             <CharacterSprite ref={characterRef} heldStoneRef={heldStoneRef} />
             <BreathHud />
-            {isStage4 ? <CustomMissionAlarm /> : null}
+            {hasMonsterMission ? <CustomMissionAlarm /> : null}
             <ClearOverlay />
 
             <div className="vignette"></div>
