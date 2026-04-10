@@ -997,6 +997,243 @@ function Stage6Layout({
     );
 }
 
+function Stage7Layout({
+    treasureRef,
+    treasureAnchorRef,
+    stoneRef,
+    stoneAnchorRef,
+    stoneAimRef,
+}) {
+    return (
+        <>
+            <div className="spawn-pad stage7-spawn-pad" data-collider="solid" data-spawn="player"></div>
+
+            <div className="stage7-frame stage7-left-top-floor" data-collider="solid"></div>
+            <div className="stage7-frame stage7-left-mid-floor" data-collider="solid">
+            </div>
+            <div
+                className="stage7-frame stage7-left-vert stage7-left-vert--left"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-left-vert-left"
+            >
+                <TriggerBlock
+                    className="trigger-block stage7-left-post-trigger stage7-left-post-trigger--left"
+                    triggerId="stage7-left-vert-left-trigger"
+                    triggerDirection="top"
+                />
+            </div>
+            <div
+                className="stage7-frame stage7-left-vert stage7-left-vert--right"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-left-vert-right"
+            >
+                <TriggerBlock
+                    className="trigger-block stage7-left-post-trigger stage7-left-post-trigger--right"
+                    triggerId="stage7-left-vert-right-trigger"
+                    triggerDirection="top"
+                />
+            </div>
+            <div className="stage7-frame stage7-left-bottom-floor" data-collider="solid"></div>
+
+            <LavaZone
+                className="stage7-fluid-zone stage7-fluid-zone--left-lava fluid-zone fluid-zone--lava"
+                zoneId="stage7-left-lava"
+                width="12.5%"
+                height="10.5%"
+            />
+            <WaterZone
+                className="stage7-fluid-zone stage7-fluid-zone--left-water fluid-zone fluid-zone--water"
+                zoneId="stage7-left-water"
+                width="12.5%"
+                height="10.8%"
+            />
+            <div
+                className="stage7-timed-block stage7-timed-block--left"
+                data-collider="solid"
+                data-triggerable="true"
+                data-timed-block="true"
+                data-collapse-id="stage7-left-timed-block"
+            ></div>
+            <div
+                className="stage7-timed-block stage7-timed-block--right"
+                data-collider="solid"
+                data-triggerable="true"
+                data-timed-block="true"
+                data-collapse-id="stage7-left-timed-block"
+            >
+            </div>
+
+
+
+            <Cannon
+                className="stage7-cannon"
+                cannonId="stage7-gold-cannon"
+                variant="gold"
+                singleUse={true}
+                launchMultiplier={2}
+            />
+
+            <PortalIn
+                className="stage7-portal stage7-portal--in"
+                portalId="stage7-portal-in"
+                targetId="stage7-portal-out"
+            />
+            <PortalOut
+                className="stage7-portal stage7-portal--out"
+                portalId="stage7-portal-out"
+                exitDirection="left"
+            />
+
+            <div
+                className="stage7-white-block stage7-monster-wall stage7-monster-wall--left"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-cage-white-left"
+            ></div>
+            <div
+                className="stage7-white-block stage7-monster-wall stage7-monster-wall--bottom"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-cage-white-bottom"
+            ></div>
+            <div
+                className="stage7-frame stage7-monster-wall stage7-monster-wall--top"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-monster-top"
+            ></div>
+            <div
+                className="stage7-frame stage7-monster-wall stage7-monster-wall--right"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-monster-right"
+            >
+                <TriggerBlock
+                    className="trigger-block stage7-monster-post-trigger"
+                    triggerId="stage7-monster-right-trigger"
+                    triggerDirection="top"
+                />
+            </div>
+
+            <div
+                className="stage3-monster stage7-monster"
+                data-monster="true"
+                data-monster-id="stage7-guardian"
+                data-monster-direction="left"
+            >
+                <div className="stage3-monster-eye"></div>
+                <div className="stage3-monster-teeth"></div>
+            </div>
+
+            <div
+                className="stage7-stone-source throw-stone stage7-stone-source--start"
+                data-stone-source="true"
+                data-stone-source-id="stage7-stone-start"
+            ></div>
+            <div
+                className="stage7-stone-source throw-stone stage7-stone-source--upper"
+                data-stone-source="true"
+                data-stone-source-id="stage7-stone-upper"
+            ></div>
+            <div className="stage7-stone-anchor" ref={stoneAnchorRef}></div>
+            <div className="throw-stone stage7-projectile-stone" ref={stoneRef}></div>
+
+            <div
+                className="jump-block stage7-jump-block stage7-jump-block--left"
+                data-collider="solid"
+                data-effect="jump-boost"
+            ></div>
+            <div
+                className="jump-block stage7-jump-block stage7-jump-block--center"
+                data-collider="solid"
+                data-effect="jump-boost"
+            ></div>
+
+            <div
+                className="stage7-white-block stage7-lava-wall stage7-lava-wall--left"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-lava-white-left"
+            ></div>
+            <div
+                className="stage7-white-block stage7-lava-wall stage7-lava-wall--top"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-lava-white-top"
+            ></div>
+            <div
+                className="stage7-white-block stage7-lava-wall stage7-lava-wall--bottom"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-lava-white-bottom"
+            ></div>
+            <LavaZone
+                className="stage7-fluid-zone stage7-fluid-zone--bottom-lava fluid-zone fluid-zone--lava"
+                zoneId="stage7-bottom-lava"
+                width="67.5%"
+                height="16.4%"
+                fluidSpawnProfile={{
+                    fitToRect: true,
+                    maxParticles: 120,
+                    maxCols: 34,
+                    maxRows: 8,
+                    minParticleRadius: 5,
+                    maxParticleRadius: 40,
+                    colCountSpacingMultiplier: 1.85,
+                    rowCountSpacingMultiplier: 1.7,
+                    colStepMultiplier: 1.78,
+                    rowStepMultiplier: 1.62,
+                    rowOffsetMultiplier: 0.18,
+                    spawnInsetMultiplier: 0.35,
+                }}
+            />
+
+            <div
+                className="stage7-white-block stage7-door-wall stage7-door-wall--left"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-door-white-left"
+            ></div>
+            <div
+                className="stage7-white-block stage7-door-wall stage7-door-wall--top"
+                data-collider="solid"
+                data-triggerable="true"
+                data-collapse-id="stage7-door-white-top"
+            ></div>
+            <div className="stage7-frame stage7-door-base" data-collider="solid"></div>
+            <div className="stage7-door-inner" aria-hidden="true"></div>
+            <div className="stage7-treasure-anchor" ref={treasureAnchorRef}></div>
+            <TreasurePile ref={treasureRef} className="stage7-treasure-pile" />
+
+            <svg className="stone-aim-overlay" width="100%" height="100%" aria-hidden="true">
+                <line
+                    className="stone-aim-line"
+                    data-stone-aim-line
+                    ref={stoneAimRef}
+                    hidden
+                ></line>
+                <circle
+                    className="stone-aim-reticle"
+                    data-stone-aim-reticle
+                    hidden
+                ></circle>
+                <line
+                    className="stone-aim-reticle-axis"
+                    data-stone-aim-reticle-axis="horizontal"
+                    hidden
+                ></line>
+                <line
+                    className="stone-aim-reticle-axis"
+                    data-stone-aim-reticle-axis="vertical"
+                    hidden
+                ></line>
+            </svg>
+        </>
+    );
+}
+
 function renderStageLayout(
     stageId,
     treasureRef,
@@ -1006,6 +1243,16 @@ function renderStageLayout(
     stoneAimRef,
 ) {
     switch (stageId) {
+        case "stage7":
+            return (
+                <Stage7Layout
+                    treasureRef={treasureRef}
+                    treasureAnchorRef={treasureAnchorRef}
+                    stoneRef={stoneRef}
+                    stoneAnchorRef={stoneAnchorRef}
+                    stoneAimRef={stoneAimRef}
+                />
+            );
         case "stage6":
             return (
                 <Stage6Layout
