@@ -27,8 +27,23 @@ function expandTreasureInteractionBounds(bounds) {
 
 const TIMED_BLOCK_DURATION_MS = 1000;
 const CUSTOM_MISSION_ALARM_DURATION_MS = 1600;
+const STAGE7_LOCKED_TREASURE_MESSAGE =
+    "지금은 보물에 접근할 수 없습니다!\n몬스터 2마리를 처치하고 오세요!";
 const STAGE4_LOCKED_TREASURE_MESSAGE =
     "지금은 보물에 접근할 수 없습니다!\n몬스터를 처치하고 오세요!";
+
+const STAGE_MISSION_CONFIGS = {
+    stage4: {
+        requiredMonsterKills: 1,
+        missionCountId: "stage4-guardian",
+        lockedTreasureMessage: STAGE4_LOCKED_TREASURE_MESSAGE,
+    },
+    stage7: {
+        requiredMonsterKills: 2,
+        missionCountId: "stage7-guardian",
+        lockedTreasureMessage: STAGE7_LOCKED_TREASURE_MESSAGE,
+    },
+};
 
 function createNeutralInput(input) {
     return {
@@ -159,6 +174,8 @@ export class GameController {
                     y: monster.rect.top,
                     width: monster.rect.width,
                     height: monster.rect.height,
+                    vy: 0,
+                    speedMultiplier: monster.speedMultiplier,
                     direction: monster.direction,
                     defaultDirection: monster.direction,
                     isAlert: false,
@@ -305,25 +322,48 @@ export class GameController {
         };
     }
 
-    isStage4() {
-        return this.stage?.id === "stage4";
+    getStageMissionConfig() {
+        return STAGE_MISSION_CONFIGS[this.stage?.id] ?? null;
+    }
+
+    getDefeatedMonsterCount() {
+        return [...this.monsterStates.values()].filter((monster) => monster.isDead).length;
     }
 
     getRemainingMonsterCount() {
         return [...this.monsterStates.values()].filter((monster) => !monster.isDead).length;
     }
 
+    getRemainingRequiredMonsterCount() {
+        const missionConfig = this.getStageMissionConfig();
+
+        if (!missionConfig) {
+            return 0;
+        }
+
+        return Math.max(
+            0,
+            missionConfig.requiredMonsterKills - this.getDefeatedMonsterCount(),
+        );
+    }
+
     isTreasureBarrierActive() {
-        return this.isStage4() && this.getRemainingMonsterCount() > 0;
+        return Boolean(
+            this.getStageMissionConfig() &&
+            this.getRemainingRequiredMonsterCount() > 0,
+        );
     }
 
     getStageMissionRenderState() {
-        if (!this.isStage4()) {
+        const missionConfig = this.getStageMissionConfig();
+
+        if (!missionConfig) {
             return null;
         }
 
         return {
-            remainingMonsterCount: this.getRemainingMonsterCount(),
+            missionCountId: missionConfig.missionCountId,
+            remainingMonsterCount: this.getRemainingRequiredMonsterCount(),
             isTreasureBarrierActive: this.isTreasureBarrierActive(),
         };
     }
@@ -429,6 +469,8 @@ export class GameController {
             monsterState.y = stageMonster.rect.top;
             monsterState.width = stageMonster.rect.width;
             monsterState.height = stageMonster.rect.height;
+            monsterState.vy = 0;
+            monsterState.speedMultiplier = stageMonster.speedMultiplier;
             monsterState.direction = stageMonster.direction;
             monsterState.defaultDirection = stageMonster.direction;
             monsterState.isAlert = false;
@@ -686,14 +728,16 @@ export class GameController {
 
     updateMonsters(dt) {
         const characterBounds = this.characterModel.getBounds();
-        const speed = this.stageModel.bounds.width * 0.135;
+        const baseSpeed = this.stageModel.bounds.width * 0.135;
 
         this.monsterStates.forEach((monster) => {
             if (monster.isDead) {
                 return;
             }
 
-            const monsterBounds = this.getMonsterBounds(monster);
+            this.applyMonsterGravity(monster, dt);
+
+            let monsterBounds = this.getMonsterBounds(monster);
 
             if (this.isRectTouchingHazard(monsterBounds)) {
                 monster.isDead = true;
@@ -707,13 +751,11 @@ export class GameController {
                 (characterBounds.top + characterBounds.bottom) / 2;
             const monsterCenterX = monster.x + monster.width / 2;
             const monsterCenterY = monster.y + monster.height / 2;
-            const horizontalDistance = Math.abs(characterCenterX - monsterCenterX);
             const samePlatform =
                 Math.abs(characterCenterY - monsterCenterY) <=
                 Math.max(monster.height * 0.55, characterBounds.bottom - characterBounds.top);
             const canSeeCharacter =
                 samePlatform &&
-                horizontalDistance <= this.stageModel.bounds.width * 0.28 &&
                 !this.isSightBlocked(monsterCenterX, characterCenterX, monsterCenterY, monster.id);
 
             monster.isAlert = canSeeCharacter;
@@ -723,8 +765,49 @@ export class GameController {
             }
 
             monster.direction = characterCenterX < monsterCenterX ? -1 : 1;
-            this.moveMonster(monster, monster.direction * speed * dt);
+            this.moveMonster(
+                monster,
+                monster.direction * baseSpeed * (monster.speedMultiplier ?? 1) * dt,
+            );
+
+            monsterBounds = this.getMonsterBounds(monster);
+
+            if (this.isRectTouchingHazard(monsterBounds)) {
+                monster.isDead = true;
+                monster.isAlert = false;
+            }
         });
+    }
+
+    applyMonsterGravity(monster, dt) {
+        const gravity = 1800 * (this.stageModel.bounds.width / 1280);
+        const maxFallSpeed = 1400 * (this.stageModel.bounds.width / 1280);
+
+        monster.vy = Math.min((monster.vy ?? 0) + gravity * dt, maxFallSpeed);
+
+        if (monster.vy <= 0) {
+            return;
+        }
+
+        const nextY = monster.y + monster.vy * dt;
+        const nextBounds = {
+            left: monster.x,
+            top: nextY,
+            right: monster.x + monster.width,
+            bottom: nextY + monster.height,
+        };
+
+        for (const solid of this.stageModel.solids) {
+            if (!intersects(nextBounds, solid)) {
+                continue;
+            }
+
+            monster.y = solid.top - monster.height;
+            monster.vy = 0;
+            return;
+        }
+
+        monster.y = nextY;
     }
 
     moveMonster(monster, dx) {
@@ -866,7 +949,10 @@ export class GameController {
         }
 
         if (!this.isMissionAlarmActive()) {
-            this.showMissionAlarm(STAGE4_LOCKED_TREASURE_MESSAGE);
+            this.showMissionAlarm(
+                this.getStageMissionConfig()?.lockedTreasureMessage ??
+                STAGE4_LOCKED_TREASURE_MESSAGE,
+            );
         }
 
         return false;
