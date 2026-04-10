@@ -3219,7 +3219,7 @@ body {
 }
 
 .stage7-monster {
-  left: 63%;
+  left: 58%;
   top: 24.7%;
   width: calc(52 * var(--cw));
   height: calc(58 * var(--cw));
