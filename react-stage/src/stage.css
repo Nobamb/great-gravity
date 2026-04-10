@@ -2954,6 +2954,408 @@ body {
   z-index: 0;
 }
 
+.stage-shell--stage7 {
+  background:
+    radial-gradient(circle at 58% 10%, rgba(13, 204, 188, 0.08), transparent 16%),
+    radial-gradient(circle at 12% 52%, rgba(255, 39, 12, 0.1), transparent 18%),
+    linear-gradient(to bottom, rgba(9, 2, 5, 0.62), rgba(2, 2, 5, 0.96)),
+    #020202 !important;
+}
+
+.stage-shell--stage7 .bg-layer {
+  opacity: 0.07;
+  background-image:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04), transparent 48%),
+    radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    calc(34 * var(--cw)) calc(34 * var(--cw));
+}
+
+.stage-shell--stage7 .ambient-glow {
+  display: none;
+}
+
+.stage7-frame {
+  position: absolute;
+  background: linear-gradient(
+    180deg,
+    rgba(178, 113, 119, 0.98),
+    rgba(151, 93, 102, 0.98)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 229, 232, 0.08),
+    0 calc(6 * var(--cw)) calc(16 * var(--cw)) rgba(0, 0, 0, 0.24);
+  z-index: 10;
+}
+
+.stage7-white-block {
+  position: absolute;
+  background: #f0f0f0;
+  box-shadow:
+    0 0 calc(12 * var(--cw)) rgba(255, 255, 255, 0.16),
+    inset 0 calc(-2 * var(--cw)) 0 rgba(0, 0, 0, 0.08);
+  z-index: 18;
+}
+
+.stage7-spawn-pad {
+  left: 2.2%;
+  top: 91.8%;
+  bottom: auto;
+  width: 8%;
+  min-width: 0;
+  height: 3.6%;
+  min-height: 0;
+  border-radius: 0;
+}
+
+.stage7-left-top-floor {
+  left: 0;
+  top: 29.5%;
+  width: 30%;
+  height: 3.6%;
+}
+
+.stage7-left-mid-floor {
+  left: 15%;
+  top: 43%;
+  width: 15%;
+  height: 3.6%;
+}
+
+
+
+
+
+.stage7-left-vert {
+  top: 29.5%;
+  width: 2.5%;
+}
+
+.stage7-left-vert--left {
+  left: 12.5%;
+  height: 30%;
+}
+
+.stage7-left-vert--right {
+  left: 27.5%;
+  height: 30%;
+}
+
+.stage7-left-bottom-floor {
+  left: 0;
+  top: 56.8%;
+  width: 15%;
+  height: 3.2%;
+}
+
+.stage7-left-post-trigger {
+  left: 0;
+  top: -30%;
+  width: 100%;
+  height: 30%;
+  border-radius: calc(3 * var(--cw));
+}
+
+.stage7-fluid-zone {
+  position: absolute;
+}
+
+.stage7-fluid-zone--left-lava {
+  left: 15%;
+  top: 33.2%;
+  z-index: 7;
+}
+
+.stage7-fluid-zone--left-water {
+  left: 15%;
+  top: 47.2%;
+  z-index: 6;
+}
+
+.stage7-timed-block {
+  --timed-progress: 0;
+  position: absolute;
+  border-radius: calc(4 * var(--cw));
+  background:
+    linear-gradient(to right, rgba(255, 194, 54, 0.96), rgba(255, 132, 20, 0.96)),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.18), rgba(0, 0, 0, 0.16));
+  box-shadow:
+    0 0 calc(22 * var(--cw)) rgba(255, 165, 38, 0.42),
+    inset 0 0 calc(8 * var(--cw)) rgba(255, 255, 255, 0.18);
+  opacity: calc(1 - (var(--timed-progress) * 0.78));
+  z-index: 16;
+}
+
+.stage7-timed-block--left {
+  left: 15%;
+  top: 56.5%;
+  width: 12.5%;
+  height: 3.6%;
+}
+
+.stage7-timed-block--right {
+  left: 30%;
+  top: 56.5%;
+  width: 8%;
+  height: 3.6%;
+}
+
+.stage7-timed-block.is-ticking {
+  filter: saturate(0.92) brightness(0.98);
+}
+
+.stage7-contact-button {
+  left: 30%;
+  top: 43.5%;
+  width: 6.5%;
+  height: 3.8%;
+  border-radius: calc(4 * var(--cw));
+  background: linear-gradient(to right, #ff160d 0 74%, #d72b22 74% 100%);
+  box-shadow:
+    0 0 calc(16 * var(--cw)) rgba(255, 30, 18, 0.3),
+    inset 0 calc(-2 * var(--cw)) 0 rgba(0, 0, 0, 0.18);
+  z-index: 25;
+}
+
+.stage7-contact-button.is-used {
+  transform: translateY(calc(8 * var(--cw)));
+  height: 2.7%;
+  filter: brightness(0.92);
+}
+
+.stage7-cannon {
+  left: 2.2%;
+  top: 44.5%;
+  width: 12%;
+  height: 13%;
+}
+
+.stage7-portal {
+  position: absolute;
+  width: calc(96 * var(--cw));
+  height: calc(62 * var(--cw));
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 23;
+  isolation: isolate;
+}
+
+.stage7-portal--in {
+  left: 58.8%;
+  top: 7%;
+  width: calc(86 * var(--cw));
+  height: calc(62 * var(--cw));
+}
+
+.stage7-portal--out {
+  left: 92.8%;
+  top: 18.8%;
+  width: calc(90 * var(--cw));
+  height: calc(70 * var(--cw));
+}
+
+.stage7-monster-wall--left {
+  left: 50%;
+  top: 15%;
+  width: 1.2%;
+  height: 22%;
+}
+
+.stage7-monster-wall--bottom {
+  left: 50%;
+  top: 33.5%;
+  width: 60%;
+  height: 3.5%;
+}
+
+.stage7-monster-wall--top {
+  left: 51.2%;
+  top: 15%;
+  width: 15.8%;
+  height: 3.5%;
+}
+
+.stage7-monster-wall--right {
+  left: 67%;
+  top: 15%;
+  width: 2.4%;
+  height: 18.5%;
+}
+
+.stage7-monster-wall--inner-top {
+  left: 52.3%;
+  top: 18.5%;
+  width: 12.1%;
+  height: 2.8%;
+}
+
+.stage7-monster-post-trigger {
+  left: 9%;
+  top: -38%;
+  width: 88%;
+  height: 38%;
+  border-radius: calc(3 * var(--cw));
+}
+
+.stage7-monster-release-button {
+  left: 55.7%;
+  top: 19%;
+  width: 5.8%;
+  height: 3.9%;
+  border-radius: calc(4 * var(--cw));
+  z-index: 25;
+}
+
+.stage7-monster-release-button.is-used {
+  transform: translateY(calc(7 * var(--cw)));
+  height: 2.8%;
+}
+
+.stage7-monster {
+  left: 56.4%;
+  top: 24.7%;
+  width: calc(52 * var(--cw));
+  height: calc(58 * var(--cw));
+}
+
+.stage7-stone-anchor,
+.stage7-projectile-stone {
+  left: 19.2%;
+  top: 89.2%;
+}
+
+.stage7-stone-anchor {
+  position: absolute;
+  width: calc(28 * var(--cw));
+  height: calc(28 * var(--cw));
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stage7-stone-source {
+  z-index: 26;
+}
+
+.stage7-stone-source--start {
+  left: 19.2%;
+  top: 89.2%;
+}
+
+.stage7-stone-source--upper {
+  left: 87.7%;
+  top: 30.1%;
+}
+
+.stage7-jump-block {
+  min-width: 0;
+  min-height: 0;
+  height: 5%;
+  border-radius: 0;
+  z-index: 17;
+}
+
+.stage7-jump-block--left {
+  left: 16.5%;
+  top: 90%;
+  width: 9%;
+}
+
+.stage7-jump-block--center {
+  left: 45%;
+  top: 79.2%;
+  width: 9%;
+}
+
+.stage7-lava-wall--left {
+  left: 29.8%;
+  top: 80%;
+  width: 2.8%;
+  height: 20%;
+}
+
+.stage7-lava-wall--top {
+  left: 29.8%;
+  top: 80%;
+  width: 8%;
+  height: 3.8%;
+}
+
+.stage7-lava-wall--bottom{
+
+  left: 32.5%;
+  bottom: 0%;
+  width: 70%;
+  height: 3.8%;
+
+}
+
+
+
+.stage7-fluid-zone--bottom-lava {
+  left: 32.5%;
+  top: 83.6%;
+  z-index: 7;
+}
+
+.stage7-door-wall--left {
+  left: 86.7%;
+  top: 56.2%;
+  width: 2.25%;
+  height: 18.5%;
+}
+
+.stage7-door-wall--top {
+  left: 86.7%;
+  top: 56.2%;
+  width: 12.5%;
+  height: 3.4%;
+}
+
+.stage7-door-base {
+  left: 89%;
+  top: 71.1%;
+  width: 9%;
+  height: 3.6%;
+}
+
+.stage7-door-inner {
+  position: absolute;
+  left: 89%;
+  top: 60.3%;
+  width: 9%;
+  height: 11%;
+  background:
+    radial-gradient(circle at 68% 100%, rgba(227, 238, 39, 0.7), transparent 34%),
+    linear-gradient(to bottom, #260101, #120000);
+  box-shadow: inset 0 0 calc(14 * var(--cw)) rgba(255, 255, 255, 0.04);
+  z-index: 8;
+}
+
+.stage7-treasure-anchor,
+.stage7-treasure-pile {
+  left: 94%;
+  top: 71.2%;
+}
+
+.stage7-treasure-anchor {
+  position: absolute;
+  width: calc(100 * var(--cw));
+  height: calc(60 * var(--cw));
+  transform: translate(-50%, -100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stage7-treasure-pile {
+  position: absolute;
+  z-index: 22;
+  transform: translate(-50%, -100%);
+}
+
 .stage5-projectile-stone {
   left: 48%;
   top: 29.2%;
