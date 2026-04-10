@@ -418,6 +418,10 @@ export class StageModel {
       rect: createRelativeRect(element.getBoundingClientRect(), containerRect),
       direction:
         (element.dataset.monsterDirection || "left") === "right" ? 1 : -1,
+      speedMultiplier: Math.max(
+        0.1,
+        Number(element.dataset.monsterSpeedMultiplier || 1),
+      ),
     }));
     this.portals = Array.from(
       this.container.querySelectorAll(this.portalSelector),
