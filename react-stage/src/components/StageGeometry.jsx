@@ -1542,7 +1542,7 @@ function BossStageLayout() {
         data-collider="solid"
         data-effect="jump-boost"
       ></div>
-      <div className="boss-stage-structure__set">
+      <div className="boss-stage-structure__set" data-boss-structure="true">
         <div
           className="boss-stage-structure boss-stage-structure__pillar boss-stage-structure__pillar--left"
           data-collider="solid"
