@@ -14,23 +14,43 @@ const BOSS_ASSET_BASE_URL = (import.meta.env.VITE_BOSS_ASSET_BASE_URL ?? "")
   .trim()
   .replace(/\/+$/, "");
 
-function createBossAssetReference(filename) {
+function createBossAssetUrl(filename) {
   if (!BOSS_ASSET_BASE_URL) {
+    return "";
+  }
+
+  return `${BOSS_ASSET_BASE_URL}/${filename}`;
+}
+
+function createBossAssetReference(assetUrl) {
+  if (!assetUrl) {
     return "none";
   }
 
-  return `url("${BOSS_ASSET_BASE_URL}/${filename}")`;
+  return `url("${assetUrl}")`;
 }
 
-function createBossAssetStyles() {
+function createBossAssetUrls() {
   return {
-    "--boss-base-image": createBossAssetReference("boss.webp"),
-    "--boss-upset-image": createBossAssetReference("upset.webp"),
-    "--boss-attack-body-image": createBossAssetReference("attack-body.webp"),
-    "--boss-attack-hand-image": createBossAssetReference("attack-hand.webp"),
-    "--boss-rush-image": createBossAssetReference("rush.webp"),
-    "--boss-end-image": createBossAssetReference("end.webp"),
-    "--boss-stone-image": createBossAssetReference("boss-stone.webp"),
+    base: createBossAssetUrl("boss.webp"),
+    upset: createBossAssetUrl("upset.webp"),
+    attackBody: createBossAssetUrl("attack-body.webp"),
+    attackHand: createBossAssetUrl("attack-hand.webp"),
+    rush: createBossAssetUrl("rush.webp"),
+    end: createBossAssetUrl("end.webp"),
+    stone: createBossAssetUrl("boss-stone.webp"),
+  };
+}
+
+function createBossAssetStyles(assetUrls) {
+  return {
+    "--boss-base-image": createBossAssetReference(assetUrls.base),
+    "--boss-upset-image": createBossAssetReference(assetUrls.upset),
+    "--boss-attack-body-image": createBossAssetReference(assetUrls.attackBody),
+    "--boss-attack-hand-image": createBossAssetReference(assetUrls.attackHand),
+    "--boss-rush-image": createBossAssetReference(assetUrls.rush),
+    "--boss-end-image": createBossAssetReference(assetUrls.end),
+    "--boss-stone-image": createBossAssetReference(assetUrls.stone),
   };
 }
 
@@ -1513,7 +1533,8 @@ function Stage7Layout({
 }
 
 function BossStageLayout() {
-  const bossAssetStyles = createBossAssetStyles();
+  const bossAssetUrls = createBossAssetUrls();
+  const bossAssetStyles = createBossAssetStyles(bossAssetUrls);
 
   return (
     <>
@@ -1638,6 +1659,10 @@ function BossStageLayout() {
       <div
         className="boss-stage-boss"
         data-boss-root="true"
+        data-boss-base-src={bossAssetUrls.base}
+        data-boss-upset-src={bossAssetUrls.upset}
+        data-boss-attack-body-src={bossAssetUrls.attackBody}
+        data-boss-rush-src={bossAssetUrls.rush}
         style={bossAssetStyles}
         hidden
       >
@@ -1646,7 +1671,14 @@ function BossStageLayout() {
           data-boss-hitflash="true"
           hidden
         ></div>
-        <div className="boss-stage-boss__visual" data-boss-visual="true"></div>
+        <div className="boss-stage-boss__visual" data-boss-visual="true">
+          <img
+            className="boss-stage-boss__visual-image"
+            data-boss-visual-image="true"
+            alt=""
+            draggable="false"
+          />
+        </div>
         <div
           className="boss-stage-boss__hand"
           data-boss-hand="true"
