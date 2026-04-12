@@ -1,7 +1,10 @@
 const CUSTOM_MISSION_ALARM_DURATION_MS = 1600;
 
 export class GameView {
-  constructor(characterElement, { heldStoneElement = null, stoneAimElement = null } = {}) {
+  constructor(
+    characterElement,
+    { heldStoneElement = null, stoneAimElement = null } = {},
+  ) {
     this.containerElement = characterElement.parentElement;
     this.characterElement = characterElement;
     this.timerElement =
@@ -24,19 +27,27 @@ export class GameView {
     this.worldStoneElement =
       this.containerElement?.querySelector(".throw-stone") ?? null;
     this.heldStoneElement =
-      heldStoneElement ?? this.characterElement?.querySelector(".held-stone") ?? null;
+      heldStoneElement ??
+      this.characterElement?.querySelector(".held-stone") ??
+      null;
     this.stoneAimElement =
-      stoneAimElement ?? this.containerElement?.querySelector("[data-stone-aim-line]") ?? null;
+      stoneAimElement ??
+      this.containerElement?.querySelector("[data-stone-aim-line]") ??
+      null;
     this.stoneAimReticleElement =
       this.containerElement?.querySelector("[data-stone-aim-reticle]") ?? null;
     this.stoneAimReticleHorizontalElement =
-      this.containerElement?.querySelector('[data-stone-aim-reticle-axis="horizontal"]') ?? null;
+      this.containerElement?.querySelector(
+        '[data-stone-aim-reticle-axis="horizontal"]',
+      ) ?? null;
     this.stoneAimReticleVerticalElement =
-      this.containerElement?.querySelector('[data-stone-aim-reticle-axis="vertical"]') ?? null;
+      this.containerElement?.querySelector(
+        '[data-stone-aim-reticle-axis="vertical"]',
+      ) ?? null;
     this.monsterElements = new Map(
-      Array.from(this.containerElement?.querySelectorAll("[data-monster='true']") ?? []).map(
-        (element) => [element.dataset.monsterId, element],
-      ),
+      Array.from(
+        this.containerElement?.querySelectorAll("[data-monster='true']") ?? [],
+      ).map((element) => [element.dataset.monsterId, element]),
     );
     this.monsterBasePositions = new Map(
       Array.from(this.monsterElements.entries()).map(([id, element]) => [
@@ -48,19 +59,21 @@ export class GameView {
       ]),
     );
     this.timedBlockElements = new Map(
-      Array.from(this.containerElement?.querySelectorAll("[data-timed-block='true']") ?? []).map(
-        (element) => [element.dataset.collapseId, element],
-      ),
+      Array.from(
+        this.containerElement?.querySelectorAll("[data-timed-block='true']") ??
+          [],
+      ).map((element) => [element.dataset.collapseId, element]),
     );
     this.cannonElements = new Map(
-      Array.from(this.containerElement?.querySelectorAll("[data-cannon='true']") ?? []).map(
-        (element) => [element.dataset.cannonId, element],
-      ),
+      Array.from(
+        this.containerElement?.querySelectorAll("[data-cannon='true']") ?? [],
+      ).map((element) => [element.dataset.cannonId, element]),
     );
     this.missionCountElements = new Map(
-      Array.from(this.containerElement?.querySelectorAll("[data-mission-count-id]") ?? []).map(
-        (element) => [element.dataset.missionCountId, element],
-      ),
+      Array.from(
+        this.containerElement?.querySelectorAll("[data-mission-count-id]") ??
+          [],
+      ).map((element) => [element.dataset.missionCountId, element]),
     );
     this.initialMissionCounts = new Map(
       Array.from(this.missionCountElements.entries()).map(([id, element]) => [
@@ -71,16 +84,21 @@ export class GameView {
     this.stage4MonsterCountElement =
       this.missionCountElements.get("stage4-guardian") ?? null;
     this.treasureBarrierElements = new Map(
-      Array.from(this.containerElement?.querySelectorAll("[data-treasure-barrier-id]") ?? []).map(
-        (element) => [element.dataset.treasureBarrierId, element],
-      ),
+      Array.from(
+        this.containerElement?.querySelectorAll("[data-treasure-barrier-id]") ??
+          [],
+      ).map((element) => [element.dataset.treasureBarrierId, element]),
     );
     this.stage4TreasureBarrierElement =
-      this.containerElement?.querySelector("[data-stage4-treasure-barrier='true']") ?? null;
+      this.containerElement?.querySelector(
+        "[data-stage4-treasure-barrier='true']",
+      ) ?? null;
     this.customMissionAlarmElement =
       this.containerElement?.querySelector(".custom-mission-alarm") ?? null;
     this.customMissionAlarmTextElement =
-      this.customMissionAlarmElement?.querySelector("[data-custom-mission-alarm-text='true']") ?? null;
+      this.customMissionAlarmElement?.querySelector(
+        "[data-custom-mission-alarm-text='true']",
+      ) ?? null;
     this.breathElement =
       this.containerElement?.querySelector("[data-breath-ui='true']") ?? null;
     this.breathFillElement =
@@ -88,27 +106,37 @@ export class GameView {
     this.bossHudElement =
       this.containerElement?.querySelector("[data-boss-hud='true']") ?? null;
     this.bossHpFillElement =
-      this.containerElement?.querySelector("[data-boss-hp-fill='true']") ?? null;
+      this.containerElement?.querySelector("[data-boss-hp-fill='true']") ??
+      null;
     this.bossHpLabelElement =
-      this.containerElement?.querySelector("[data-boss-hp-label='true']") ?? null;
+      this.containerElement?.querySelector("[data-boss-hp-label='true']") ??
+      null;
     this.bossRootElement =
       this.containerElement?.querySelector("[data-boss-root='true']") ?? null;
     this.bossStructureElement =
-      this.containerElement?.querySelector("[data-boss-structure='true']") ?? null;
+      this.containerElement?.querySelector("[data-boss-structure='true']") ??
+      null;
     this.bossVisualElement =
       this.containerElement?.querySelector("[data-boss-visual='true']") ?? null;
+    this.bossVisualImageElement =
+      this.containerElement?.querySelector("[data-boss-visual-image='true']") ??
+      null;
     this.bossHandElement =
       this.containerElement?.querySelector("[data-boss-hand='true']") ?? null;
     this.bossHitFlashElement =
-      this.containerElement?.querySelector("[data-boss-hitflash='true']") ?? null;
+      this.containerElement?.querySelector("[data-boss-hitflash='true']") ??
+      null;
     this.bossStoneLayerElement =
-      this.containerElement?.querySelector("[data-boss-stone-layer='true']") ?? null;
+      this.containerElement?.querySelector("[data-boss-stone-layer='true']") ??
+      null;
     this.bossRushWarningElement =
-      this.containerElement?.querySelector("[data-boss-rush-warning='true']") ?? null;
+      this.containerElement?.querySelector("[data-boss-rush-warning='true']") ??
+      null;
     this.bossEndingElement =
       this.containerElement?.querySelector("[data-boss-ending='true']") ?? null;
     this.bossEndingCardElement =
-      this.containerElement?.querySelector("[data-boss-ending-card='true']") ?? null;
+      this.containerElement?.querySelector("[data-boss-ending-card='true']") ??
+      null;
     this.bossStonePool = [];
     this.activeTriggerElement = null;
     this.collapseTimers = new Map();
@@ -116,6 +144,21 @@ export class GameView {
     this.activeMissionAlarmToken = null;
     this.boundRetryClick = null;
     this.boundNextClick = null;
+    this.reportedBossImageErrors = new Set();
+    this.reportedBossImageLoads = new Set();
+    this.boundBossVisualImageError = this.handleBossVisualImageError.bind(this);
+    this.boundBossVisualImageLoad = this.handleBossVisualImageLoad.bind(this);
+
+    if (this.bossVisualImageElement) {
+      this.bossVisualImageElement.addEventListener(
+        "error",
+        this.boundBossVisualImageError,
+      );
+      this.bossVisualImageElement.addEventListener(
+        "load",
+        this.boundBossVisualImageLoad,
+      );
+    }
   }
 
   measureCharacter() {
@@ -196,9 +239,9 @@ export class GameView {
     }
   }
 
-    render(character, interaction = {}) {
-        this.characterElement.style.transform = `translate3d(${character.x}px, ${character.y}px, 0)`;
-        this.characterElement.classList.add("is-ready");
+  render(character, interaction = {}) {
+    this.characterElement.style.transform = `translate3d(${character.x}px, ${character.y}px, 0)`;
+    this.characterElement.classList.add("is-ready");
     this.characterElement.classList.toggle(
       "is-moving",
       Math.abs(character.vx) > 8 && character.onGround,
@@ -208,31 +251,31 @@ export class GameView {
       !character.onGround && !character.isClimbing && !character.isSwimming,
     );
     this.characterElement.classList.toggle("is-climbing", character.isClimbing);
-        this.characterElement.classList.toggle("is-swimming", character.isSwimming);
-        this.characterElement.classList.toggle(
-            "is-facing-left",
-            character.facing < 0,
-        );
-        this.characterElement.classList.toggle(
-            "is-throw-ready",
-            Boolean(interaction.canThrowStone),
-        );
-        this.characterElement.classList.toggle(
-            "is-throwing",
-            Boolean(interaction.isDraggingStone),
-        );
-        this.renderHeldStone(interaction.heldStone ?? null);
-        this.renderStoneAim(interaction.stoneAim ?? null);
-        this.renderTimedBlocks(interaction.timedBlocks ?? []);
-        this.renderMonsters(interaction.monsters ?? []);
-        this.renderCannonState(interaction.cannonState ?? null);
-        this.renderStageMission(interaction.stageMission ?? null);
-        this.renderMissionAlarm(interaction.missionAlarm ?? null);
-        this.renderBossState(interaction.bossState ?? null);
-        this.renderBreathHud(character);
+    this.characterElement.classList.toggle("is-swimming", character.isSwimming);
+    this.characterElement.classList.toggle(
+      "is-facing-left",
+      character.facing < 0,
+    );
+    this.characterElement.classList.toggle(
+      "is-throw-ready",
+      Boolean(interaction.canThrowStone),
+    );
+    this.characterElement.classList.toggle(
+      "is-throwing",
+      Boolean(interaction.isDraggingStone),
+    );
+    this.renderHeldStone(interaction.heldStone ?? null);
+    this.renderStoneAim(interaction.stoneAim ?? null);
+    this.renderTimedBlocks(interaction.timedBlocks ?? []);
+    this.renderMonsters(interaction.monsters ?? []);
+    this.renderCannonState(interaction.cannonState ?? null);
+    this.renderStageMission(interaction.stageMission ?? null);
+    this.renderMissionAlarm(interaction.missionAlarm ?? null);
+    this.renderBossState(interaction.bossState ?? null);
+    this.renderBreathHud(character);
 
-        if (
-            this.activeTriggerElement &&
+    if (
+      this.activeTriggerElement &&
       this.activeTriggerElement !== interaction.activeTriggerElement
     ) {
       this.activeTriggerElement.classList.remove("is-interactable");
@@ -294,7 +337,8 @@ export class GameView {
 
     return {
       x: headRect.left - containerRect.left + headRect.width / 2,
-      y: headRect.top - containerRect.top - Math.max(headRect.height * 0.35, 10),
+      y:
+        headRect.top - containerRect.top - Math.max(headRect.height * 0.35, 10),
     };
   }
 
@@ -329,19 +373,43 @@ export class GameView {
     if (this.stoneAimReticleHorizontalElement) {
       this.stoneAimReticleHorizontalElement.removeAttribute("hidden");
       this.stoneAimReticleHorizontalElement.style.display = "block";
-      this.stoneAimReticleHorizontalElement.setAttribute("x1", `${stoneAim.end.x - axisLength}`);
-      this.stoneAimReticleHorizontalElement.setAttribute("y1", `${stoneAim.end.y}`);
-      this.stoneAimReticleHorizontalElement.setAttribute("x2", `${stoneAim.end.x + axisLength}`);
-      this.stoneAimReticleHorizontalElement.setAttribute("y2", `${stoneAim.end.y}`);
+      this.stoneAimReticleHorizontalElement.setAttribute(
+        "x1",
+        `${stoneAim.end.x - axisLength}`,
+      );
+      this.stoneAimReticleHorizontalElement.setAttribute(
+        "y1",
+        `${stoneAim.end.y}`,
+      );
+      this.stoneAimReticleHorizontalElement.setAttribute(
+        "x2",
+        `${stoneAim.end.x + axisLength}`,
+      );
+      this.stoneAimReticleHorizontalElement.setAttribute(
+        "y2",
+        `${stoneAim.end.y}`,
+      );
     }
 
     if (this.stoneAimReticleVerticalElement) {
       this.stoneAimReticleVerticalElement.removeAttribute("hidden");
       this.stoneAimReticleVerticalElement.style.display = "block";
-      this.stoneAimReticleVerticalElement.setAttribute("x1", `${stoneAim.end.x}`);
-      this.stoneAimReticleVerticalElement.setAttribute("y1", `${stoneAim.end.y - axisLength}`);
-      this.stoneAimReticleVerticalElement.setAttribute("x2", `${stoneAim.end.x}`);
-      this.stoneAimReticleVerticalElement.setAttribute("y2", `${stoneAim.end.y + axisLength}`);
+      this.stoneAimReticleVerticalElement.setAttribute(
+        "x1",
+        `${stoneAim.end.x}`,
+      );
+      this.stoneAimReticleVerticalElement.setAttribute(
+        "y1",
+        `${stoneAim.end.y - axisLength}`,
+      );
+      this.stoneAimReticleVerticalElement.setAttribute(
+        "x2",
+        `${stoneAim.end.x}`,
+      );
+      this.stoneAimReticleVerticalElement.setAttribute(
+        "y2",
+        `${stoneAim.end.y + axisLength}`,
+      );
     }
   }
 
@@ -456,8 +524,12 @@ export class GameView {
         !stageMission?.isTreasureBarrierActive;
     });
 
-    if (this.stage4TreasureBarrierElement && !this.treasureBarrierElements.has("stage4-guardian")) {
-      this.stage4TreasureBarrierElement.hidden = !stageMission?.isTreasureBarrierActive;
+    if (
+      this.stage4TreasureBarrierElement &&
+      !this.treasureBarrierElements.has("stage4-guardian")
+    ) {
+      this.stage4TreasureBarrierElement.hidden =
+        !stageMission?.isTreasureBarrierActive;
     }
   }
 
@@ -479,6 +551,82 @@ export class GameView {
     }
   }
 
+  getBossPoseImageSrc(pose = "base") {
+    if (!this.bossRootElement) {
+      return "";
+    }
+
+    const poseImageMap = {
+      base: this.bossRootElement.dataset.bossBaseSrc ?? "",
+      upset: this.bossRootElement.dataset.bossUpsetSrc ?? "",
+      attack: this.bossRootElement.dataset.bossAttackBodySrc ?? "",
+      rush: this.bossRootElement.dataset.bossRushSrc ?? "",
+    };
+
+    return poseImageMap[pose] || poseImageMap.base || "";
+  }
+
+  getBossPoseAssetLabel(pose = "base") {
+    const poseAssetLabelMap = {
+      base: "boss.webp",
+      upset: "upset.webp",
+      attack: "attack-body.webp",
+      rush: "rush.webp",
+    };
+
+    return poseAssetLabelMap[pose] ?? poseAssetLabelMap.base;
+  }
+
+  handleBossVisualImageLoad(event) {
+    const imageElement = event.currentTarget;
+
+    if (!imageElement) {
+      return;
+    }
+
+    imageElement.dataset.loaded = "true";
+
+    const assetLabel = imageElement.dataset.assetLabel ?? "boss.webp";
+    const currentSrc = imageElement.currentSrc || imageElement.src || "";
+    const loadKey = `${assetLabel}:${currentSrc}`;
+
+    if (
+      assetLabel === "attack-body.webp" &&
+      currentSrc &&
+      !this.reportedBossImageLoads.has(loadKey)
+    ) {
+      this.reportedBossImageLoads.add(loadKey);
+    }
+  }
+
+  handleBossVisualImageError(event) {
+    const imageElement = event.currentTarget;
+
+    if (!imageElement) {
+      return;
+    }
+
+    const assetLabel = imageElement.dataset.assetLabel ?? "boss.webp";
+    const attemptedSrc = imageElement.currentSrc || imageElement.src || "";
+    const fallbackSrc = imageElement.dataset.fallbackSrc ?? "";
+    const failureKey = `${assetLabel}:${attemptedSrc}`;
+
+    if (!this.reportedBossImageErrors.has(failureKey)) {
+      console.warn(`[boss] failed to load ${assetLabel}`, attemptedSrc);
+      this.reportedBossImageErrors.add(failureKey);
+    }
+
+    imageElement.dataset.loaded = "false";
+
+    if (fallbackSrc && attemptedSrc !== fallbackSrc) {
+      imageElement.src = fallbackSrc;
+      imageElement.dataset.assetLabel = "boss.webp";
+      return;
+    }
+
+    imageElement.removeAttribute("src");
+  }
+
   renderBossState(bossState) {
     if (!this.bossRootElement) {
       return;
@@ -495,7 +643,10 @@ export class GameView {
       return;
     }
 
-    const hpPercent = Math.max(0, Math.min(100, Number(bossState.hpPercent ?? 0)));
+    const hpPercent = Math.max(
+      0,
+      Math.min(100, Number(bossState.hpPercent ?? 0)),
+    );
 
     if (this.bossHpFillElement) {
       this.bossHpFillElement.style.width = `${hpPercent}%`;
@@ -505,40 +656,68 @@ export class GameView {
       this.bossHpLabelElement.textContent = `${Math.round(hpPercent)}%`;
     }
 
-    this.containerElement?.style.setProperty("--boss-stage-shake-x", `${bossState.shake?.x ?? 0}px`);
-    this.containerElement?.style.setProperty("--boss-stage-shake-y", `${bossState.shake?.y ?? 0}px`);
+    this.containerElement?.style.setProperty(
+      "--boss-stage-shake-x",
+      `${bossState.shake?.x ?? 0}px`,
+    );
+    this.containerElement?.style.setProperty(
+      "--boss-stage-shake-y",
+      `${bossState.shake?.y ?? 0}px`,
+    );
 
     if (this.bossStructureElement) {
-      this.bossStructureElement.style.transform =
-        `translate3d(-50%, ${bossState.structure?.offsetY ?? 0}px, 0)`;
+      this.bossStructureElement.style.transform = `translate3d(-50%, ${bossState.structure?.offsetY ?? 0}px, 0)`;
     }
 
     this.bossRootElement.hidden = !bossState.isVisible;
-    this.bossRootElement.classList.toggle("is-groggy", Boolean(bossState.isGroggy));
-    this.bossRootElement.classList.toggle("is-damaged", Boolean(bossState.isDamaged));
-    this.bossRootElement.classList.toggle("is-defeated", Boolean(bossState.isDefeated));
+    this.bossRootElement.classList.toggle(
+      "is-groggy",
+      Boolean(bossState.isGroggy),
+    );
+    this.bossRootElement.classList.toggle(
+      "is-damaged",
+      Boolean(bossState.isDamaged),
+    );
+    this.bossRootElement.classList.toggle(
+      "is-defeated",
+      Boolean(bossState.isDefeated),
+    );
     this.bossRootElement.dataset.pose = bossState.pose ?? "base";
     this.bossRootElement.style.width = `${bossState.width ?? 0}px`;
     this.bossRootElement.style.height = `${bossState.height ?? 0}px`;
-    this.bossRootElement.style.transform =
-      `translate3d(${bossState.x ?? 0}px, ${bossState.y ?? 0}px, 0) scaleX(${bossState.facing < 0 ? -1 : 1})`;
+    this.bossRootElement.style.transform = `translate3d(${bossState.x ?? 0}px, ${bossState.y ?? 0}px, 0) scaleX(${bossState.facing < 0 ? -1 : 1})`;
 
     if (this.bossVisualElement) {
       const pose = bossState.pose ?? "base";
-      const poseImageMap = {
-        base: "var(--boss-base-image)",
-        upset: "var(--boss-upset-image)",
-        attack: "var(--boss-attack-body-image)",
-        rush: "var(--boss-rush-image)",
-      };
-
       this.bossVisualElement.dataset.pose = pose;
       this.bossVisualElement.style.backgroundImage =
-        poseImageMap[pose] ?? poseImageMap.base;
-      this.bossVisualElement.style.backgroundPosition =
-        pose === "attack" ? "16% center" : "center";
-      this.bossVisualElement.style.backgroundSize =
-        pose === "attack" ? "125% auto" : "contain";
+        pose === "attack" ? "var(--boss-attack-body-image)" : "";
+    }
+
+    if (this.bossVisualImageElement) {
+      const pose = bossState.pose ?? "base";
+      this.bossVisualImageElement.dataset.pose = pose;
+      this.bossVisualImageElement.hidden = pose === "attack";
+
+      if (pose !== "attack") {
+        const poseImageSrc = this.getBossPoseImageSrc(pose);
+        const fallbackSrc = this.getBossPoseImageSrc("base");
+
+        this.bossVisualImageElement.dataset.assetLabel =
+          this.getBossPoseAssetLabel(pose);
+        this.bossVisualImageElement.dataset.fallbackSrc = fallbackSrc;
+
+        if (
+          (this.bossVisualImageElement.getAttribute("src") ?? "") !==
+          poseImageSrc
+        ) {
+          if (poseImageSrc) {
+            this.bossVisualImageElement.src = poseImageSrc;
+          } else {
+            this.bossVisualImageElement.removeAttribute("src");
+          }
+        }
+      }
     }
 
     if (this.bossHitFlashElement) {
@@ -550,11 +729,11 @@ export class GameView {
       this.bossHandElement.hidden = !hand.visible;
 
       if (hand.visible) {
-        this.bossHandElement.style.backgroundImage = "var(--boss-attack-hand-image)";
+        this.bossHandElement.style.backgroundImage =
+          "var(--boss-attack-hand-image)";
         this.bossHandElement.style.width = `${hand.width}px`;
         this.bossHandElement.style.height = `${hand.height}px`;
-        this.bossHandElement.style.transform =
-          `translate3d(${hand.x - (bossState.x ?? 0)}px, ${hand.y - (bossState.y ?? 0)}px, 0)`;
+        this.bossHandElement.style.transform = `translate3d(${hand.x - (bossState.x ?? 0)}px, ${hand.y - (bossState.y ?? 0)}px, 0)`;
       } else {
         this.bossHandElement.style.backgroundImage = "";
       }
@@ -567,8 +746,7 @@ export class GameView {
       if (warning.visible) {
         this.bossRushWarningElement.style.width = `${warning.width}px`;
         this.bossRushWarningElement.style.height = `${warning.height}px`;
-        this.bossRushWarningElement.style.transform =
-          `translate3d(${warning.left}px, ${warning.top}px, 0)`;
+        this.bossRushWarningElement.style.transform = `translate3d(${warning.left}px, ${warning.top}px, 0)`;
       }
     }
 
@@ -600,8 +778,7 @@ export class GameView {
       if (ending.visible) {
         this.bossEndingCardElement.style.width = `${ending.width}px`;
         this.bossEndingCardElement.style.height = `${ending.height}px`;
-        this.bossEndingCardElement.style.transform =
-          `translate3d(${ending.x}px, ${ending.y}px, 0) scale(${ending.scale ?? 1})`;
+        this.bossEndingCardElement.style.transform = `translate3d(${ending.x}px, ${ending.y}px, 0) scale(${ending.scale ?? 1})`;
         this.bossEndingCardElement.style.opacity = `${ending.opacity ?? 1}`;
       } else {
         this.bossEndingCardElement.style.opacity = "0";
@@ -619,7 +796,11 @@ export class GameView {
 
     if (this.bossRootElement) {
       this.bossRootElement.hidden = true;
-      this.bossRootElement.classList.remove("is-groggy", "is-damaged", "is-defeated");
+      this.bossRootElement.classList.remove(
+        "is-groggy",
+        "is-damaged",
+        "is-defeated",
+      );
       this.bossRootElement.dataset.pose = "base";
       this.bossRootElement.style.width = "";
       this.bossRootElement.style.height = "";
@@ -629,8 +810,15 @@ export class GameView {
     if (this.bossVisualElement) {
       this.bossVisualElement.dataset.pose = "base";
       this.bossVisualElement.style.backgroundImage = "";
-      this.bossVisualElement.style.backgroundPosition = "";
-      this.bossVisualElement.style.backgroundSize = "";
+    }
+
+    if (this.bossVisualImageElement) {
+      this.bossVisualImageElement.hidden = false;
+      this.bossVisualImageElement.dataset.pose = "base";
+      this.bossVisualImageElement.dataset.assetLabel = "";
+      this.bossVisualImageElement.dataset.fallbackSrc = "";
+      this.bossVisualImageElement.dataset.loaded = "";
+      this.bossVisualImageElement.removeAttribute("src");
     }
 
     if (this.bossHitFlashElement) {
@@ -723,7 +911,10 @@ export class GameView {
       return;
     }
 
-    const breathRatio = Math.max(0, Math.min(1, Number(character.breathRatio ?? 1)));
+    const breathRatio = Math.max(
+      0,
+      Math.min(1, Number(character.breathRatio ?? 1)),
+    );
     const shouldShow = Boolean(character.isHeadUnderwater) || breathRatio < 1;
 
     if (!shouldShow || typeof character.getHeadBounds !== "function") {
@@ -742,8 +933,7 @@ export class GameView {
 
     this.breathElement.hidden = false;
     this.breathElement.dataset.level = level;
-    this.breathElement.style.transform =
-      `translate3d(${centerX}px, ${anchorY}px, 0) translate(-50%, -100%)`;
+    this.breathElement.style.transform = `translate3d(${centerX}px, ${anchorY}px, 0) translate(-50%, -100%)`;
     this.breathFillElement.style.width = `${breathRatio * 100}%`;
   }
 
@@ -764,7 +954,8 @@ export class GameView {
     }
 
     if (this.customMissionAlarmTextElement) {
-      this.customMissionAlarmTextElement.textContent = missionAlarm.message ?? "";
+      this.customMissionAlarmTextElement.textContent =
+        missionAlarm.message ?? "";
     }
 
     this.customMissionAlarmElement.hidden = false;
@@ -795,14 +986,18 @@ export class GameView {
 
   resetMissionState() {
     this.missionCountElements.forEach((element, countId) => {
-      element.textContent = this.initialMissionCounts.get(countId) ?? element.textContent;
+      element.textContent =
+        this.initialMissionCounts.get(countId) ?? element.textContent;
     });
 
     this.treasureBarrierElements.forEach((element) => {
       element.hidden = false;
     });
 
-    if (this.stage4TreasureBarrierElement && !this.treasureBarrierElements.has("stage4-guardian")) {
+    if (
+      this.stage4TreasureBarrierElement &&
+      !this.treasureBarrierElements.has("stage4-guardian")
+    ) {
       this.stage4TreasureBarrierElement.hidden = false;
     }
   }
@@ -877,7 +1072,11 @@ export class GameView {
 
     if (this.heldStoneElement) {
       this.heldStoneElement.hidden = true;
-      this.heldStoneElement.classList.remove("is-held-ui", "is-carried", "is-airborne");
+      this.heldStoneElement.classList.remove(
+        "is-held-ui",
+        "is-carried",
+        "is-airborne",
+      );
       this.heldStoneElement.style.left = "";
       this.heldStoneElement.style.top = "";
       this.heldStoneElement.style.transform = "";
@@ -931,7 +1130,11 @@ export class GameView {
     }
     if (this.heldStoneElement) {
       this.heldStoneElement.hidden = true;
-      this.heldStoneElement.classList.remove("is-held-ui", "is-carried", "is-airborne");
+      this.heldStoneElement.classList.remove(
+        "is-held-ui",
+        "is-carried",
+        "is-airborne",
+      );
       this.heldStoneElement.style.left = "";
       this.heldStoneElement.style.top = "";
       this.heldStoneElement.style.transform = "";
@@ -947,6 +1150,16 @@ export class GameView {
     this.cannonElements.forEach((element) => {
       element.classList.remove("is-aiming");
     });
+    if (this.bossVisualImageElement) {
+      this.bossVisualImageElement.removeEventListener(
+        "error",
+        this.boundBossVisualImageError,
+      );
+      this.bossVisualImageElement.removeEventListener(
+        "load",
+        this.boundBossVisualImageLoad,
+      );
+    }
     this.resetMissionState();
     this.resetBossState();
     this.hideMissionAlarm();
