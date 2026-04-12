@@ -3695,7 +3695,7 @@ body {
 }
 
 .boss-stage-boss__hand {
-  inset: auto auto 0 0;
+  inset: 0 auto auto 0;
   z-index: 2;
   width: calc(220 * var(--cw));
   height: calc(54 * var(--cw));
