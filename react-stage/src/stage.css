@@ -63,6 +63,11 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  transform: translate3d(
+    var(--boss-stage-shake-x, 0px),
+    var(--boss-stage-shake-y, 0px),
+    0
+  );
   background:
     radial-gradient(
       circle at 18% 70%,
@@ -481,8 +486,6 @@ body {
 
 .jump-block {
   position: absolute;
-  left: 24%;
-  bottom: 22%;
   width: 10%;
   min-width: calc(100 * var(--cw));
   height: 2.5%;
@@ -493,6 +496,11 @@ body {
     inset 0 0 calc(10 * var(--cw)) rgba(255, 255, 255, 0.4);
   z-index: 10;
   border-radius: calc(4 * var(--cw));
+}
+
+.stage1-jump-block {
+  left: 24%;
+  bottom: 22%;
 }
 
 .stone-bridge {
@@ -2956,7 +2964,11 @@ body {
 
 .stage-shell--stage7 {
   background:
-    radial-gradient(circle at 58% 10%, rgba(13, 204, 188, 0.08), transparent 16%),
+    radial-gradient(
+      circle at 58% 10%,
+      rgba(13, 204, 188, 0.08),
+      transparent 16%
+    ),
     radial-gradient(circle at 12% 52%, rgba(255, 39, 12, 0.1), transparent 18%),
     linear-gradient(to bottom, rgba(9, 2, 5, 0.62), rgba(2, 2, 5, 0.96)),
     #020202 !important;
@@ -3082,7 +3094,11 @@ body {
   position: absolute;
   border-radius: calc(4 * var(--cw));
   background:
-    linear-gradient(to right, rgba(255, 194, 54, 0.96), rgba(255, 132, 20, 0.96)),
+    linear-gradient(
+      to right,
+      rgba(255, 194, 54, 0.96),
+      rgba(255, 132, 20, 0.96)
+    ),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.18), rgba(0, 0, 0, 0.16));
   box-shadow:
     0 0 calc(22 * var(--cw)) rgba(255, 165, 38, 0.42),
@@ -3168,13 +3184,12 @@ body {
   height: 22%;
 }
 
-.stage7-monster-wall--left-top{
+.stage7-monster-wall--left-top {
   left: 50%;
   top: -59%;
   width: 2%;
   height: 60%;
 }
-
 
 .stage7-monster-wall--bottom {
   left: 50%;
@@ -3305,16 +3320,12 @@ body {
   height: 3.8%;
 }
 
-.stage7-lava-wall--bottom{
-
+.stage7-lava-wall--bottom {
   left: 32.5%;
   bottom: 0%;
   width: 70%;
   height: 3.8%;
-
 }
-
-
 
 .stage7-fluid-zone--bottom-lava {
   left: 32.5%;
@@ -3350,7 +3361,11 @@ body {
   width: 9%;
   height: 11%;
   background:
-    radial-gradient(circle at 68% 100%, rgba(227, 238, 39, 0.7), transparent 34%),
+    radial-gradient(
+      circle at 68% 100%,
+      rgba(227, 238, 39, 0.7),
+      transparent 34%
+    ),
     linear-gradient(to bottom, #260101, #120000);
   box-shadow: inset 0 0 calc(14 * var(--cw)) rgba(255, 255, 255, 0.04);
   z-index: 8;
@@ -3393,6 +3408,439 @@ body {
 
 .stage7-treasure-barrier[hidden] {
   display: none;
+}
+
+.stage-shell--bossStage {
+  background:
+    radial-gradient(
+      circle at 18% 88%,
+      rgba(48, 204, 255, 0.08),
+      transparent 16%
+    ),
+    radial-gradient(
+      circle at 78% 20%,
+      rgba(255, 78, 33, 0.14),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 58% 14%,
+      rgba(255, 255, 255, 0.04),
+      transparent 18%
+    ),
+    linear-gradient(to bottom, rgba(16, 2, 4, 0.7), rgba(2, 2, 8, 0.96)),
+    #020202 !important;
+}
+
+.stage-shell--bossStage .bg-layer {
+  opacity: 0.08;
+  background-image:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03), transparent 36%),
+    radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    calc(32 * var(--cw)) calc(32 * var(--cw));
+}
+
+.stage-shell--bossStage .ambient-glow {
+  display: none;
+}
+
+.boss-stage-floor,
+.boss-stage-structure {
+  position: absolute;
+  background: linear-gradient(
+    180deg,
+    rgba(176, 113, 121, 0.98),
+    rgba(136, 82, 92, 0.98)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 235, 238, 0.08),
+    0 calc(8 * var(--cw)) calc(20 * var(--cw)) rgba(0, 0, 0, 0.26);
+  z-index: 12;
+}
+
+.boss-stage-floor--setting {
+  left: 0;
+  top: 92%;
+  width: 100%;
+  height: 4%;
+}
+
+.boss-stage-spawn-pad {
+  left: 4%;
+  top: 88.4%;
+  bottom: auto;
+  width: 100%;
+  min-width: 0;
+  height: 3.6%;
+  min-height: 0;
+  border-radius: 0;
+}
+
+.boss-stage-jump-block {
+  min-width: 0;
+  min-height: 0;
+  width: 8.4%;
+  height: 4.9%;
+  border-radius: 0;
+  z-index: 18;
+}
+
+.boss-stage-jump-block--left-low {
+  left: 17%;
+  top: 75%;
+}
+
+.boss-stage-jump-block--left-mid {
+  left: 0%;
+  top: 50%;
+}
+
+.boss-stage-jump-block--left-high {
+  left: 17%;
+  top: 25%;
+}
+
+.boss-stage-jump-block--right-low {
+  right: 17%;
+  top: 75%;
+}
+
+.boss-stage-jump-block--right-mid {
+  right: 0%;
+  top: 50%;
+}
+
+.boss-stage-jump-block--right-high {
+  right: 17%;
+  top: 25%;
+}
+
+.boss-stage-structure__pillar--left {
+  left: 45.5%;
+  top: 5.5%;
+  width: 2.4%;
+  height: 27%;
+}
+
+.boss-stage-structure__pillar--right {
+  left: 68.4%;
+  top: 5.5%;
+  width: 2.4%;
+  height: 27%;
+}
+
+.boss-stage-structure__beam--top {
+  left: 45.5%;
+  top: 6%;
+  width: 25.3%;
+  height: 3.4%;
+}
+
+.boss-stage-structure__beam--mid {
+  left: 45.5%;
+  top: 17.2%;
+  width: 25.3%;
+  height: 3.4%;
+}
+
+.boss-stage-structure__beam--low {
+  left: 45.5%;
+  top: 28.8%;
+  width: 25.3%;
+  height: 3.4%;
+}
+
+.boss-stage-fluid {
+  position: absolute;
+}
+
+.boss-stage-fluid--water {
+  left: 48.1%;
+  top: 6.4%;
+  z-index: 7;
+}
+
+.boss-stage-fluid--lava {
+  left: 48.1%;
+  top: 18.2%;
+  z-index: 8;
+}
+
+.boss-stage-trigger {
+  width: calc(28 * var(--cw));
+  height: 100%;
+  border-radius: calc(4 * var(--cw));
+  z-index: 22;
+}
+
+.boss-stage-trigger--mid-left,
+.boss-stage-trigger--low-left {
+  left: calc(-28 * var(--cw));
+  top: 0;
+}
+
+.boss-stage-trigger--mid-right,
+.boss-stage-trigger--low-right {
+  left: 100%;
+  top: 0;
+}
+
+.boss-stage-hud {
+  position: absolute;
+  left: 50%;
+  top: 2%;
+  transform: translateX(-50%);
+  width: min(calc(460 * var(--cw)), 42%);
+  display: flex;
+  align-items: center;
+  gap: calc(12 * var(--cw));
+  padding: calc(10 * var(--cw)) calc(14 * var(--cw));
+  background: rgba(18, 8, 12, 0.76);
+  border: 1px solid rgba(255, 110, 92, 0.28);
+  border-radius: calc(999 * var(--cw));
+  box-shadow: 0 calc(8 * var(--cw)) calc(20 * var(--cw)) rgba(0, 0, 0, 0.28);
+  z-index: 110;
+}
+
+.boss-stage-hud__label,
+.boss-stage-hud__value {
+  flex: 0 0 auto;
+  font-size: calc(18 * var(--cw));
+  font-weight: 800;
+  letter-spacing: calc(1.4 * var(--cw));
+  color: #ffd5d0;
+}
+
+.boss-stage-hud__track {
+  position: relative;
+  flex: 1 1 auto;
+  height: calc(18 * var(--cw));
+  border-radius: calc(999 * var(--cw));
+  overflow: hidden;
+  background: rgba(65, 14, 10, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(255, 182, 172, 0.1);
+}
+
+.boss-stage-hud__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  border-radius: inherit;
+  background: linear-gradient(to right, #ff724d 0%, #ff2b1b 44%, #b30807 100%);
+  box-shadow:
+    0 0 calc(18 * var(--cw)) rgba(255, 70, 33, 0.34),
+    inset 0 calc(-2 * var(--cw)) 0 rgba(0, 0, 0, 0.16);
+}
+
+.boss-stage-boss {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(420 * var(--cw));
+  height: calc(360 * var(--cw));
+  z-index: 40;
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.boss-stage-boss__visual,
+.boss-stage-boss__hand,
+.boss-stage-boss__flash {
+  position: absolute;
+  inset: 0;
+}
+
+.boss-stage-boss__visual {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-image:
+    var(--boss-base-image),
+    radial-gradient(
+      circle at 36% 28%,
+      rgba(255, 255, 255, 0.12),
+      transparent 22%
+    ),
+    radial-gradient(
+      circle at 64% 70%,
+      rgba(255, 56, 22, 0.18),
+      transparent 26%
+    ),
+    linear-gradient(135deg, rgba(108, 39, 48, 0.92), rgba(40, 16, 20, 0.96));
+  filter: drop-shadow(
+    0 calc(18 * var(--cw)) calc(28 * var(--cw)) rgba(0, 0, 0, 0.38)
+  );
+}
+
+.boss-stage-boss[data-pose="upset"] .boss-stage-boss__visual {
+  background-image:
+    var(--boss-upset-image),
+    radial-gradient(
+      circle at 40% 28%,
+      rgba(255, 170, 145, 0.14),
+      transparent 18%
+    ),
+    radial-gradient(
+      circle at 56% 74%,
+      rgba(255, 40, 16, 0.24),
+      transparent 24%
+    ),
+    linear-gradient(135deg, rgba(130, 32, 26, 0.96), rgba(48, 10, 14, 0.98));
+}
+
+.boss-stage-boss[data-pose="attack"] .boss-stage-boss__visual {
+  background-image:
+    var(--boss-attack-body-image),
+    radial-gradient(
+      circle at 40% 24%,
+      rgba(255, 255, 255, 0.1),
+      transparent 18%
+    ),
+    linear-gradient(135deg, rgba(138, 72, 71, 0.96), rgba(66, 20, 23, 0.98));
+}
+
+.boss-stage-boss[data-pose="rush"] .boss-stage-boss__visual {
+  background-image:
+    var(--boss-rush-image),
+    radial-gradient(
+      circle at 42% 30%,
+      rgba(255, 245, 200, 0.16),
+      transparent 18%
+    ),
+    linear-gradient(135deg, rgba(198, 58, 28, 0.96), rgba(90, 18, 10, 0.98));
+}
+
+.boss-stage-boss.is-groggy .boss-stage-boss__visual {
+  animation: bossGroggyPulse 0.1s linear infinite alternate;
+}
+
+.boss-stage-boss.is-damaged .boss-stage-boss__flash,
+.boss-stage-boss.is-defeated .boss-stage-boss__flash {
+  opacity: 1;
+}
+
+.boss-stage-boss__flash {
+  opacity: 0;
+  border-radius: 50%;
+  background: rgba(255, 24, 12, 0.52);
+  mix-blend-mode: screen;
+  transition: opacity 120ms linear;
+}
+
+.boss-stage-boss__hand {
+  inset: auto auto 0 0;
+  width: calc(220 * var(--cw));
+  height: calc(54 * var(--cw));
+  transform-origin: right center;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image:
+    var(--boss-attack-hand-image),
+    linear-gradient(90deg, rgba(212, 103, 84, 0.98), rgba(120, 52, 41, 0.98));
+  filter: drop-shadow(
+    0 calc(8 * var(--cw)) calc(14 * var(--cw)) rgba(0, 0, 0, 0.32)
+  );
+}
+
+.boss-stage-rush-warning {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: calc(999 * var(--cw));
+  background: linear-gradient(
+    90deg,
+    rgba(255, 10, 10, 0.2),
+    rgba(255, 56, 24, 0.4),
+    rgba(255, 10, 10, 0.2)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 228, 220, 0.26),
+    0 0 calc(18 * var(--cw)) rgba(255, 54, 22, 0.22);
+  animation: bossWarningBlink 0.28s linear infinite alternate;
+  z-index: 28;
+  pointer-events: none;
+}
+
+.boss-stage-stone-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+}
+
+.boss-stage-stone {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 24%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-image:
+    var(--boss-stone-image),
+    radial-gradient(
+      circle at 36% 30%,
+      rgba(255, 255, 255, 0.18),
+      transparent 16%
+    ),
+    linear-gradient(135deg, rgba(166, 166, 176, 0.96), rgba(90, 92, 104, 0.98));
+  box-shadow: 0 calc(10 * var(--cw)) calc(18 * var(--cw)) rgba(0, 0, 0, 0.24);
+}
+
+.boss-stage-stone.is-final-wave {
+  box-shadow:
+    0 calc(10 * var(--cw)) calc(18 * var(--cw)) rgba(0, 0, 0, 0.24),
+    0 0 calc(18 * var(--cw)) rgba(255, 84, 36, 0.18);
+}
+
+.boss-stage-ending {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 90;
+}
+
+.boss-stage-ending__card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-image:
+    var(--boss-end-image),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.16),
+      transparent 30%
+    ),
+    linear-gradient(135deg, rgba(255, 114, 78, 0.96), rgba(110, 14, 18, 0.98));
+  filter: drop-shadow(
+    0 calc(14 * var(--cw)) calc(22 * var(--cw)) rgba(0, 0, 0, 0.28)
+  );
+  transform-origin: center center;
+}
+
+@keyframes bossWarningBlink {
+  from {
+    opacity: 0.26;
+  }
+
+  to {
+    opacity: 0.8;
+  }
+}
+
+@keyframes bossGroggyPulse {
+  from {
+    transform: translateX(calc(-8 * var(--cw)));
+  }
+
+  to {
+    transform: translateX(calc(8 * var(--cw)));
+  }
 }
 
 .stage5-projectile-stone {
