@@ -45,7 +45,7 @@ function useGameRuntime({
         const stoneAnchorElement = stoneAnchorRef.current;
         const stoneAimElement = stoneAimRef.current;
 
-        if (!container || !characterElement || !treasureElement) {
+        if (!container || !characterElement) {
             return undefined;
         }
 
