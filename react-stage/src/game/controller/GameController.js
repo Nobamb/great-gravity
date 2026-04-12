@@ -638,13 +638,14 @@ export class GameController {
 
         const elapsed = now - this.bossState.phaseStartMs;
         const anchorX = layout.targetX + layout.width * 0.31;
-        const y = layout.targetY + layout.height * 0.28;
-        const height = layout.height * 0.2;
+        const height = layout.height * 0.24; // Ensure enough height for the fist
+        const y = layout.floorTop - height * 0.98; // Better visual alignment with floor
         const startEndX = anchorX - layout.width * 0.16;
         const centerEndX = layout.stageWidth * 0.48;
         const farEndX = layout.stageWidth * 0.02;
         let endX = anchorX;
 
+        // Faster punch for Pattern 1
         if (elapsed < 1000) {
             endX = lerp(startEndX, centerEndX, elapsed / 1000);
         } else if (elapsed < 1500) {
@@ -693,14 +694,15 @@ export class GameController {
 
         const handHeight = handBounds.bottom - handBounds.top;
         const handWidth = handBounds.right - handBounds.left;
-        const horizontalInset = handWidth * 0.01;
-        const verticalPadding = handHeight * 0.18;
+        const horizontalInset = handWidth * 0.07;
+        const topInset = handHeight * 0.24;
+        const bottomInset = handHeight * 0.04;
 
         return {
             left: handBounds.left + horizontalInset,
-            top: handBounds.top - verticalPadding,
+            top: handBounds.top + topInset,
             right: handBounds.right - horizontalInset,
-            bottom: handBounds.bottom + verticalPadding,
+            bottom: handBounds.bottom - bottomInset,
         };
     }
 
@@ -712,13 +714,15 @@ export class GameController {
         }
 
         const handHeight = handBounds.bottom - handBounds.top;
-        const topInset = handHeight * 0.6;
-        const bottomInset = handHeight * 0.04;
+        const handWidth = handBounds.right - handBounds.left;
+        const horizontalInset = handWidth * 0.15; // Tighter on sides
+        const topInset = handHeight * 0.85; // Much tighter on top, requires deep lava touch
+        const bottomInset = handHeight * 0.01;
 
         return {
-            left: handBounds.left,
+            left: handBounds.left + horizontalInset,
             top: handBounds.top + topInset,
-            right: handBounds.right,
+            right: handBounds.right - horizontalInset,
             bottom: handBounds.bottom - bottomInset,
         };
     }
@@ -831,7 +835,9 @@ export class GameController {
                 ? "attack"
                 : phase === "pattern2"
                     ? "upset"
-                    : "base",
+                    : phase === "pattern3-warning" || phase === "pattern3-rush"
+                        ? "rush"
+                        : "base",
             facing: 1,
         };
     }
@@ -844,9 +850,9 @@ export class GameController {
         }
 
         return {
-            left: visual.x + visual.width * 0.04,
-            top: visual.y + visual.height * 0.08,
-            right: visual.x + visual.width * 0.74,
+            left: visual.x + visual.width * 0.15, // Tighter body bounding box to prevent instant death
+            top: visual.y + visual.height * 0.15,
+            right: visual.x + visual.width * 0.65,
             bottom: visual.y + visual.height * 0.92,
         };
     }
