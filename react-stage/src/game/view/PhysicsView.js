@@ -471,7 +471,7 @@ export class PhysicsView {
             physicsModel.getFluidRenderGroups?.() ?? []
         ).map((group) => group.rendererId);
         this.cleanupFluidResources(activeRendererIds);
-        this.treasureElement.classList.add("physics-managed");
+        this.treasureElement?.classList.add("physics-managed");
         this.stage4TreasureBarrierElement?.classList.add("physics-managed");
         this.stoneElement?.classList.add("physics-managed");
     }
@@ -589,7 +589,7 @@ export class PhysicsView {
     renderTreasure(physicsModel) {
         const treasureBody = physicsModel.dynamicBodies.treasure;
 
-        if (!treasureBody) {
+        if (!treasureBody || !this.treasureElement) {
             return;
         }
 
