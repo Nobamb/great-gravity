@@ -45,7 +45,20 @@ const BOSS_ENDING_WAIT_MS = 1000;
 const BOSS_ENDING_BANNER_MS = 1000;
 const BOSS_ENDING_DROP_MS = 1000;
 const BOSS_FINAL_STONES_MS = 2200;
+const BOSS_STRUCTURE_REFILL_INTERVAL_MS = 30000;
+const BOSS_STRUCTURE_RISE_MS = 500;
+const BOSS_STRUCTURE_FALL_MS = 500;
 const BOSS_DAMAGE_PER_HIT = 10;
+const BOSS_STRUCTURE_TARGET_IDS = [
+    "boss-stage-mid-beam",
+    "boss-stage-low-beam",
+];
+const BOSS_STRUCTURE_TRIGGER_IDS = [
+    "boss-stage-mid-beam-trigger-left",
+    "boss-stage-mid-beam-trigger-right",
+    "boss-stage-low-beam-trigger-left",
+    "boss-stage-low-beam-trigger-right",
+];
 const STAGE7_LOCKED_TREASURE_MESSAGE =
     "지금은 보물에 접근할 수 없습니다!\n몬스터 2마리를 처치하고 오세요!";
 const STAGE4_LOCKED_TREASURE_MESSAGE =
@@ -227,6 +240,10 @@ export class GameController {
             stones: [],
             finalStoneBatchStartedAtMs: null,
             clearReady: false,
+            structurePhase: "idle",
+            structurePhaseStartMs: 0,
+            structureLastCycleStartedAtMs: 0,
+            structureNeedsHydration: false,
         };
     }
 
@@ -504,14 +521,17 @@ export class GameController {
         const { width: stageWidth, height: stageHeight } = this.stageModel.bounds;
         const width = stageWidth * 0.34;
         const height = stageHeight * 0.56;
+        const floorTop = stageHeight * 0.92;
+        const targetY = floorTop - height * 0.98;
 
         return {
             stageWidth,
             stageHeight,
             width,
             height,
+            floorTop,
             targetX: stageWidth - width * 0.54,
-            targetY: stageHeight * 0.08,
+            targetY,
             introY: stageHeight + height * 0.35,
             defeatY: stageHeight + height * 0.2,
             rushHeight: stageHeight * 0.22,
@@ -519,6 +539,7 @@ export class GameController {
             warningWidth: stageWidth * 0.92,
             endCardWidth: stageWidth * 0.3,
             endCardHeight: stageHeight * 0.24,
+            structureTravelY: stageHeight * 0.34,
         };
     }
 
@@ -648,21 +669,57 @@ export class GameController {
         };
     }
 
-    getBossHandBounds(now, layout) {
+    getBossHandVisualBounds(now, layout) {
         const hand = this.getBossAttackHandState(now, layout);
 
         if (!hand) {
             return null;
         }
 
-        const horizontalInset = hand.width * 0.03;
-        const verticalPadding = hand.height * 0.3;
+        return {
+            left: hand.x,
+            top: hand.y,
+            right: hand.x + hand.width,
+            bottom: hand.y + hand.height,
+        };
+    }
+
+    getBossHandKillBounds(now, layout) {
+        const handBounds = this.getBossHandVisualBounds(now, layout);
+
+        if (!handBounds) {
+            return null;
+        }
+
+        const handHeight = handBounds.bottom - handBounds.top;
+        const handWidth = handBounds.right - handBounds.left;
+        const horizontalInset = handWidth * 0.01;
+        const verticalPadding = handHeight * 0.18;
 
         return {
-            left: hand.x + horizontalInset,
-            top: hand.y - verticalPadding,
-            right: hand.x + hand.width - horizontalInset,
-            bottom: hand.y + hand.height + verticalPadding,
+            left: handBounds.left + horizontalInset,
+            top: handBounds.top - verticalPadding,
+            right: handBounds.right - horizontalInset,
+            bottom: handBounds.bottom + verticalPadding,
+        };
+    }
+
+    getBossHandLavaBounds(now, layout) {
+        const handBounds = this.getBossHandVisualBounds(now, layout);
+
+        if (!handBounds) {
+            return null;
+        }
+
+        const handHeight = handBounds.bottom - handBounds.top;
+        const topInset = handHeight * 0.6;
+        const bottomInset = handHeight * 0.04;
+
+        return {
+            left: handBounds.left,
+            top: handBounds.top + topInset,
+            right: handBounds.right,
+            bottom: handBounds.bottom - bottomInset,
         };
     }
 
@@ -889,6 +946,126 @@ export class GameController {
         };
     }
 
+    getBossStructureState(now, layout) {
+        if (!this.bossState || !layout) {
+            return {
+                phase: "idle",
+                offsetY: 0,
+            };
+        }
+
+        const phase = this.bossState.structurePhase ?? "idle";
+        const elapsed = now - (this.bossState.structurePhaseStartMs ?? 0);
+
+        if (phase === "rising") {
+            return {
+                phase,
+                offsetY: -lerp(
+                    0,
+                    layout.structureTravelY,
+                    clamp(elapsed / BOSS_STRUCTURE_RISE_MS, 0, 1),
+                ),
+            };
+        }
+
+        if (phase === "falling") {
+            return {
+                phase,
+                offsetY: -lerp(
+                    layout.structureTravelY,
+                    0,
+                    clamp(elapsed / BOSS_STRUCTURE_FALL_MS, 0, 1),
+                ),
+            };
+        }
+
+        return {
+            phase: "idle",
+            offsetY: 0,
+        };
+    }
+
+    restoreBossStageStructure() {
+        const didRestore = this.stageModel.restoreTriggerTargets(
+            BOSS_STRUCTURE_TARGET_IDS,
+            BOSS_STRUCTURE_TRIGGER_IDS,
+        );
+
+        this.gameView.restoreBossStructureState?.(
+            BOSS_STRUCTURE_TARGET_IDS,
+            BOSS_STRUCTURE_TRIGGER_IDS,
+        );
+
+        if (!this.bossState) {
+            return;
+        }
+
+        this.stageModel.markDirty?.();
+        this.bossState.structureNeedsHydration = true;
+
+        if (!didRestore) {
+            return;
+        }
+    }
+
+    hydrateBossStageStructure() {
+        const stageState = this.stageModel.refresh();
+
+        if (stageState) {
+            this.physicsController?.handleStageMutation(this.stageModel, {
+                resetDynamics: true,
+            });
+            this.syncPhysicsRuntimeState();
+        }
+    }
+
+    updateBossStructureCycle(now, layout) {
+        if (!this.bossState || !layout) {
+            return;
+        }
+
+        const isBattleActive = ![
+            "defeated-fall",
+            "ending-wait",
+            "ending-banner",
+            "ending-drop",
+            "final-stones",
+        ].includes(this.bossState.phase);
+
+        if (
+            isBattleActive &&
+            this.bossState.structurePhase === "idle" &&
+            now - this.bossState.structureLastCycleStartedAtMs >=
+                BOSS_STRUCTURE_REFILL_INTERVAL_MS
+        ) {
+            this.bossState.structurePhase = "rising";
+            this.bossState.structurePhaseStartMs = now;
+            this.bossState.structureLastCycleStartedAtMs = now;
+            return;
+        }
+
+        if (this.bossState.structurePhase === "rising") {
+            if (now - this.bossState.structurePhaseStartMs >= BOSS_STRUCTURE_RISE_MS) {
+                this.restoreBossStageStructure();
+                this.bossState.structurePhase = "falling";
+                this.bossState.structurePhaseStartMs = now;
+            }
+            return;
+        }
+
+        if (this.bossState.structurePhase === "falling") {
+            if (now - this.bossState.structurePhaseStartMs >= BOSS_STRUCTURE_FALL_MS) {
+                this.bossState.structurePhase = "idle";
+                this.bossState.structurePhaseStartMs = now;
+
+                if (this.bossState.structureNeedsHydration) {
+                    this.hydrateBossStageStructure();
+                    this.bossState.structureNeedsHydration = false;
+                }
+            }
+        }
+    }
+
     startBossGroggy(now) {
         if (!this.bossState) {
             return;
@@ -910,6 +1087,9 @@ export class GameController {
         this.bossState.stones = [];
         this.bossState.clearReady = false;
         this.bossState.finalStoneBatchStartedAtMs = null;
+        this.bossState.structurePhase = "idle";
+        this.bossState.structurePhaseStartMs = now;
+        this.bossState.structureNeedsHydration = false;
     }
 
     maybeApplyBossLavaDamage(now, layout) {
@@ -931,10 +1111,12 @@ export class GameController {
             return;
         }
 
-        const damageRects = [
-            this.getBossBodyBounds(now, layout),
-            this.getBossHandBounds(now, layout),
-        ].filter(Boolean);
+        const damageRects = [this.getBossBodyBounds(now, layout)].filter(Boolean);
+        const handLavaBounds = this.getBossHandLavaBounds(now, layout);
+
+        if (handLavaBounds) {
+            damageRects.push(handLavaBounds);
+        }
 
         if (damageRects.length === 0) {
             return;
@@ -1004,7 +1186,7 @@ export class GameController {
             return true;
         }
 
-        const handBounds = this.getBossHandBounds(now, layout);
+        const handBounds = this.getBossHandKillBounds(now, layout);
 
         if (handBounds && intersects(characterBounds, handBounds)) {
             return true;
@@ -1035,6 +1217,7 @@ export class GameController {
         const now = this.elapsedTimeMs;
         const layout = this.getBossLayoutMetrics();
 
+        this.updateBossStructureCycle(now, layout);
         this.maybeApplyBossLavaDamage(now, layout);
 
         switch (this.bossState.phase) {
@@ -1143,6 +1326,7 @@ export class GameController {
         const ending = this.getBossEndingState(now, layout);
         const stones = this.getActiveBossStones(now);
         const shake = this.getBossShakeOffset(now);
+        const structure = this.getBossStructureState(now, layout);
 
         return {
             isVisible: Boolean(visual?.visible),
@@ -1183,6 +1367,7 @@ export class GameController {
             stones,
             ending,
             shake,
+            structure,
         };
     }
 
