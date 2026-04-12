@@ -636,6 +636,71 @@ export class StageModel {
     };
   }
 
+  restoreTriggerTargets(targetIds = [], triggerIds = []) {
+    if (!this.initialTriggerStates) {
+      return false;
+    }
+
+    const targetIdSet = new Set(targetIds);
+    const triggerIdSet = new Set(triggerIds);
+    let didRestore = false;
+
+    this.initialTriggerStates.targets.forEach((state) => {
+      if (!targetIdSet.has(state.id)) {
+        return;
+      }
+
+      if (state.collider === null) {
+        delete state.element.dataset.collider;
+      } else {
+        state.element.dataset.collider = state.collider;
+      }
+
+      if (state.collapseState === null) {
+        delete state.element.dataset.collapseState;
+      } else {
+        state.element.dataset.collapseState = state.collapseState;
+      }
+
+      state.nestedSolidStates.forEach(({ element, collider }) => {
+        if (collider === null) {
+          delete element.dataset.collider;
+        } else {
+          element.dataset.collider = collider;
+        }
+      });
+
+      didRestore = true;
+    });
+
+    this.initialTriggerStates.triggers.forEach((state) => {
+      if (!triggerIdSet.has(state.id)) {
+        return;
+      }
+
+      if (state.triggerUsed === null) {
+        delete state.element.dataset.triggerUsed;
+      } else {
+        state.element.dataset.triggerUsed = state.triggerUsed;
+      }
+
+      didRestore = true;
+    });
+
+    if (!didRestore) {
+      return false;
+    }
+
+    this.allTriggers?.forEach((trigger) => {
+      if (triggerIdSet.has(trigger.id)) {
+        trigger.isUsed = false;
+      }
+    });
+
+    this.markDirty();
+    return true;
+  }
+
   expireTimedBlock(timedBlockId) {
     const timedBlock = this.timedBlocks.find(
       (item) => item.id === timedBlockId && !item.isCollapsed,
