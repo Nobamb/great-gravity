@@ -536,7 +536,9 @@ export class GameView {
       this.bossVisualElement.style.backgroundImage =
         poseImageMap[pose] ?? poseImageMap.base;
       this.bossVisualElement.style.backgroundPosition =
-        pose === "attack" ? "38% center" : "center";
+        pose === "attack" ? "16% center" : "center";
+      this.bossVisualElement.style.backgroundSize =
+        pose === "attack" ? "125% auto" : "contain";
     }
 
     if (this.bossHitFlashElement) {
@@ -628,6 +630,7 @@ export class GameView {
       this.bossVisualElement.dataset.pose = "base";
       this.bossVisualElement.style.backgroundImage = "";
       this.bossVisualElement.style.backgroundPosition = "";
+      this.bossVisualElement.style.backgroundSize = "";
     }
 
     if (this.bossHitFlashElement) {
