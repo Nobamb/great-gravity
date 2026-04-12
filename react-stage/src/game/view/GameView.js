@@ -85,6 +85,29 @@ export class GameView {
       this.containerElement?.querySelector("[data-breath-ui='true']") ?? null;
     this.breathFillElement =
       this.breathElement?.querySelector("[data-breath-fill='true']") ?? null;
+    this.bossHudElement =
+      this.containerElement?.querySelector("[data-boss-hud='true']") ?? null;
+    this.bossHpFillElement =
+      this.containerElement?.querySelector("[data-boss-hp-fill='true']") ?? null;
+    this.bossHpLabelElement =
+      this.containerElement?.querySelector("[data-boss-hp-label='true']") ?? null;
+    this.bossRootElement =
+      this.containerElement?.querySelector("[data-boss-root='true']") ?? null;
+    this.bossVisualElement =
+      this.containerElement?.querySelector("[data-boss-visual='true']") ?? null;
+    this.bossHandElement =
+      this.containerElement?.querySelector("[data-boss-hand='true']") ?? null;
+    this.bossHitFlashElement =
+      this.containerElement?.querySelector("[data-boss-hitflash='true']") ?? null;
+    this.bossStoneLayerElement =
+      this.containerElement?.querySelector("[data-boss-stone-layer='true']") ?? null;
+    this.bossRushWarningElement =
+      this.containerElement?.querySelector("[data-boss-rush-warning='true']") ?? null;
+    this.bossEndingElement =
+      this.containerElement?.querySelector("[data-boss-ending='true']") ?? null;
+    this.bossEndingCardElement =
+      this.containerElement?.querySelector("[data-boss-ending-card='true']") ?? null;
+    this.bossStonePool = [];
     this.activeTriggerElement = null;
     this.collapseTimers = new Map();
     this.customMissionAlarmTimer = null;
@@ -203,6 +226,7 @@ export class GameView {
         this.renderCannonState(interaction.cannonState ?? null);
         this.renderStageMission(interaction.stageMission ?? null);
         this.renderMissionAlarm(interaction.missionAlarm ?? null);
+        this.renderBossState(interaction.bossState ?? null);
         this.renderBreathHud(character);
 
         if (
@@ -435,6 +459,195 @@ export class GameView {
     }
   }
 
+  ensureBossStonePool(size) {
+    if (!this.bossStoneLayerElement) {
+      return;
+    }
+
+    while (this.bossStonePool.length < size) {
+      const stoneElement = document.createElement("span");
+      stoneElement.className = "boss-stage-stone";
+      this.bossStoneLayerElement.appendChild(stoneElement);
+      this.bossStonePool.push(stoneElement);
+    }
+
+    while (this.bossStonePool.length > size) {
+      const stoneElement = this.bossStonePool.pop();
+      stoneElement?.remove();
+    }
+  }
+
+  renderBossState(bossState) {
+    if (!this.bossRootElement) {
+      return;
+    }
+
+    const hasBoss = Boolean(bossState);
+
+    if (this.bossHudElement) {
+      this.bossHudElement.hidden = !hasBoss;
+    }
+
+    if (!hasBoss) {
+      this.resetBossState();
+      return;
+    }
+
+    const hpPercent = Math.max(0, Math.min(100, Number(bossState.hpPercent ?? 0)));
+
+    if (this.bossHpFillElement) {
+      this.bossHpFillElement.style.width = `${hpPercent}%`;
+    }
+
+    if (this.bossHpLabelElement) {
+      this.bossHpLabelElement.textContent = `${Math.round(hpPercent)}%`;
+    }
+
+    this.containerElement?.style.setProperty("--boss-stage-shake-x", `${bossState.shake?.x ?? 0}px`);
+    this.containerElement?.style.setProperty("--boss-stage-shake-y", `${bossState.shake?.y ?? 0}px`);
+
+    this.bossRootElement.hidden = !bossState.isVisible;
+    this.bossRootElement.classList.toggle("is-groggy", Boolean(bossState.isGroggy));
+    this.bossRootElement.classList.toggle("is-damaged", Boolean(bossState.isDamaged));
+    this.bossRootElement.classList.toggle("is-defeated", Boolean(bossState.isDefeated));
+    this.bossRootElement.dataset.pose = bossState.pose ?? "base";
+    this.bossRootElement.style.width = `${bossState.width ?? 0}px`;
+    this.bossRootElement.style.height = `${bossState.height ?? 0}px`;
+    this.bossRootElement.style.transform =
+      `translate3d(${bossState.x ?? 0}px, ${bossState.y ?? 0}px, 0) scaleX(${bossState.facing < 0 ? -1 : 1})`;
+
+    if (this.bossVisualElement) {
+      this.bossVisualElement.dataset.pose = bossState.pose ?? "base";
+    }
+
+    if (this.bossHitFlashElement) {
+      this.bossHitFlashElement.hidden = !bossState.isDamaged;
+    }
+
+    if (this.bossHandElement) {
+      const hand = bossState.hand ?? { visible: false };
+      this.bossHandElement.hidden = !hand.visible;
+
+      if (hand.visible) {
+        this.bossHandElement.style.width = `${hand.width}px`;
+        this.bossHandElement.style.height = `${hand.height}px`;
+        this.bossHandElement.style.transform =
+          `translate3d(${hand.x - (bossState.x ?? 0)}px, ${hand.y - (bossState.y ?? 0)}px, 0)`;
+      }
+    }
+
+    if (this.bossRushWarningElement) {
+      const warning = bossState.rushWarning ?? { visible: false };
+      this.bossRushWarningElement.hidden = !warning.visible;
+
+      if (warning.visible) {
+        this.bossRushWarningElement.style.width = `${warning.width}px`;
+        this.bossRushWarningElement.style.height = `${warning.height}px`;
+        this.bossRushWarningElement.style.transform =
+          `translate3d(${warning.left}px, ${warning.top}px, 0)`;
+      }
+    }
+
+    const stones = bossState.stones ?? [];
+    this.ensureBossStonePool(stones.length);
+
+    stones.forEach((stone, index) => {
+      const stoneElement = this.bossStonePool[index];
+
+      if (!stoneElement) {
+        return;
+      }
+
+      stoneElement.hidden = false;
+      stoneElement.style.width = `${stone.width}px`;
+      stoneElement.style.height = `${stone.height}px`;
+      stoneElement.style.transform = `translate3d(${stone.left}px, ${stone.top}px, 0)`;
+      stoneElement.classList.toggle("is-final-wave", Boolean(stone.finalWave));
+    });
+
+    this.bossStonePool.slice(stones.length).forEach((stoneElement) => {
+      stoneElement.hidden = true;
+    });
+
+    if (this.bossEndingElement && this.bossEndingCardElement) {
+      const ending = bossState.ending ?? { visible: false };
+      this.bossEndingElement.hidden = !ending.visible;
+
+      if (ending.visible) {
+        this.bossEndingCardElement.style.width = `${ending.width}px`;
+        this.bossEndingCardElement.style.height = `${ending.height}px`;
+        this.bossEndingCardElement.style.transform =
+          `translate3d(${ending.x}px, ${ending.y}px, 0) scale(${ending.scale ?? 1})`;
+        this.bossEndingCardElement.style.opacity = `${ending.opacity ?? 1}`;
+      } else {
+        this.bossEndingCardElement.style.opacity = "0";
+      }
+    }
+  }
+
+  resetBossState() {
+    this.containerElement?.style.removeProperty("--boss-stage-shake-x");
+    this.containerElement?.style.removeProperty("--boss-stage-shake-y");
+
+    if (this.bossRootElement) {
+      this.bossRootElement.hidden = true;
+      this.bossRootElement.classList.remove("is-groggy", "is-damaged", "is-defeated");
+      this.bossRootElement.dataset.pose = "base";
+      this.bossRootElement.style.width = "";
+      this.bossRootElement.style.height = "";
+      this.bossRootElement.style.transform = "";
+    }
+
+    if (this.bossVisualElement) {
+      this.bossVisualElement.dataset.pose = "base";
+    }
+
+    if (this.bossHitFlashElement) {
+      this.bossHitFlashElement.hidden = true;
+    }
+
+    if (this.bossHandElement) {
+      this.bossHandElement.hidden = true;
+      this.bossHandElement.style.width = "";
+      this.bossHandElement.style.height = "";
+      this.bossHandElement.style.transform = "";
+    }
+
+    if (this.bossRushWarningElement) {
+      this.bossRushWarningElement.hidden = true;
+      this.bossRushWarningElement.style.width = "";
+      this.bossRushWarningElement.style.height = "";
+      this.bossRushWarningElement.style.transform = "";
+    }
+
+    if (this.bossEndingElement) {
+      this.bossEndingElement.hidden = true;
+    }
+
+    if (this.bossEndingCardElement) {
+      this.bossEndingCardElement.style.width = "";
+      this.bossEndingCardElement.style.height = "";
+      this.bossEndingCardElement.style.transform = "";
+      this.bossEndingCardElement.style.opacity = "0";
+    }
+
+    if (this.bossHpFillElement) {
+      this.bossHpFillElement.style.width = "100%";
+    }
+
+    if (this.bossHpLabelElement) {
+      this.bossHpLabelElement.textContent = "100%";
+    }
+
+    this.bossStonePool.forEach((stoneElement) => {
+      stoneElement.hidden = true;
+      stoneElement.classList.remove("is-final-wave");
+      stoneElement.style.width = "";
+      stoneElement.style.height = "";
+      stoneElement.style.transform = "";
+    });
+  }
+
   renderBreathHud(character) {
     if (!this.breathElement || !this.breathFillElement) {
       return;
@@ -616,6 +829,7 @@ export class GameView {
 
     // Trigger 블록이 죽은 직후에도 완전히 초기 위치/상태로 되돌아오도록 레이아웃을 확정합니다.
     this.resetMissionState();
+    this.resetBossState();
     this.hideMissionAlarm();
 
     void this.containerElement.offsetWidth;
@@ -664,6 +878,7 @@ export class GameView {
       element.classList.remove("is-aiming");
     });
     this.resetMissionState();
+    this.resetBossState();
     this.hideMissionAlarm();
     this.boundRetryClick = null;
     this.boundNextClick = null;
