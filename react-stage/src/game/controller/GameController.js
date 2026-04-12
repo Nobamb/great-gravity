@@ -616,10 +616,10 @@ export class GameController {
         }
 
         const elapsed = now - this.bossState.phaseStartMs;
-        const anchorX = layout.targetX + layout.width * 0.26;
-        const y = layout.targetY + layout.height * 0.44;
-        const height = layout.height * 0.16;
-        const startEndX = anchorX - layout.width * 0.14;
+        const anchorX = layout.targetX + layout.width * 0.31;
+        const y = layout.targetY + layout.height * 0.28;
+        const height = layout.height * 0.2;
+        const startEndX = anchorX - layout.width * 0.16;
         const centerEndX = layout.stageWidth * 0.48;
         const farEndX = layout.stageWidth * 0.02;
         let endX = anchorX;
@@ -645,6 +645,24 @@ export class GameController {
             y,
             width,
             height,
+        };
+    }
+
+    getBossHandBounds(now, layout) {
+        const hand = this.getBossAttackHandState(now, layout);
+
+        if (!hand) {
+            return null;
+        }
+
+        const horizontalInset = hand.width * 0.03;
+        const verticalPadding = hand.height * 0.3;
+
+        return {
+            left: hand.x + horizontalInset,
+            top: hand.y - verticalPadding,
+            right: hand.x + hand.width - horizontalInset,
+            bottom: hand.y + hand.height + verticalPadding,
         };
     }
 
@@ -913,15 +931,18 @@ export class GameController {
             return;
         }
 
-        const bossBounds = this.getBossBodyBounds(now, layout);
+        const damageRects = [
+            this.getBossBodyBounds(now, layout),
+            this.getBossHandBounds(now, layout),
+        ].filter(Boolean);
 
-        if (!bossBounds) {
+        if (damageRects.length === 0) {
             return;
         }
 
         const isTouchingLava = this.stageModel.hazards.some((hazard) => (
             (hazard.type === "lava" || hazard.type === "super-lava") &&
-            intersects(hazard, bossBounds)
+            damageRects.some((damageRect) => intersects(hazard, damageRect))
         ));
 
         if (!isTouchingLava) {
@@ -983,19 +1004,10 @@ export class GameController {
             return true;
         }
 
-        const hand = this.getBossAttackHandState(now, layout);
+        const handBounds = this.getBossHandBounds(now, layout);
 
-        if (hand) {
-            const handBounds = {
-                left: hand.x,
-                top: hand.y,
-                right: hand.x + hand.width,
-                bottom: hand.y + hand.height,
-            };
-
-            if (intersects(characterBounds, handBounds)) {
-                return true;
-            }
+        if (handBounds && intersects(characterBounds, handBounds)) {
+            return true;
         }
 
         const rushRect = this.getBossRushRect(now, layout);
