@@ -93,6 +93,8 @@ export class GameView {
       this.containerElement?.querySelector("[data-boss-hp-label='true']") ?? null;
     this.bossRootElement =
       this.containerElement?.querySelector("[data-boss-root='true']") ?? null;
+    this.bossStructureElement =
+      this.containerElement?.querySelector("[data-boss-structure='true']") ?? null;
     this.bossVisualElement =
       this.containerElement?.querySelector("[data-boss-visual='true']") ?? null;
     this.bossHandElement =
@@ -506,6 +508,11 @@ export class GameView {
     this.containerElement?.style.setProperty("--boss-stage-shake-x", `${bossState.shake?.x ?? 0}px`);
     this.containerElement?.style.setProperty("--boss-stage-shake-y", `${bossState.shake?.y ?? 0}px`);
 
+    if (this.bossStructureElement) {
+      this.bossStructureElement.style.transform =
+        `translate3d(-50%, ${bossState.structure?.offsetY ?? 0}px, 0)`;
+    }
+
     this.bossRootElement.hidden = !bossState.isVisible;
     this.bossRootElement.classList.toggle("is-groggy", Boolean(bossState.isGroggy));
     this.bossRootElement.classList.toggle("is-damaged", Boolean(bossState.isDamaged));
@@ -528,10 +535,12 @@ export class GameView {
       this.bossVisualElement.dataset.pose = pose;
       this.bossVisualElement.style.backgroundImage =
         poseImageMap[pose] ?? poseImageMap.base;
+      this.bossVisualElement.style.backgroundPosition =
+        pose === "attack" ? "38% center" : "center";
     }
 
     if (this.bossHitFlashElement) {
-      this.bossHitFlashElement.hidden = !bossState.isDamaged;
+      this.bossHitFlashElement.hidden = true;
     }
 
     if (this.bossHandElement) {
@@ -602,6 +611,10 @@ export class GameView {
     this.containerElement?.style.removeProperty("--boss-stage-shake-x");
     this.containerElement?.style.removeProperty("--boss-stage-shake-y");
 
+    if (this.bossStructureElement) {
+      this.bossStructureElement.style.transform = "translateX(-50%)";
+    }
+
     if (this.bossRootElement) {
       this.bossRootElement.hidden = true;
       this.bossRootElement.classList.remove("is-groggy", "is-damaged", "is-defeated");
@@ -614,6 +627,7 @@ export class GameView {
     if (this.bossVisualElement) {
       this.bossVisualElement.dataset.pose = "base";
       this.bossVisualElement.style.backgroundImage = "";
+      this.bossVisualElement.style.backgroundPosition = "";
     }
 
     if (this.bossHitFlashElement) {
@@ -660,6 +674,44 @@ export class GameView {
       stoneElement.style.width = "";
       stoneElement.style.height = "";
       stoneElement.style.transform = "";
+    });
+  }
+
+  restoreBossStructureState(targetIds = [], triggerIds = []) {
+    const targetIdSet = new Set(targetIds);
+    const triggerIdSet = new Set(triggerIds);
+
+    targetIdSet.forEach((targetId) => {
+      const targetElement = this.containerElement?.querySelector(
+        `[data-collapse-id="${targetId}"]`,
+      );
+
+      if (!targetElement) {
+        return;
+      }
+
+      const timerId = this.collapseTimers.get(targetElement);
+
+      if (timerId) {
+        window.clearTimeout(timerId);
+        this.collapseTimers.delete(targetElement);
+      }
+
+      targetElement.classList.remove(
+        "is-collapsing",
+        "is-collapsed",
+        "is-resetting",
+      );
+      targetElement.style.removeProperty("--collapse-x");
+      targetElement.style.removeProperty("--collapse-y");
+    });
+
+    triggerIdSet.forEach((triggerId) => {
+      const triggerElement = this.containerElement?.querySelector(
+        `[data-trigger-id="${triggerId}"]`,
+      );
+
+      triggerElement?.classList.remove("is-used", "is-interactable");
     });
   }
 
