@@ -517,7 +517,17 @@ export class GameView {
       `translate3d(${bossState.x ?? 0}px, ${bossState.y ?? 0}px, 0) scaleX(${bossState.facing < 0 ? -1 : 1})`;
 
     if (this.bossVisualElement) {
-      this.bossVisualElement.dataset.pose = bossState.pose ?? "base";
+      const pose = bossState.pose ?? "base";
+      const poseImageMap = {
+        base: "var(--boss-base-image)",
+        upset: "var(--boss-upset-image)",
+        attack: "var(--boss-attack-body-image)",
+        rush: "var(--boss-rush-image)",
+      };
+
+      this.bossVisualElement.dataset.pose = pose;
+      this.bossVisualElement.style.backgroundImage =
+        poseImageMap[pose] ?? poseImageMap.base;
     }
 
     if (this.bossHitFlashElement) {
@@ -529,10 +539,13 @@ export class GameView {
       this.bossHandElement.hidden = !hand.visible;
 
       if (hand.visible) {
+        this.bossHandElement.style.backgroundImage = "var(--boss-attack-hand-image)";
         this.bossHandElement.style.width = `${hand.width}px`;
         this.bossHandElement.style.height = `${hand.height}px`;
         this.bossHandElement.style.transform =
           `translate3d(${hand.x - (bossState.x ?? 0)}px, ${hand.y - (bossState.y ?? 0)}px, 0)`;
+      } else {
+        this.bossHandElement.style.backgroundImage = "";
       }
     }
 
@@ -600,6 +613,7 @@ export class GameView {
 
     if (this.bossVisualElement) {
       this.bossVisualElement.dataset.pose = "base";
+      this.bossVisualElement.style.backgroundImage = "";
     }
 
     if (this.bossHitFlashElement) {
@@ -608,6 +622,7 @@ export class GameView {
 
     if (this.bossHandElement) {
       this.bossHandElement.hidden = true;
+      this.bossHandElement.style.backgroundImage = "";
       this.bossHandElement.style.width = "";
       this.bossHandElement.style.height = "";
       this.bossHandElement.style.transform = "";
