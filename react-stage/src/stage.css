@@ -3642,6 +3642,12 @@ body {
 }
 
 .boss-stage-boss {
+  --boss-visual-filter: drop-shadow(
+      0 calc(18 * var(--cw)) calc(28 * var(--cw)) rgba(0, 0, 0, 0.38)
+    );
+  --boss-hand-filter: drop-shadow(
+      0 calc(8 * var(--cw)) calc(14 * var(--cw)) rgba(0, 0, 0, 0.32)
+    );
   position: absolute;
   left: 0;
   top: 0;
@@ -3656,38 +3662,41 @@ body {
 .boss-stage-boss__hand,
 .boss-stage-boss__flash {
   position: absolute;
-  inset: 0;
 }
 
 .boss-stage-boss__visual {
+  inset: 0;
+  z-index: 1;
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
   background-color: transparent;
-  filter: drop-shadow(
-    0 calc(18 * var(--cw)) calc(28 * var(--cw)) rgba(0, 0, 0, 0.38)
-  );
+  filter: var(--boss-visual-filter);
 }
 
 .boss-stage-boss.is-groggy .boss-stage-boss__visual {
   animation: bossGroggyPulse 0.1s linear infinite alternate;
 }
 
-.boss-stage-boss.is-damaged .boss-stage-boss__flash,
-.boss-stage-boss.is-defeated .boss-stage-boss__flash {
-  opacity: 1;
+.boss-stage-boss.is-damaged,
+.boss-stage-boss.is-defeated {
+  --boss-visual-filter:
+    drop-shadow(0 calc(18 * var(--cw)) calc(28 * var(--cw)) rgba(0, 0, 0, 0.38))
+    drop-shadow(0 0 calc(24 * var(--cw)) rgba(255, 18, 18, 0.5))
+    sepia(80%) hue-rotate(-50deg) saturate(400%) brightness(1.1);
+  --boss-hand-filter:
+    drop-shadow(0 calc(8 * var(--cw)) calc(14 * var(--cw)) rgba(0, 0, 0, 0.32))
+    drop-shadow(0 0 calc(18 * var(--cw)) rgba(255, 18, 18, 0.4))
+    sepia(80%) hue-rotate(-50deg) saturate(400%) brightness(1.1);
 }
 
 .boss-stage-boss__flash {
-  opacity: 0;
-  border-radius: 50%;
-  background: rgba(255, 24, 12, 0.52);
-  mix-blend-mode: screen;
-  transition: opacity 120ms linear;
+  display: none;
 }
 
 .boss-stage-boss__hand {
   inset: auto auto 0 0;
+  z-index: 2;
   width: calc(220 * var(--cw));
   height: calc(54 * var(--cw));
   transform-origin: right center;
@@ -3695,9 +3704,7 @@ body {
   background-repeat: no-repeat;
   background-size: 100% 100%;
   background-color: transparent;
-  filter: drop-shadow(
-    0 calc(8 * var(--cw)) calc(14 * var(--cw)) rgba(0, 0, 0, 0.32)
-  );
+  filter: var(--boss-hand-filter);
 }
 
 .boss-stage-rush-warning {
