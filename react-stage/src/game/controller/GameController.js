@@ -11,6 +11,10 @@ function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
 
+function lerp(start, end, progress) {
+    return start + (end - start) * progress;
+}
+
 function expandTreasureInteractionBounds(bounds) {
     const horizontalPadding = bounds.width * 0.08;
     const topExpansion = bounds.height * 0.7;
@@ -27,6 +31,21 @@ function expandTreasureInteractionBounds(bounds) {
 
 const TIMED_BLOCK_DURATION_MS = 1000;
 const CUSTOM_MISSION_ALARM_DURATION_MS = 1600;
+const BOSS_STAGE_ID = "bossStage";
+const BOSS_PATTERN_INTERVAL_MS = 10000;
+const BOSS_INTRO_DURATION_MS = 3000;
+const BOSS_PATTERN1_DURATION_MS = 2300;
+const BOSS_PATTERN2_DURATION_MS = 5000;
+const BOSS_PATTERN3_WARNING_MS = 1000;
+const BOSS_PATTERN3_RUSH_MS = 500;
+const BOSS_GROGGY_DURATION_MS = 1000;
+const BOSS_DAMAGE_COOLDOWN_MS = 1000;
+const BOSS_DEFEAT_FALL_MS = 3000;
+const BOSS_ENDING_WAIT_MS = 1000;
+const BOSS_ENDING_BANNER_MS = 1000;
+const BOSS_ENDING_DROP_MS = 1000;
+const BOSS_FINAL_STONES_MS = 2200;
+const BOSS_DAMAGE_PER_HIT = 10;
 const STAGE7_LOCKED_TREASURE_MESSAGE =
     "지금은 보물에 접근할 수 없습니다!\n몬스터 2마리를 처치하고 오세요!";
 const STAGE4_LOCKED_TREASURE_MESSAGE =
@@ -89,6 +108,7 @@ export class GameController {
         this.isAimingCannon = false;
         this.timedBlockStates = new Map();
         this.monsterStates = new Map();
+        this.bossState = null;
         this.customMissionAlarm = null;
         this.customMissionAlarmToken = 0;
         this.portalCooldownMs = 0;
@@ -183,6 +203,31 @@ export class GameController {
                 },
             ]),
         );
+
+        this.bossState = this.isBossStage()
+            ? this.createBossState()
+            : null;
+    }
+
+    isBossStage() {
+        return this.stage?.id === BOSS_STAGE_ID;
+    }
+
+    createBossState() {
+        return {
+            hp: 100,
+            phase: "intro",
+            phaseStartMs: 0,
+            lastPatternStartMs: 0,
+            patternCursor: 0,
+            rushDirection: -1,
+            rushLaneIndex: 0,
+            damageCooldownUntilMs: 0,
+            damageFlashUntilMs: 0,
+            stones: [],
+            finalStoneBatchStartedAtMs: null,
+            clearReady: false,
+        };
     }
 
     tick(timestamp) {
@@ -266,6 +311,19 @@ export class GameController {
             this.syncPhysicsRuntimeState();
             this.handleContactTriggerHits();
             this.updateMonsters(this.fixedDeltaTime);
+            const bossOutcome = this.updateBossStage(this.fixedDeltaTime);
+
+            if (bossOutcome.didDie) {
+                this.handlePlayerDeath();
+                this.accumulator = 0;
+                break;
+            }
+
+            if (bossOutcome.didClear) {
+                this.handleStageClear();
+                this.accumulator = 0;
+                break;
+            }
             this.handlePortalTraversal();
 
             if (this.isCharacterTouchingMonster()) {
@@ -319,6 +377,7 @@ export class GameController {
             cannonState: this.getCannonRenderState(),
             stageMission: this.getStageMissionRenderState(),
             missionAlarm: this.getMissionAlarmRenderState(),
+            bossState: this.getBossRenderState(),
         };
     }
 
@@ -437,6 +496,684 @@ export class GameController {
         };
     }
 
+    getBossLayoutMetrics() {
+        if (!this.isBossStage()) {
+            return null;
+        }
+
+        const { width: stageWidth, height: stageHeight } = this.stageModel.bounds;
+        const width = stageWidth * 0.34;
+        const height = stageHeight * 0.56;
+
+        return {
+            stageWidth,
+            stageHeight,
+            width,
+            height,
+            targetX: stageWidth - width * 0.54,
+            targetY: stageHeight * 0.08,
+            introY: stageHeight + height * 0.35,
+            defeatY: stageHeight + height * 0.2,
+            rushHeight: stageHeight * 0.22,
+            warningLeft: stageWidth * 0.04,
+            warningWidth: stageWidth * 0.92,
+            endCardWidth: stageWidth * 0.3,
+            endCardHeight: stageHeight * 0.24,
+        };
+    }
+
+    getBossPatternSequence() {
+        if (!this.bossState) {
+            return [];
+        }
+
+        return this.bossState.hp > 50 ? [1, 2] : [1, 2, 3];
+    }
+
+    transitionBossToIdle(now, resetPatternClock = false) {
+        if (!this.bossState) {
+            return;
+        }
+
+        this.bossState.phase = "idle";
+        this.bossState.phaseStartMs = now;
+        this.bossState.stones = [];
+
+        if (resetPatternClock) {
+            this.bossState.lastPatternStartMs = now - (BOSS_PATTERN_INTERVAL_MS - 1600);
+        }
+    }
+
+    getBossRushLaneTop(layout) {
+        const laneRatios = [0.26, 0.48, 0.68];
+        const laneRatio =
+            laneRatios[this.bossState?.rushLaneIndex % laneRatios.length] ?? laneRatios[0];
+
+        return layout.stageHeight * laneRatio - layout.rushHeight / 2;
+    }
+
+    createBossStoneWave(now, finalWave = false) {
+        const { stageWidth, stageHeight } = this.stageModel.bounds;
+        const count = finalWave ? 5 : 3 + Math.floor(Math.random() * 3);
+
+        return Array.from({ length: count }, (_, index) => {
+            const size = finalWave
+                ? stageWidth * 0.036
+                : stageWidth * (0.026 + Math.random() * 0.014);
+            const x = finalWave
+                ? lerp(stageWidth * 0.14, stageWidth * 0.82, count === 1 ? 0.5 : index / (count - 1))
+                : stageWidth * (0.12 + Math.random() * 0.72);
+
+            return {
+                id: `${finalWave ? "boss-final" : "boss-pattern"}-stone-${now}-${index}`,
+                x,
+                size,
+                startY: -size - (finalWave ? index * size * 0.18 : Math.random() * size * 1.2),
+                endY: stageHeight + size * 1.4,
+                startMs: now,
+                delayMs: finalWave ? index * 130 : Math.random() * 700,
+                durationMs: finalWave ? 1700 : 3000,
+                finalWave,
+            };
+        });
+    }
+
+    getActiveBossStones(now) {
+        if (!this.bossState) {
+            return [];
+        }
+
+        return this.bossState.stones
+            .map((stone) => {
+                const elapsed = now - stone.startMs - stone.delayMs;
+
+                if (elapsed < 0) {
+                    return null;
+                }
+
+                const progress = clamp(elapsed / stone.durationMs, 0, 1);
+
+                if (progress >= 1) {
+                    return null;
+                }
+
+                return {
+                    id: stone.id,
+                    left: stone.x - stone.size / 2,
+                    top: lerp(stone.startY, stone.endY, progress),
+                    width: stone.size,
+                    height: stone.size,
+                    progress,
+                    finalWave: stone.finalWave,
+                };
+            })
+            .filter(Boolean);
+    }
+
+    getBossAttackHandState(now, layout) {
+        if (this.bossState?.phase !== "pattern1") {
+            return null;
+        }
+
+        const elapsed = now - this.bossState.phaseStartMs;
+        const anchorX = layout.targetX + layout.width * 0.26;
+        const y = layout.targetY + layout.height * 0.44;
+        const height = layout.height * 0.16;
+        const startEndX = anchorX - layout.width * 0.14;
+        const centerEndX = layout.stageWidth * 0.48;
+        const farEndX = layout.stageWidth * 0.02;
+        let endX = anchorX;
+
+        if (elapsed < 1000) {
+            endX = lerp(startEndX, centerEndX, elapsed / 1000);
+        } else if (elapsed < 1500) {
+            endX = centerEndX;
+        } else if (elapsed < 1800) {
+            endX = lerp(centerEndX, farEndX, (elapsed - 1500) / 300);
+        } else if (elapsed < BOSS_PATTERN1_DURATION_MS) {
+            endX = lerp(farEndX, anchorX, (elapsed - 1800) / 500);
+        }
+
+        const width = Math.max(0, anchorX - endX);
+
+        if (width <= layout.width * 0.04) {
+            return null;
+        }
+
+        return {
+            x: endX,
+            y,
+            width,
+            height,
+        };
+    }
+
+    getBossRushRect(now, layout) {
+        if (this.bossState?.phase !== "pattern3-rush") {
+            return null;
+        }
+
+        const progress = clamp(
+            (now - this.bossState.phaseStartMs) / BOSS_PATTERN3_RUSH_MS,
+            0,
+            1,
+        );
+        const direction = this.bossState.rushDirection;
+        const startX = direction < 0
+            ? layout.stageWidth + layout.width * 0.12
+            : -layout.width * 0.82;
+        const endX = direction < 0
+            ? -layout.width * 0.82
+            : layout.stageWidth + layout.width * 0.12;
+
+        return {
+            left: lerp(startX, endX, progress),
+            top: this.getBossRushLaneTop(layout) - layout.height * 0.08,
+            width: layout.width,
+            height: layout.height * 0.84,
+            direction,
+        };
+    }
+
+    getBossVisualState(now, layout) {
+        if (!this.bossState || !layout) {
+            return null;
+        }
+
+        const phase = this.bossState.phase;
+
+        if (phase === "intro") {
+            const progress = clamp(
+                (now - this.bossState.phaseStartMs) / BOSS_INTRO_DURATION_MS,
+                0,
+                1,
+            );
+
+            return {
+                visible: true,
+                x: layout.targetX,
+                y: lerp(layout.introY, layout.targetY, progress),
+                width: layout.width,
+                height: layout.height,
+                pose: "base",
+                facing: 1,
+            };
+        }
+
+        if (phase === "pattern3-rush") {
+            const rushRect = this.getBossRushRect(now, layout);
+
+            return rushRect
+                ? {
+                    visible: true,
+                    x: rushRect.left,
+                    y: rushRect.top,
+                    width: rushRect.width,
+                    height: rushRect.height,
+                    pose: "rush",
+                    facing: rushRect.direction,
+                }
+                : null;
+        }
+
+        if (phase === "defeated-fall") {
+            const progress = clamp(
+                (now - this.bossState.phaseStartMs) / BOSS_DEFEAT_FALL_MS,
+                0,
+                1,
+            );
+
+            return {
+                visible: true,
+                x: layout.targetX,
+                y: lerp(layout.targetY, layout.defeatY, progress),
+                width: layout.width,
+                height: layout.height,
+                pose: "base",
+                facing: 1,
+            };
+        }
+
+        if (["ending-wait", "ending-banner", "ending-drop", "final-stones"].includes(phase)) {
+            return {
+                visible: false,
+                x: layout.targetX,
+                y: layout.targetY,
+                width: layout.width,
+                height: layout.height,
+                pose: "base",
+                facing: 1,
+            };
+        }
+
+        return {
+            visible: true,
+            x: layout.targetX,
+            y: layout.targetY,
+            width: layout.width,
+            height: layout.height,
+            pose: phase === "pattern1"
+                ? "attack"
+                : phase === "pattern2"
+                    ? "upset"
+                    : "base",
+            facing: 1,
+        };
+    }
+
+    getBossBodyBounds(now, layout) {
+        const visual = this.getBossVisualState(now, layout);
+
+        if (!visual?.visible) {
+            return null;
+        }
+
+        return {
+            left: visual.x + visual.width * 0.04,
+            top: visual.y + visual.height * 0.08,
+            right: visual.x + visual.width * 0.74,
+            bottom: visual.y + visual.height * 0.92,
+        };
+    }
+
+    getBossShakeOffset(now) {
+        if (!this.bossState) {
+            return { x: 0, y: 0 };
+        }
+
+        if (this.bossState.phase === "pattern2") {
+            const elapsed = now - this.bossState.phaseStartMs;
+            let intensityRatio = 0;
+
+            if (elapsed < 1000) {
+                intensityRatio = 0.05;
+            } else if (elapsed < 3000) {
+                intensityRatio = 0.03;
+            } else if (elapsed < 5000) {
+                intensityRatio = 0.01;
+            }
+
+            return {
+                x: Math.sin(now / 22) * this.stageModel.bounds.width * intensityRatio,
+                y: Math.cos(now / 28) * this.stageModel.bounds.height * intensityRatio,
+            };
+        }
+
+        if (this.bossState.phase === "groggy") {
+            const intensity = this.stageModel.bounds.width * 0.03;
+
+            return {
+                x: Math.sin((now - this.bossState.phaseStartMs) / 18) * intensity,
+                y: 0,
+            };
+        }
+
+        return { x: 0, y: 0 };
+    }
+
+    getBossEndingState(now, layout) {
+        if (!this.bossState || !layout) {
+            return {
+                visible: false,
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0,
+                scale: 1,
+                opacity: 0,
+            };
+        }
+
+        if (this.bossState.phase === "ending-banner") {
+            const progress = clamp(
+                (now - this.bossState.phaseStartMs) / BOSS_ENDING_BANNER_MS,
+                0,
+                1,
+            );
+
+            return {
+                visible: true,
+                x: (layout.stageWidth - layout.endCardWidth) / 2,
+                y: layout.stageHeight * 0.34,
+                width: layout.endCardWidth,
+                height: layout.endCardHeight,
+                scale: lerp(0.42, 1, progress),
+                opacity: 1,
+            };
+        }
+
+        if (this.bossState.phase === "ending-drop") {
+            const progress = clamp(
+                (now - this.bossState.phaseStartMs) / BOSS_ENDING_DROP_MS,
+                0,
+                1,
+            );
+
+            return {
+                visible: true,
+                x: (layout.stageWidth - layout.endCardWidth) / 2,
+                y: lerp(layout.stageHeight * 0.34, layout.stageHeight * 0.92, progress),
+                width: layout.endCardWidth,
+                height: layout.endCardHeight,
+                scale: 1,
+                opacity: 1 - progress * 0.75,
+            };
+        }
+
+        return {
+            visible: false,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            scale: 1,
+            opacity: 0,
+        };
+    }
+
+    startBossGroggy(now) {
+        if (!this.bossState) {
+            return;
+        }
+
+        this.bossState.phase = "groggy";
+        this.bossState.phaseStartMs = now;
+        this.bossState.stones = [];
+    }
+
+    startBossDefeat(now) {
+        if (!this.bossState) {
+            return;
+        }
+
+        this.bossState.hp = 0;
+        this.bossState.phase = "defeated-fall";
+        this.bossState.phaseStartMs = now;
+        this.bossState.stones = [];
+        this.bossState.clearReady = false;
+        this.bossState.finalStoneBatchStartedAtMs = null;
+    }
+
+    maybeApplyBossLavaDamage(now, layout) {
+        if (!this.bossState || !layout) {
+            return;
+        }
+
+        if (
+            this.bossState.phase === "final-stones" ||
+            this.bossState.phase === "ending-wait" ||
+            this.bossState.phase === "ending-banner" ||
+            this.bossState.phase === "ending-drop" ||
+            this.bossState.phase === "defeated-fall"
+        ) {
+            return;
+        }
+
+        if (now < this.bossState.damageCooldownUntilMs) {
+            return;
+        }
+
+        const bossBounds = this.getBossBodyBounds(now, layout);
+
+        if (!bossBounds) {
+            return;
+        }
+
+        const isTouchingLava = this.stageModel.hazards.some((hazard) => (
+            (hazard.type === "lava" || hazard.type === "super-lava") &&
+            intersects(hazard, bossBounds)
+        ));
+
+        if (!isTouchingLava) {
+            return;
+        }
+
+        this.bossState.hp = Math.max(0, this.bossState.hp - BOSS_DAMAGE_PER_HIT);
+        this.bossState.damageCooldownUntilMs = now + BOSS_DAMAGE_COOLDOWN_MS;
+        this.bossState.damageFlashUntilMs = now + BOSS_DAMAGE_COOLDOWN_MS;
+
+        if (this.bossState.hp <= 0) {
+            this.startBossDefeat(now);
+            return;
+        }
+
+        if (this.bossState.hp > 50) {
+            this.startBossGroggy(now);
+        }
+    }
+
+    startNextBossPattern(now) {
+        if (!this.bossState) {
+            return;
+        }
+
+        const sequence = this.getBossPatternSequence();
+        const nextPattern =
+            sequence[this.bossState.patternCursor % sequence.length] ?? 1;
+
+        this.bossState.patternCursor += 1;
+        this.bossState.lastPatternStartMs = now;
+        this.bossState.phaseStartMs = now;
+        this.bossState.stones = [];
+
+        if (nextPattern === 1) {
+            this.bossState.phase = "pattern1";
+            return;
+        }
+
+        if (nextPattern === 2) {
+            this.bossState.phase = "pattern2";
+            this.bossState.stones = this.createBossStoneWave(now, false);
+            return;
+        }
+
+        this.bossState.phase = "pattern3-warning";
+        this.bossState.rushLaneIndex += 1;
+    }
+
+    isCharacterTouchingBossHazard(now, layout) {
+        if (!this.bossState || !layout) {
+            return false;
+        }
+
+        const characterBounds = this.characterModel.getBounds();
+        const bossBounds = this.getBossBodyBounds(now, layout);
+
+        if (bossBounds && intersects(characterBounds, bossBounds)) {
+            return true;
+        }
+
+        const hand = this.getBossAttackHandState(now, layout);
+
+        if (hand) {
+            const handBounds = {
+                left: hand.x,
+                top: hand.y,
+                right: hand.x + hand.width,
+                bottom: hand.y + hand.height,
+            };
+
+            if (intersects(characterBounds, handBounds)) {
+                return true;
+            }
+        }
+
+        const rushRect = this.getBossRushRect(now, layout);
+
+        if (rushRect && intersects(characterBounds, rushRect)) {
+            return true;
+        }
+
+        return this.getActiveBossStones(now).some((stone) => intersects(characterBounds, {
+            left: stone.left,
+            top: stone.top,
+            right: stone.left + stone.width,
+            bottom: stone.top + stone.height,
+        }));
+    }
+
+    updateBossStage() {
+        if (!this.bossState || !this.isBossStage()) {
+            return {
+                didDie: false,
+                didClear: false,
+            };
+        }
+
+        const now = this.elapsedTimeMs;
+        const layout = this.getBossLayoutMetrics();
+
+        this.maybeApplyBossLavaDamage(now, layout);
+
+        switch (this.bossState.phase) {
+            case "intro":
+                if (now - this.bossState.phaseStartMs >= BOSS_INTRO_DURATION_MS) {
+                    this.bossState.phase = "idle";
+                    this.bossState.phaseStartMs = now;
+                    this.bossState.lastPatternStartMs = now - (BOSS_PATTERN_INTERVAL_MS - 1600);
+                }
+                break;
+            case "idle":
+                if (now - this.bossState.lastPatternStartMs >= BOSS_PATTERN_INTERVAL_MS) {
+                    this.startNextBossPattern(now);
+                }
+                break;
+            case "pattern1":
+                if (now - this.bossState.phaseStartMs >= BOSS_PATTERN1_DURATION_MS) {
+                    this.transitionBossToIdle(now);
+                }
+                break;
+            case "pattern2":
+                if (now - this.bossState.phaseStartMs >= BOSS_PATTERN2_DURATION_MS) {
+                    this.transitionBossToIdle(now);
+                }
+                break;
+            case "pattern3-warning":
+                if (now - this.bossState.phaseStartMs >= BOSS_PATTERN3_WARNING_MS) {
+                    this.bossState.phase = "pattern3-rush";
+                    this.bossState.phaseStartMs = now;
+                }
+                break;
+            case "pattern3-rush":
+                if (now - this.bossState.phaseStartMs >= BOSS_PATTERN3_RUSH_MS) {
+                    this.bossState.rushDirection *= -1;
+                    this.transitionBossToIdle(now);
+                }
+                break;
+            case "groggy":
+                if (now - this.bossState.phaseStartMs >= BOSS_GROGGY_DURATION_MS) {
+                    this.transitionBossToIdle(now, true);
+                }
+                break;
+            case "defeated-fall":
+                if (now - this.bossState.phaseStartMs >= BOSS_DEFEAT_FALL_MS) {
+                    this.bossState.phase = "ending-wait";
+                    this.bossState.phaseStartMs = now;
+                }
+                break;
+            case "ending-wait":
+                if (now - this.bossState.phaseStartMs >= BOSS_ENDING_WAIT_MS) {
+                    this.bossState.phase = "ending-banner";
+                    this.bossState.phaseStartMs = now;
+                }
+                break;
+            case "ending-banner":
+                if (now - this.bossState.phaseStartMs >= BOSS_ENDING_BANNER_MS) {
+                    this.bossState.phase = "ending-drop";
+                    this.bossState.phaseStartMs = now;
+                }
+                break;
+            case "ending-drop":
+                if (now - this.bossState.phaseStartMs >= BOSS_ENDING_DROP_MS) {
+                    this.bossState.phase = "final-stones";
+                    this.bossState.phaseStartMs = now;
+                    this.bossState.finalStoneBatchStartedAtMs = now;
+                    this.bossState.stones = this.createBossStoneWave(now, true);
+                }
+                break;
+            case "final-stones":
+                if (
+                    !this.bossState.clearReady &&
+                    now - this.bossState.phaseStartMs >= BOSS_FINAL_STONES_MS &&
+                    this.getActiveBossStones(now).length === 0
+                ) {
+                    this.bossState.clearReady = true;
+                }
+                break;
+            default:
+                break;
+        }
+
+        return {
+            didDie: this.isCharacterTouchingBossHazard(now, layout),
+            didClear: this.bossState.clearReady,
+        };
+    }
+
+    getBossRenderState() {
+        if (!this.bossState || !this.isBossStage()) {
+            return null;
+        }
+
+        const now = this.elapsedTimeMs;
+        const layout = this.getBossLayoutMetrics();
+        const visual = this.getBossVisualState(now, layout);
+        const hand = this.getBossAttackHandState(now, layout);
+        const rushWarning = this.bossState.phase === "pattern3-warning"
+            ? {
+                visible: true,
+                left: layout.warningLeft,
+                top: this.getBossRushLaneTop(layout),
+                width: layout.warningWidth,
+                height: layout.rushHeight,
+            }
+            : null;
+        const ending = this.getBossEndingState(now, layout);
+        const stones = this.getActiveBossStones(now);
+        const shake = this.getBossShakeOffset(now);
+
+        return {
+            isVisible: Boolean(visual?.visible),
+            x: visual?.x ?? 0,
+            y: visual?.y ?? 0,
+            width: visual?.width ?? 0,
+            height: visual?.height ?? 0,
+            pose: visual?.pose ?? "base",
+            facing: visual?.facing ?? -1,
+            hpPercent: this.bossState.hp,
+            isGroggy: this.bossState.phase === "groggy",
+            isDamaged: now < this.bossState.damageFlashUntilMs,
+            isDefeated: this.bossState.phase === "defeated-fall",
+            hand: hand
+                ? {
+                    visible: true,
+                    x: hand.x,
+                    y: hand.y,
+                    width: hand.width,
+                    height: hand.height,
+                }
+                : { visible: false, x: 0, y: 0, width: 0, height: 0 },
+            rushWarning: rushWarning
+                ? {
+                    visible: true,
+                    left: rushWarning.left,
+                    top: rushWarning.top,
+                    width: rushWarning.width,
+                    height: rushWarning.height,
+                }
+                : {
+                    visible: false,
+                    left: 0,
+                    top: 0,
+                    width: 0,
+                    height: 0,
+                },
+            stones,
+            ending,
+            shake,
+        };
+    }
+
     handleStageResize(stageState) {
         if (!stageState.changed) {
             return;
@@ -448,6 +1185,15 @@ export class GameController {
         this.characterModel.updateSpawn(this.stageModel.getSpawnPoint(characterSize));
         this.gameView.refreshStageAnchors?.();
         this.resetMonsterStatesToStageLayout();
+        if (this.bossState) {
+            this.bossState.stones = this.bossState.stones.map((stone) => ({
+                ...stone,
+                x: stone.x * stageState.scaleX,
+                size: stone.size * stageState.scaleX,
+                startY: stone.startY * stageState.scaleY,
+                endY: stone.endY * stageState.scaleY,
+            }));
+        }
         this.updateActiveTrigger();
     }
 
