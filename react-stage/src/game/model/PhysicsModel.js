@@ -403,15 +403,20 @@ export class PhysicsModel {
       })
       .filter(Boolean);
 
+    this.rebuildDynamicBodyCache();
     const treasureSourceElement =
       this.treasureAnchorElement ?? this.treasureElement;
-    const treasureRect = createRelativeRect(
-      treasureSourceElement.getBoundingClientRect(),
-      containerRect,
-    );
 
-    this.rebuildDynamicBodyCache();
-    this.dynamicBodies.treasure = this.createTreasureBody(treasureRect);
+    if (treasureSourceElement) {
+      const treasureRect = createRelativeRect(
+        treasureSourceElement.getBoundingClientRect(),
+        containerRect,
+      );
+
+      this.dynamicBodies.treasure = this.createTreasureBody(treasureRect);
+    } else {
+      this.dynamicBodies.treasure = null;
+    }
 
     if (this.stoneElement && this.stoneAnchorElement) {
       const stoneRect = createRelativeRect(
@@ -432,7 +437,10 @@ export class PhysicsModel {
     this.stoneAirborneFrames = 0;
     this.stoneReleaseOrigin = null;
 
-    this.addBodies([...this.getAllFluidBodies(), this.dynamicBodies.treasure]);
+    this.addBodies([
+      ...this.getAllFluidBodies(),
+      ...(this.dynamicBodies.treasure ? [this.dynamicBodies.treasure] : []),
+    ]);
 
     this.elapsed = 0;
   }
