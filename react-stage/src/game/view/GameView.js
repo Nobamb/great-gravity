@@ -137,7 +137,7 @@ export class GameView {
     this.bossEndingCardElement =
       this.containerElement?.querySelector("[data-boss-ending-card='true']") ??
       null;
-    this.bossStonePool = [];
+    this.bossStoneSlots = this.getBossStoneSlots();
     this.activeTriggerElement = null;
     this.collapseTimers = new Map();
     this.customMissionAlarmTimer = null;
@@ -146,8 +146,13 @@ export class GameView {
     this.boundNextClick = null;
     this.reportedBossImageErrors = new Set();
     this.reportedBossImageLoads = new Set();
+    this.reportedBossStoneSlotLoads = new Set();
+    this.reportedBossStoneSlotErrors = new Set();
+    this.lastBossStoneRenderSignature = "";
     this.boundBossVisualImageError = this.handleBossVisualImageError.bind(this);
     this.boundBossVisualImageLoad = this.handleBossVisualImageLoad.bind(this);
+    this.boundBossStoneImageError = this.handleBossStoneImageError.bind(this);
+    this.boundBossStoneImageLoad = this.handleBossStoneImageLoad.bind(this);
 
     if (this.bossVisualImageElement) {
       this.bossVisualImageElement.addEventListener(
@@ -159,6 +164,8 @@ export class GameView {
         this.boundBossVisualImageLoad,
       );
     }
+
+    this.bindBossStoneSlotListeners();
   }
 
   measureCharacter() {
@@ -174,6 +181,12 @@ export class GameView {
     this.bossStructureElement =
       this.containerElement?.querySelector("[data-boss-structure='true']") ??
       null;
+    this.bossStoneLayerElement =
+      this.containerElement?.querySelector("[data-boss-stone-layer='true']") ??
+      null;
+    this.bossStoneSlots = this.getBossStoneSlots();
+    this.lastBossStoneRenderSignature = "";
+    this.bindBossStoneSlotListeners();
   }
 
   refreshStageAnchors() {
@@ -540,22 +553,221 @@ export class GameView {
     }
   }
 
-  ensureBossStonePool(size) {
+  getBossStoneSrc() {
+    return this.bossStoneLayerElement?.dataset.bossStoneSrc ?? "";
+  }
+
+  getBossStoneSlots() {
+    if (!this.bossStoneLayerElement) {
+      return [];
+    }
+
+    return Array.from(
+      this.bossStoneLayerElement.querySelectorAll("[data-boss-stone-slot]"),
+    )
+      .sort(
+        (a, b) =>
+          Number(a.dataset.bossStoneSlot ?? 0) -
+          Number(b.dataset.bossStoneSlot ?? 0),
+      )
+      .map((element) => ({
+        element,
+        imageElement:
+          element.querySelector("[data-boss-stone-image='true']") ?? null,
+      }));
+  }
+
+  debugBossStone(eventName, payload = {}) {
+    console.info(`[boss-stone] ${eventName}`, payload);
+  }
+
+  bindBossStoneSlotListeners() {
+    this.bossStoneSlots.forEach(({ imageElement }) => {
+      if (!imageElement) {
+        return;
+      }
+
+      imageElement.removeEventListener("load", this.boundBossStoneImageLoad);
+      imageElement.removeEventListener("error", this.boundBossStoneImageError);
+      imageElement.addEventListener("load", this.boundBossStoneImageLoad);
+      imageElement.addEventListener("error", this.boundBossStoneImageError);
+
+      if (imageElement.complete) {
+        if (imageElement.naturalWidth > 0) {
+          this.logBossStoneSlotLoad(imageElement);
+        } else {
+          this.logBossStoneSlotError(imageElement);
+        }
+      }
+    });
+  }
+
+  logBossStoneSlotLoad(imageElement) {
+    const slotIndex =
+      imageElement.closest("[data-boss-stone-slot]")?.dataset.bossStoneSlot ??
+      "unknown";
+    const signature = `${slotIndex}:${imageElement.currentSrc || imageElement.src}`;
+
+    if (this.reportedBossStoneSlotLoads.has(signature)) {
+      return;
+    }
+
+    this.reportedBossStoneSlotLoads.add(signature);
+    this.debugBossStone("slot image load", {
+      slot: Number(slotIndex),
+      src: imageElement.currentSrc || imageElement.src || "",
+      naturalWidth: imageElement.naturalWidth,
+      naturalHeight: imageElement.naturalHeight,
+    });
+  }
+
+  logBossStoneSlotError(imageElement) {
+    const slotIndex =
+      imageElement.closest("[data-boss-stone-slot]")?.dataset.bossStoneSlot ??
+      "unknown";
+    const signature = `${slotIndex}:${imageElement.currentSrc || imageElement.src}`;
+
+    if (this.reportedBossStoneSlotErrors.has(signature)) {
+      return;
+    }
+
+    this.reportedBossStoneSlotErrors.add(signature);
+    console.warn("[boss-stone] slot image error", {
+      slot: Number(slotIndex),
+      src: imageElement.currentSrc || imageElement.src || "",
+    });
+  }
+
+  handleBossStoneImageLoad(event) {
+    const imageElement = event.currentTarget;
+
+    if (!imageElement) {
+      return;
+    }
+
+    this.logBossStoneSlotLoad(imageElement);
+  }
+
+  handleBossStoneImageError(event) {
+    const imageElement = event.currentTarget;
+
+    if (!imageElement) {
+      return;
+    }
+
+    this.logBossStoneSlotError(imageElement);
+  }
+
+  clearBossStoneElements() {
+    if (this.bossStoneSlots.length === 0) {
+      this.bossStoneSlots = this.getBossStoneSlots();
+      this.bindBossStoneSlotListeners();
+    }
+    this.lastBossStoneRenderSignature = "";
+    this.bossStoneSlots.forEach(({ element }) => {
+      element.hidden = true;
+      element.removeAttribute("data-boss-stone-id");
+      element.style.left = "";
+      element.style.top = "";
+      element.style.width = "";
+      element.style.height = "";
+      element.classList.remove("is-final-wave");
+    });
+  }
+
+  renderBossStones(stones) {
     if (!this.bossStoneLayerElement) {
       return;
     }
 
-    while (this.bossStonePool.length < size) {
-      const stoneElement = document.createElement("span");
-      stoneElement.className = "boss-stage-stone";
-      this.bossStoneLayerElement.appendChild(stoneElement);
-      this.bossStonePool.push(stoneElement);
+    if (this.bossStoneSlots.length !== 5) {
+      this.bossStoneSlots = this.getBossStoneSlots();
+      this.bindBossStoneSlotListeners();
+
+      if (this.bossStoneSlots.length !== 5) {
+        console.warn("[boss-stone] slot count mismatch", {
+          slotCount: this.bossStoneSlots.length,
+        });
+      }
+    }
+    const stoneSrc = this.getBossStoneSrc();
+    this.bossStoneSlots.forEach((slot) => {
+      slot.element.hidden = true;
+      slot.element.removeAttribute("data-boss-stone-id");
+      slot.element.style.left = "";
+      slot.element.style.top = "";
+      slot.element.style.width = "";
+      slot.element.style.height = "";
+      slot.element.classList.remove("is-final-wave");
+    });
+
+    stones.forEach((stone, index) => {
+      const slot = this.bossStoneSlots[index];
+
+      if (!slot) {
+        return;
+      }
+
+      if (
+        stoneSrc &&
+        slot.imageElement &&
+        (slot.imageElement.getAttribute("src") ?? "") !== stoneSrc
+      ) {
+        slot.imageElement.src = stoneSrc;
+      }
+
+      slot.element.hidden = false;
+      slot.element.dataset.bossStoneId = stone.id;
+      slot.element.style.left = `${stone.left}px`;
+      slot.element.style.top = `${stone.top}px`;
+      slot.element.style.width = `${stone.width}px`;
+      slot.element.style.height = `${stone.height}px`;
+      slot.element.classList.toggle("is-final-wave", Boolean(stone.finalWave));
+    });
+
+    const renderSignature = stones
+      .map((stone, index) => `${index}:${stone.id}`)
+      .join("|");
+
+    if (renderSignature !== this.lastBossStoneRenderSignature) {
+      this.lastBossStoneRenderSignature = renderSignature;
+      this.debugBossStone("rendered slots", {
+        slotCount: this.bossStoneSlots.length,
+        visibleCount: stones.length,
+        slots: this.bossStoneSlots.map((slot, index) => ({
+          slot: index,
+          hidden: slot.element.hidden,
+          stoneId: slot.element.dataset.bossStoneId ?? null,
+          left: slot.element.style.left || null,
+          top: slot.element.style.top || null,
+          width: slot.element.style.width || null,
+          height: slot.element.style.height || null,
+        })),
+      });
+    }
+  }
+
+  getRenderedBossStoneBounds() {
+    if (!this.containerElement) {
+      return [];
     }
 
-    while (this.bossStonePool.length > size) {
-      const stoneElement = this.bossStonePool.pop();
-      stoneElement?.remove();
-    }
+    const containerRect = this.containerElement.getBoundingClientRect();
+
+    return this.bossStoneSlots
+      .filter(({ element }) => !element.hidden)
+      .map(({ element }) => {
+        const rect = element.getBoundingClientRect();
+
+        return {
+          left: rect.left - containerRect.left,
+          top: rect.top - containerRect.top,
+          right: rect.right - containerRect.left,
+          bottom: rect.bottom - containerRect.top,
+          width: rect.width,
+          height: rect.height,
+        };
+      });
   }
 
   getBossPoseImageSrc(pose = "base") {
@@ -757,26 +969,7 @@ export class GameView {
       }
     }
 
-    const stones = bossState.stones ?? [];
-    this.ensureBossStonePool(stones.length);
-
-    stones.forEach((stone, index) => {
-      const stoneElement = this.bossStonePool[index];
-
-      if (!stoneElement) {
-        return;
-      }
-
-      stoneElement.hidden = false;
-      stoneElement.style.width = `${stone.width}px`;
-      stoneElement.style.height = `${stone.height}px`;
-      stoneElement.style.transform = `translate3d(${stone.left}px, ${stone.top}px, 0)`;
-      stoneElement.classList.toggle("is-final-wave", Boolean(stone.finalWave));
-    });
-
-    this.bossStonePool.slice(stones.length).forEach((stoneElement) => {
-      stoneElement.hidden = true;
-    });
+    this.renderBossStones(bossState.stones ?? []);
 
     if (this.bossEndingElement && this.bossEndingCardElement) {
       const ending = bossState.ending ?? { visible: false };
@@ -866,13 +1059,7 @@ export class GameView {
       this.bossHpLabelElement.textContent = "100%";
     }
 
-    this.bossStonePool.forEach((stoneElement) => {
-      stoneElement.hidden = true;
-      stoneElement.classList.remove("is-final-wave");
-      stoneElement.style.width = "";
-      stoneElement.style.height = "";
-      stoneElement.style.transform = "";
-    });
+    this.clearBossStoneElements();
   }
 
   restoreBossStructureState(targetIds = [], triggerIds = []) {
@@ -1167,6 +1354,10 @@ export class GameView {
         this.boundBossVisualImageLoad,
       );
     }
+    this.bossStoneSlots.forEach(({ imageElement }) => {
+      imageElement?.removeEventListener("load", this.boundBossStoneImageLoad);
+      imageElement?.removeEventListener("error", this.boundBossStoneImageError);
+    });
     this.resetMissionState();
     this.resetBossState();
     this.hideMissionAlarm();
