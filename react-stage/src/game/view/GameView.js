@@ -149,6 +149,11 @@ export class GameView {
     this.reportedBossStoneSlotLoads = new Set();
     this.reportedBossStoneSlotErrors = new Set();
     this.lastBossStoneRenderSignature = "";
+    this.bossStoneAssetMetrics = {
+      naturalWidth: 0,
+      naturalHeight: 0,
+      aspectRatio: 1,
+    };
     this.boundBossVisualImageError = this.handleBossVisualImageError.bind(this);
     this.boundBossVisualImageLoad = this.handleBossVisualImageLoad.bind(this);
     this.boundBossStoneImageError = this.handleBossStoneImageError.bind(this);
@@ -581,6 +586,14 @@ export class GameView {
     console.info(`[boss-stone] ${eventName}`, payload);
   }
 
+  getBossStoneAssetMetrics() {
+    return {
+      naturalWidth: this.bossStoneAssetMetrics.naturalWidth,
+      naturalHeight: this.bossStoneAssetMetrics.naturalHeight,
+      aspectRatio: this.bossStoneAssetMetrics.aspectRatio,
+    };
+  }
+
   bindBossStoneSlotListeners() {
     this.bossStoneSlots.forEach(({ imageElement }) => {
       if (!imageElement) {
@@ -613,6 +626,14 @@ export class GameView {
     }
 
     this.reportedBossStoneSlotLoads.add(signature);
+    this.bossStoneAssetMetrics = {
+      naturalWidth: imageElement.naturalWidth,
+      naturalHeight: imageElement.naturalHeight,
+      aspectRatio:
+        imageElement.naturalWidth > 0 && imageElement.naturalHeight > 0
+          ? imageElement.naturalWidth / imageElement.naturalHeight
+          : 1,
+    };
     this.debugBossStone("slot image load", {
       slot: Number(slotIndex),
       src: imageElement.currentSrc || imageElement.src || "",
