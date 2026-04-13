@@ -94,6 +94,7 @@ export class GameController {
     inputController,
     gameView,
     physicsController = null,
+    requestBossStructureRebuild = null,
   }) {
     this.stage = stage;
     this.nextStagePath = nextStagePath;
@@ -103,6 +104,7 @@ export class GameController {
     this.inputController = inputController;
     this.gameView = gameView;
     this.physicsController = physicsController;
+    this.requestBossStructureRebuild = requestBossStructureRebuild;
 
     this.fixedDeltaTime = 1 / 60;
     this.accumulator = 0;
@@ -240,16 +242,45 @@ export class GameController {
       structurePhase: "idle",
       structurePhaseStartMs: 0,
       structureLastCycleStartedAtMs: 0,
-      structureNeedsHydration: false,
+      structureRebuildPending: false,
     };
   }
 
+  isBossStructureAnimating() {
+    if (!this.bossState) {
+      return false;
+    }
+
+    return (
+      this.bossState.structurePhase === "rising" ||
+      this.bossState.structurePhase === "falling"
+    );
+  }
+
+  shouldForceBossStructureSync() {
+    if (!this.bossState) {
+      return false;
+    }
+
+    return this.isBossStructureAnimating();
+  }
+
   tick(timestamp) {
+    const shouldForceBossStructureSync = this.shouldForceBossStructureSync();
+
+    if (shouldForceBossStructureSync) {
+      this.stageModel.markDirty?.();
+    }
+
     const stageState = this.stageModel.refresh();
     if (stageState) {
+      const shouldResetBossStructureDynamics =
+        this.shouldForceBossStructureSync();
+
       this.handleStageResize(stageState);
       this.physicsController?.handleStageMutation(this.stageModel, {
-        resetDynamics: stageState.changed,
+        resetDynamics:
+          stageState.changed || shouldResetBossStructureDynamics,
       });
     }
 
@@ -1005,38 +1036,46 @@ export class GameController {
     };
   }
 
-  restoreBossStageStructure() {
-    const didRestore = this.stageModel.restoreTriggerTargets(
-      BOSS_STRUCTURE_TARGET_IDS,
-      BOSS_STRUCTURE_TRIGGER_IDS,
-    );
+  requestBossStageStructureRebuild() {
+    if (!this.bossState || this.bossState.structureRebuildPending) {
+      return;
+    }
 
+    this.bossState.structureRebuildPending = true;
+    this.activeTrigger = null;
     this.gameView.restoreBossStructureState?.(
       BOSS_STRUCTURE_TARGET_IDS,
       BOSS_STRUCTURE_TRIGGER_IDS,
     );
-
-    if (!this.bossState) {
-      return;
-    }
-
-    this.stageModel.markDirty?.();
-    this.bossState.structureNeedsHydration = true;
-
-    if (!didRestore) {
-      return;
-    }
+    this.requestBossStructureRebuild?.();
   }
 
-  hydrateBossStageStructure() {
+  handleBossStructureRebuilt() {
+    if (!this.bossState?.structureRebuildPending) {
+      return;
+    }
+
+    this.gameView.refreshBossStageElements?.();
+    this.stageModel.reseedTriggerTargets?.(
+      BOSS_STRUCTURE_TARGET_IDS,
+      BOSS_STRUCTURE_TRIGGER_IDS,
+    );
+    this.stageModel.markDirty?.();
     const stageState = this.stageModel.refresh();
 
     if (stageState) {
+      this.handleStageResize(stageState);
       this.physicsController?.handleStageMutation(this.stageModel, {
         resetDynamics: true,
       });
       this.syncPhysicsRuntimeState();
     }
+
+    this.activeTrigger = null;
+    this.updateActiveTrigger();
+    this.physicsController?.render();
+    this.gameView.render(this.characterModel, this.getRenderState());
+    this.bossState.structureRebuildPending = false;
   }
 
   updateBossStructureCycle(now, layout) {
@@ -1051,6 +1090,10 @@ export class GameController {
       "ending-drop",
       "final-stones",
     ].includes(this.bossState.phase);
+
+    if (this.bossState.structurePhase !== "idle") {
+      this.stageModel.markDirty?.();
+    }
 
     if (
       isBattleActive &&
@@ -1069,7 +1112,7 @@ export class GameController {
         now - this.bossState.structurePhaseStartMs >=
         BOSS_STRUCTURE_RISE_MS
       ) {
-        this.restoreBossStageStructure();
+        this.requestBossStageStructureRebuild();
         this.bossState.structurePhase = "falling";
         this.bossState.structurePhaseStartMs = now;
       }
@@ -1083,11 +1126,6 @@ export class GameController {
       ) {
         this.bossState.structurePhase = "idle";
         this.bossState.structurePhaseStartMs = now;
-
-        if (this.bossState.structureNeedsHydration) {
-          this.hydrateBossStageStructure();
-          this.bossState.structureNeedsHydration = false;
-        }
       }
     }
   }
@@ -1115,7 +1153,7 @@ export class GameController {
     this.bossState.finalStoneBatchStartedAtMs = null;
     this.bossState.structurePhase = "idle";
     this.bossState.structurePhaseStartMs = now;
-    this.bossState.structureNeedsHydration = false;
+    this.bossState.structureRebuildPending = false;
   }
 
   maybeApplyBossLavaDamage(now, layout) {
