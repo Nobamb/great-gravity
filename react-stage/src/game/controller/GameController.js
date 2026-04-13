@@ -46,6 +46,7 @@ const BOSS_STRUCTURE_REFILL_INTERVAL_MS = 30000;
 const BOSS_STRUCTURE_RISE_MS = 500;
 const BOSS_STRUCTURE_FALL_MS = 500;
 const BOSS_DAMAGE_PER_HIT = 10;
+const BOSS_STAGE_REFERENCE_WIDTH = 1280;
 const BOSS_STRUCTURE_TARGET_IDS = [
   "boss-stage-mid-beam",
   "boss-stage-low-beam",
@@ -635,6 +636,13 @@ export class GameController {
 
   createBossStoneWave(now, finalWave = false) {
     const { width: stageWidth, height: stageHeight } = this.stageModel.bounds;
+    const stoneAssetMetrics = this.gameView?.getBossStoneAssetMetrics?.() ?? {
+      naturalWidth: 0,
+      naturalHeight: 0,
+      aspectRatio: 1,
+    };
+    const aspectRatio =
+      stoneAssetMetrics.aspectRatio > 0 ? stoneAssetMetrics.aspectRatio : 1;
     const count = finalWave ? 5 : 3 + Math.floor(Math.random() * 3);
     const slotCount = finalWave ? count : 5;
     const slotOrder = Array.from({ length: slotCount }, (_, index) => index);
@@ -648,9 +656,17 @@ export class GameController {
     }
 
     return Array.from({ length: count }, (_, index) => {
-      const size = finalWave
+      const currentWidth = finalWave
         ? stageWidth * 0.036
-        : clamp(stageWidth * (0.07 + Math.random() * 0.018), 72, 132);
+        : stoneAssetMetrics.naturalWidth > 0
+          ? stoneAssetMetrics.naturalWidth * (stageWidth / BOSS_STAGE_REFERENCE_WIDTH)
+          : clamp(stageWidth * (0.07 + Math.random() * 0.018), 72, 132);
+      const baseWidth =
+        currentWidth * (BOSS_STAGE_REFERENCE_WIDTH / Math.max(stageWidth, 1));
+      const baseHeight =
+        stoneAssetMetrics.naturalHeight > 0 && stoneAssetMetrics.naturalWidth > 0
+          ? baseWidth / aspectRatio
+          : baseWidth;
       const startX = (() => {
         if (finalWave) {
           return lerp(
@@ -669,18 +685,20 @@ export class GameController {
           horizontalPadding + slotWidth * slotIndex + slotWidth / 2;
         const jitter = (Math.random() - 0.5) * 24;
 
-        return clamp(slotCenterX + jitter, size / 2, usableRight - size / 2);
+        return clamp(
+          slotCenterX + jitter,
+          currentWidth / 2,
+          usableRight - currentWidth / 2,
+        );
       })();
-      const startY = -size - (finalWave ? index * size * 0.18 : 0);
       const delayMs = finalWave ? index * 130 : 0;
       const laneIndex = slotOrder[index] ?? index;
 
       return {
         id: `${finalWave ? "boss-final" : "boss-pattern"}-stone-${now}-${index}`,
-        startX,
-        size,
-        startY,
-        endY: finalWave ? stageHeight + size * 1.4 : stageHeight + size,
+        baseWidth,
+        baseHeight,
+        centerXRatio: startX / Math.max(stageWidth, 1),
         spawnMs: now,
         delayMs,
         durationMs: finalWave ? 1700 : 3000,
@@ -724,10 +742,9 @@ export class GameController {
       stones: batch.map((stone) => ({
         id: stone.id,
         laneIndex: stone.laneIndex,
-        startX: Math.round(stone.startX),
-        size: Math.round(stone.size),
-        startY: Math.round(stone.startY),
-        endY: Math.round(stone.endY),
+        baseWidth: Math.round(stone.baseWidth),
+        baseHeight: Math.round(stone.baseHeight),
+        centerXRatio: Number(stone.centerXRatio.toFixed(3)),
         durationMs: stone.durationMs,
       })),
     });
@@ -781,6 +798,9 @@ export class GameController {
   }
 
   getBossStoneRectsFromWave(stoneWave, now) {
+    const { width: stageWidth, height: stageHeight } = this.stageModel.bounds;
+    const responsiveScale = stageWidth / BOSS_STAGE_REFERENCE_WIDTH;
+
     return stoneWave
       .map((stone) => {
         const elapsed = now - stone.spawnMs - stone.delayMs;
@@ -795,14 +815,20 @@ export class GameController {
           return null;
         }
 
+        const width = stone.baseWidth * responsiveScale;
+        const height = stone.baseHeight * responsiveScale;
+        const centerX = stone.centerXRatio * stageWidth;
+        const startY = -height;
+        const endY = stageHeight + height * (stone.finalWave ? 1.4 : 1);
+
         return {
           id: stone.id,
-          left: stone.startX - stone.size / 2,
-          top: lerp(stone.startY, stone.endY, progress),
-          width: stone.size,
-          height: stone.size,
-          startY: stone.startY,
-          endY: stone.endY,
+          left: centerX - width / 2,
+          top: lerp(startY, endY, progress),
+          width,
+          height,
+          startY,
+          endY,
           durationMs: stone.durationMs,
           delayMs: stone.delayMs,
           progress,
@@ -1489,36 +1515,17 @@ export class GameController {
       return true;
     }
 
-    const computedStoneRects = this.getBossCurrentStoneRects(now).map(
-      (stone) => ({
-        left: stone.left,
-        top: stone.top,
-        right: stone.left + stone.width,
-        bottom: stone.top + stone.height,
-        width: stone.width,
-        height: stone.height,
-      }),
-    );
-    const renderedStoneRects =
-      this.gameView?.getRenderedBossStoneBounds?.() ?? [];
-    const stoneRects =
-      renderedStoneRects.length >= computedStoneRects.length
-        ? renderedStoneRects
-        : computedStoneRects;
+    const stoneRects = this.getBossCurrentStoneRects(now).map((stone) => ({
+      left: stone.left,
+      top: stone.top,
+      right: stone.left + stone.width,
+      bottom: stone.top + stone.height,
+      width: stone.width,
+      height: stone.height,
+    }));
 
     return stoneRects.some((stoneRect) => {
-      const killPadding = clamp(
-        Math.min(stoneRect.width, stoneRect.height) * 0.3,
-        16,
-        30,
-      );
-
-      return intersects(characterBounds, {
-        left: stoneRect.left - killPadding,
-        top: stoneRect.top - killPadding,
-        right: stoneRect.right + killPadding,
-        bottom: stoneRect.bottom + killPadding,
-      });
+      return intersects(characterBounds, stoneRect);
     });
   }
 
@@ -1735,27 +1742,9 @@ export class GameController {
     this.gameView.refreshStageAnchors?.();
     this.resetMonsterStatesToStageLayout();
     if (this.bossState) {
-      this.bossState.pattern2StoneWave = this.bossState.pattern2StoneWave.map(
-        (stone) => ({
-          ...stone,
-          startX: stone.startX * stageState.scaleX,
-          size: stone.size * stageState.scaleX,
-          startY: stone.startY * stageState.scaleY,
-          endY: stone.endY * stageState.scaleY,
-        }),
-      );
       this.bossState.pattern2StoneRects = this.getBossStoneRectsFromWave(
         this.bossState.pattern2StoneWave,
         this.elapsedTimeMs,
-      );
-      this.bossState.finalStoneWave = this.bossState.finalStoneWave.map(
-        (stone) => ({
-          ...stone,
-          startX: stone.startX * stageState.scaleX,
-          size: stone.size * stageState.scaleX,
-          startY: stone.startY * stageState.scaleY,
-          endY: stone.endY * stageState.scaleY,
-        }),
       );
     }
     this.updateActiveTrigger();
