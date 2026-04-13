@@ -1700,8 +1700,26 @@ function BossStageLayout({ bossStructureVersion = 0 }) {
       <div
         className="boss-stage-stone-layer"
         data-boss-stone-layer="true"
+        data-boss-stone-src={bossAssetUrls.stone}
         style={bossAssetStyles}
-      ></div>
+      >
+        {Array.from({ length: 5 }, (_, index) => (
+          <div
+            key={`boss-stone-slot-${index}`}
+            className="boss-stage-stone"
+            data-boss-stone-slot={`${index}`}
+            hidden
+          >
+            <img
+              className="boss-stage-stone__image"
+              data-boss-stone-image="true"
+              src={bossAssetUrls.stone}
+              alt=""
+              draggable="false"
+            />
+          </div>
+        ))}
+      </div>
       <div
         className="boss-stage-ending"
         data-boss-ending="true"
