@@ -29,7 +29,7 @@ function expandTreasureInteractionBounds(bounds) {
 const TIMED_BLOCK_DURATION_MS = 1000;
 const CUSTOM_MISSION_ALARM_DURATION_MS = 1600;
 const BOSS_STAGE_ID = "bossStage";
-const BOSS_PATTERN_INTERVAL_MS = 10000;
+const BOSS_PATTERN_INTERVAL_MS = 5000;
 const BOSS_INTRO_DURATION_MS = 3000;
 const BOSS_PATTERN1_DURATION_MS = 2300;
 const BOSS_PATTERN2_DURATION_MS = 5000;
@@ -236,6 +236,8 @@ export class GameController {
       rushLaneIndex: 0,
       damageCooldownUntilMs: 0,
       damageFlashUntilMs: 0,
+      patternDamageCount: 0,
+      patternDamageLimit: 1,
       stones: [],
       finalStoneBatchStartedAtMs: null,
       clearReady: false,
@@ -589,11 +591,28 @@ export class GameController {
     this.bossState.phase = "idle";
     this.bossState.phaseStartMs = now;
     this.bossState.stones = [];
+    this.bossState.patternDamageCount = 0;
+    this.bossState.patternDamageLimit = 1;
 
     if (resetPatternClock) {
       this.bossState.lastPatternStartMs =
         now - (BOSS_PATTERN_INTERVAL_MS - 1600);
     }
+  }
+
+  getBossPatternDamageLimit(phase = this.bossState?.phase ?? "idle") {
+    return 1;
+  }
+
+  resetBossPatternDamageWindow(phase = this.bossState?.phase ?? "idle") {
+    if (!this.bossState) {
+      return;
+    }
+
+    this.bossState.patternDamageCount = 0;
+    this.bossState.patternDamageLimit = this.getBossPatternDamageLimit(phase);
+    this.bossState.damageCooldownUntilMs = 0;
+    this.bossState.damageFlashUntilMs = 0;
   }
 
   getBossRushLaneTop(layout) {
@@ -612,14 +631,19 @@ export class GameController {
     return Array.from({ length: count }, (_, index) => {
       const size = finalWave
         ? stageWidth * 0.036
-        : stageWidth * (0.026 + Math.random() * 0.014);
+        : stageWidth * (0.048 + Math.random() * 0.016);
       const x = finalWave
         ? lerp(
             stageWidth * 0.14,
             stageWidth * 0.82,
             count === 1 ? 0.5 : index / (count - 1),
           )
-        : stageWidth * (0.12 + Math.random() * 0.72);
+        : lerp(
+            stageWidth * 0.12,
+            stageWidth * 0.78,
+            count === 1 ? 0.5 : index / (count - 1),
+          ) +
+          (Math.random() - 0.5) * stageWidth * 0.05;
 
       return {
         id: `${finalWave ? "boss-final" : "boss-pattern"}-stone-${now}-${index}`,
@@ -627,11 +651,11 @@ export class GameController {
         size,
         startY:
           -size -
-          (finalWave ? index * size * 0.18 : Math.random() * size * 1.2),
+          (finalWave ? index * size * 0.18 : Math.random() * size * 0.45),
         endY: stageHeight + size * 1.4,
         startMs: now,
-        delayMs: finalWave ? index * 130 : Math.random() * 700,
-        durationMs: finalWave ? 1700 : 3000,
+        delayMs: finalWave ? index * 130 : Math.random() * 260,
+        durationMs: finalWave ? 1700 : 2200,
         finalWave,
       };
     });
@@ -1148,6 +1172,10 @@ export class GameController {
     this.bossState.hp = 0;
     this.bossState.phase = "defeated-fall";
     this.bossState.phaseStartMs = now;
+    this.bossState.patternDamageCount = 0;
+    this.bossState.patternDamageLimit = 1;
+    this.bossState.damageCooldownUntilMs = 0;
+    this.bossState.damageFlashUntilMs = 0;
     this.bossState.stones = [];
     this.bossState.clearReady = false;
     this.bossState.finalStoneBatchStartedAtMs = null;
@@ -1175,6 +1203,13 @@ export class GameController {
       return;
     }
 
+    if (
+      this.bossState.patternDamageCount >=
+      this.bossState.patternDamageLimit
+    ) {
+      return;
+    }
+
     const damageRects = [this.getBossBodyBounds(now, layout)].filter(Boolean);
     const handLavaBounds = this.getBossHandLavaBounds(now, layout);
 
@@ -1197,6 +1232,7 @@ export class GameController {
     }
 
     this.bossState.hp = Math.max(0, this.bossState.hp - BOSS_DAMAGE_PER_HIT);
+    this.bossState.patternDamageCount += 1;
     this.bossState.damageCooldownUntilMs = now + BOSS_DAMAGE_COOLDOWN_MS;
     this.bossState.damageFlashUntilMs = now + BOSS_DAMAGE_COOLDOWN_MS;
 
@@ -1226,16 +1262,19 @@ export class GameController {
 
     if (nextPattern === 1) {
       this.bossState.phase = "pattern1";
+      this.resetBossPatternDamageWindow("pattern1");
       return;
     }
 
     if (nextPattern === 2) {
       this.bossState.phase = "pattern2";
+      this.resetBossPatternDamageWindow("pattern2");
       this.bossState.stones = this.createBossStoneWave(now, false);
       return;
     }
 
     this.bossState.phase = "pattern3-warning";
+    this.resetBossPatternDamageWindow("pattern3-warning");
     this.bossState.rushLaneIndex += 1;
   }
 
