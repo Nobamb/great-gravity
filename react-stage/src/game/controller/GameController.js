@@ -644,16 +644,67 @@ export class GameController {
     const aspectRatio =
       stoneAssetMetrics.aspectRatio > 0 ? stoneAssetMetrics.aspectRatio : 1;
     const count = finalWave ? 5 : 3 + Math.floor(Math.random() * 3);
-    const slotCount = finalWave ? count : 5;
-    const slotOrder = Array.from({ length: slotCount }, (_, index) => index);
+    const pattern2Placements = [];
+    const laneLabels = ["left", "mid-left", "center", "mid-right", "right"];
 
-    for (let index = slotOrder.length - 1; index > 0; index -= 1) {
-      const swapIndex = Math.floor(Math.random() * (index + 1));
-      const currentSlot = slotOrder[index];
+    const createPattern2Placement = (currentWidth, index) => {
+      const minCenterX = currentWidth / 2;
+      const maxCenterX = stageWidth - currentWidth / 2;
+      const sampleCandidate = () =>
+        clamp(minCenterX + Math.random() * Math.max(1, maxCenterX - minCenterX), minCenterX, maxCenterX);
+      let chosenCenterX = sampleCandidate();
+      let bestPenalty = Number.POSITIVE_INFINITY;
 
-      slotOrder[index] = slotOrder[swapIndex];
-      slotOrder[swapIndex] = currentSlot;
-    }
+      for (let attempt = 0; attempt < 48; attempt += 1) {
+        const candidateCenterX = sampleCandidate();
+        let overlapsWithinLimit = true;
+        let penalty = 0;
+
+        pattern2Placements.forEach((placement) => {
+          const requiredDistance =
+            (placement.currentWidth + currentWidth) * 0.25;
+          const currentDistance = Math.abs(
+            placement.centerX - candidateCenterX,
+          );
+          const deficit = requiredDistance - currentDistance;
+
+          if (deficit > 0) {
+            overlapsWithinLimit = false;
+            penalty += deficit;
+          }
+        });
+
+        const edgeBiasPenalty = Math.abs(candidateCenterX - stageWidth / 2);
+        penalty += edgeBiasPenalty * 0.001;
+
+        if (overlapsWithinLimit) {
+          chosenCenterX = candidateCenterX;
+          bestPenalty = penalty;
+          break;
+        }
+
+        if (penalty < bestPenalty) {
+          chosenCenterX = candidateCenterX;
+          bestPenalty = penalty;
+        }
+      }
+
+      return {
+        centerX: chosenCenterX,
+        currentWidth,
+        laneLabel:
+          laneLabels[
+            Math.max(
+              0,
+              Math.min(
+                laneLabels.length - 1,
+                Math.floor((chosenCenterX / Math.max(stageWidth, 1)) * laneLabels.length),
+              ),
+            )
+          ],
+        index,
+      };
+    };
 
     return Array.from({ length: count }, (_, index) => {
       const currentWidth = finalWave
@@ -667,43 +718,45 @@ export class GameController {
         stoneAssetMetrics.naturalHeight > 0 && stoneAssetMetrics.naturalWidth > 0
           ? baseWidth / aspectRatio
           : baseWidth;
-      const startX = (() => {
+      const placement = (() => {
         if (finalWave) {
-          return lerp(
+          const centerX = lerp(
             stageWidth * 0.14,
             stageWidth * 0.82,
             count === 1 ? 0.5 : index / (count - 1),
           );
+
+          return {
+            centerX,
+            laneLabel:
+              laneLabels[
+                Math.max(
+                  0,
+                  Math.min(
+                    laneLabels.length - 1,
+                    Math.floor((centerX / Math.max(stageWidth, 1)) * laneLabels.length),
+                  ),
+                )
+              ],
+          };
         }
 
-        const horizontalPadding = stageWidth * 0.1;
-        const usableRight = stageWidth * 0.7;
-        const usableWidth = Math.max(1, usableRight - horizontalPadding);
-        const slotWidth = usableWidth / slotCount;
-        const slotIndex = slotOrder[index] ?? index;
-        const slotCenterX =
-          horizontalPadding + slotWidth * slotIndex + slotWidth / 2;
-        const jitter = (Math.random() - 0.5) * 24;
-
-        return clamp(
-          slotCenterX + jitter,
-          currentWidth / 2,
-          usableRight - currentWidth / 2,
-        );
+        const nextPlacement = createPattern2Placement(currentWidth, index);
+        pattern2Placements.push(nextPlacement);
+        return nextPlacement;
       })();
       const delayMs = finalWave ? index * 130 : 0;
-      const laneIndex = slotOrder[index] ?? index;
 
       return {
         id: `${finalWave ? "boss-final" : "boss-pattern"}-stone-${now}-${index}`,
         baseWidth,
         baseHeight,
-        centerXRatio: startX / Math.max(stageWidth, 1),
+        centerXRatio: placement.centerX / Math.max(stageWidth, 1),
         spawnMs: now,
         delayMs,
         durationMs: finalWave ? 1700 : 3000,
         finalWave,
-        laneIndex,
+        laneLabel: placement.laneLabel,
       };
     });
   }
@@ -739,9 +792,30 @@ export class GameController {
     this.debugBossStone("pattern2 batch created", {
       batchId: this.bossState.pattern2StoneDebugBatchId,
       count: batch.length,
+      leftCoverage: batch.some((stone) => stone.centerXRatio <= 0.25),
+      rightCoverage: batch.some((stone) => stone.centerXRatio >= 0.75),
+      minCenterGapRatio:
+        batch.length > 1
+          ? Number(
+              batch
+                .slice()
+                .sort((a, b) => a.centerXRatio - b.centerXRatio)
+                .reduce(
+                  (minGap, stone, index, stones) =>
+                    index === 0
+                      ? minGap
+                      : Math.min(
+                          minGap,
+                          stone.centerXRatio - stones[index - 1].centerXRatio,
+                        ),
+                  Number.POSITIVE_INFINITY,
+                )
+                .toFixed(3),
+            )
+          : null,
       stones: batch.map((stone) => ({
         id: stone.id,
-        laneIndex: stone.laneIndex,
+        laneLabel: stone.laneLabel,
         baseWidth: Math.round(stone.baseWidth),
         baseHeight: Math.round(stone.baseHeight),
         centerXRatio: Number(stone.centerXRatio.toFixed(3)),
