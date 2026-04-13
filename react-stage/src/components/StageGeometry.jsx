@@ -1532,7 +1532,105 @@ function Stage7Layout({
   );
 }
 
-function BossStageLayout() {
+function BossStageStructureSet() {
+  return (
+    <div className="boss-stage-structure__set" data-boss-structure="true">
+      <div
+        className="boss-stage-structure boss-stage-structure__pillar boss-stage-structure__pillar--left"
+        data-collider="solid"
+      ></div>
+      <div
+        className="boss-stage-structure boss-stage-structure__pillar boss-stage-structure__pillar--right"
+        data-collider="solid"
+      ></div>
+      <div
+        className="boss-stage-structure boss-stage-structure__beam boss-stage-structure__beam--top"
+        data-collider="solid"
+      ></div>
+      <div
+        className="boss-stage-structure boss-stage-structure__beam boss-stage-structure__beam--mid"
+        data-collider="solid"
+        data-triggerable="true"
+        data-collapse-id="boss-stage-mid-beam"
+      >
+        <TriggerBlock
+          className="trigger-block boss-stage-trigger boss-stage-trigger--mid-left"
+          triggerId="boss-stage-mid-beam-trigger-left"
+          triggerDirection="left"
+          triggerTargets="boss-stage-mid-beam"
+        />
+        <TriggerBlock
+          className="trigger-block boss-stage-trigger boss-stage-trigger--mid-right"
+          triggerId="boss-stage-mid-beam-trigger-right"
+          triggerDirection="right"
+          triggerTargets="boss-stage-mid-beam"
+        />
+      </div>
+      <div
+        className="boss-stage-structure boss-stage-structure__beam boss-stage-structure__beam--low"
+        data-collider="solid"
+        data-triggerable="true"
+        data-collapse-id="boss-stage-low-beam"
+      >
+        <TriggerBlock
+          className="trigger-block boss-stage-trigger boss-stage-trigger--low-left"
+          triggerId="boss-stage-low-beam-trigger-left"
+          triggerDirection="left"
+          triggerTargets="boss-stage-low-beam"
+        />
+        <TriggerBlock
+          className="trigger-block boss-stage-trigger boss-stage-trigger--low-right"
+          triggerId="boss-stage-low-beam-trigger-right"
+          triggerDirection="right"
+          triggerTargets="boss-stage-low-beam"
+        />
+      </div>
+
+      <LavaZone
+        className="boss-stage-fluid boss-stage-fluid--lava fluid-zone fluid-zone--lava"
+        zoneId="boss-stage-lava"
+        width="84%"
+        height="31%"
+        fluidSpawnProfile={{
+          fitToRect: true,
+          maxParticles: 72,
+          maxCols: 12,
+          maxRows: 5,
+          minParticleRadius: 5,
+          maxParticleRadius: 24,
+          colCountSpacingMultiplier: 1.42,
+          rowCountSpacingMultiplier: 1.55,
+          colStepMultiplier: 1.38,
+          rowStepMultiplier: 1.45,
+          rowOffsetMultiplier: 0.1,
+          spawnInsetMultiplier: 0.16,
+        }}
+      />
+      <WaterZone
+        className="boss-stage-fluid boss-stage-fluid--water fluid-zone fluid-zone--water"
+        zoneId="boss-stage-water"
+        width="84%"
+        height="31%"
+        fluidSpawnProfile={{
+          fitToRect: true,
+          maxParticles: 88,
+          maxCols: 13,
+          maxRows: 6,
+          minParticleRadius: 4,
+          maxParticleRadius: 22,
+          colCountSpacingMultiplier: 1.45,
+          rowCountSpacingMultiplier: 1.58,
+          colStepMultiplier: 1.4,
+          rowStepMultiplier: 1.5,
+          rowOffsetMultiplier: 0.12,
+          spawnInsetMultiplier: 0.18,
+        }}
+      />
+    </div>
+  );
+}
+
+function BossStageLayout({ bossStructureVersion = 0 }) {
   const bossAssetUrls = createBossAssetUrls();
   const bossAssetStyles = createBossAssetStyles(bossAssetUrls);
 
@@ -1563,99 +1661,7 @@ function BossStageLayout() {
         data-collider="solid"
         data-effect="jump-boost"
       ></div>
-      <div className="boss-stage-structure__set" data-boss-structure="true">
-        <div
-          className="boss-stage-structure boss-stage-structure__pillar boss-stage-structure__pillar--left"
-          data-collider="solid"
-        ></div>
-        <div
-          className="boss-stage-structure boss-stage-structure__pillar boss-stage-structure__pillar--right"
-          data-collider="solid"
-        ></div>
-        <div
-          className="boss-stage-structure boss-stage-structure__beam boss-stage-structure__beam--top"
-          data-collider="solid"
-        ></div>
-        <div
-          className="boss-stage-structure boss-stage-structure__beam boss-stage-structure__beam--mid"
-          data-collider="solid"
-          data-triggerable="true"
-          data-collapse-id="boss-stage-mid-beam"
-        >
-          <TriggerBlock
-            className="trigger-block boss-stage-trigger boss-stage-trigger--mid-left"
-            triggerId="boss-stage-mid-beam-trigger-left"
-            triggerDirection="left"
-            triggerTargets="boss-stage-mid-beam"
-          />
-          <TriggerBlock
-            className="trigger-block boss-stage-trigger boss-stage-trigger--mid-right"
-            triggerId="boss-stage-mid-beam-trigger-right"
-            triggerDirection="right"
-            triggerTargets="boss-stage-mid-beam"
-          />
-        </div>
-        <div
-          className="boss-stage-structure boss-stage-structure__beam boss-stage-structure__beam--low"
-          data-collider="solid"
-          data-triggerable="true"
-          data-collapse-id="boss-stage-low-beam"
-        >
-          <TriggerBlock
-            className="trigger-block boss-stage-trigger boss-stage-trigger--low-left"
-            triggerId="boss-stage-low-beam-trigger-left"
-            triggerDirection="left"
-            triggerTargets="boss-stage-low-beam"
-          />
-          <TriggerBlock
-            className="trigger-block boss-stage-trigger boss-stage-trigger--low-right"
-            triggerId="boss-stage-low-beam-trigger-right"
-            triggerDirection="right"
-            triggerTargets="boss-stage-low-beam"
-          />
-        </div>
-
-        <LavaZone
-          className="boss-stage-fluid boss-stage-fluid--lava fluid-zone fluid-zone--lava"
-          zoneId="boss-stage-lava"
-          width="84%"
-          height="31%"
-          fluidSpawnProfile={{
-            fitToRect: true,
-            maxParticles: 72,
-            maxCols: 12,
-            maxRows: 5,
-            minParticleRadius: 5,
-            maxParticleRadius: 24,
-            colCountSpacingMultiplier: 1.42,
-            rowCountSpacingMultiplier: 1.55,
-            colStepMultiplier: 1.38,
-            rowStepMultiplier: 1.45,
-            rowOffsetMultiplier: 0.1,
-            spawnInsetMultiplier: 0.16,
-          }}
-        />
-        <WaterZone
-          className="boss-stage-fluid boss-stage-fluid--water fluid-zone fluid-zone--water"
-          zoneId="boss-stage-water"
-          width="84%"
-          height="31%"
-          fluidSpawnProfile={{
-            fitToRect: true,
-            maxParticles: 88,
-            maxCols: 13,
-            maxRows: 6,
-            minParticleRadius: 4,
-            maxParticleRadius: 22,
-            colCountSpacingMultiplier: 1.45,
-            rowCountSpacingMultiplier: 1.58,
-            colStepMultiplier: 1.4,
-            rowStepMultiplier: 1.5,
-            rowOffsetMultiplier: 0.12,
-            spawnInsetMultiplier: 0.18,
-          }}
-        />
-      </div>
+      <BossStageStructureSet key={`boss-structure-${bossStructureVersion}`} />
       <div
         className="boss-stage-boss"
         data-boss-root="true"
@@ -1718,10 +1724,11 @@ function renderStageLayout(
   stoneRef,
   stoneAnchorRef,
   stoneAimRef,
+  bossStructureVersion,
 ) {
   switch (stageId) {
     case "bossStage":
-      return <BossStageLayout />;
+      return <BossStageLayout bossStructureVersion={bossStructureVersion} />;
     case "stage7":
       return (
         <Stage7Layout
@@ -1798,6 +1805,7 @@ export default function StageGeometry({
   stoneRef,
   stoneAnchorRef,
   stoneAimRef,
+  bossStructureVersion = 0,
 }) {
   const hasMonsterMission = stage.id === "stage4" || stage.id === "stage7";
   const hasBossHud = stage.id === "bossStage";
@@ -1859,6 +1867,7 @@ export default function StageGeometry({
         stoneRef,
         stoneAnchorRef,
         stoneAimRef,
+        bossStructureVersion,
       )}
 
       <CharacterSprite ref={characterRef} heldStoneRef={heldStoneRef} />
