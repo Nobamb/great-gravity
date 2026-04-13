@@ -3756,32 +3756,29 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 30;
+  z-index: 45;
 }
 
 .boss-stage-stone {
   position: absolute;
   left: 0;
   top: 0;
-  border-radius: 24%;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-image:
-    var(--boss-stone-image),
-    radial-gradient(
-      circle at 36% 30%,
-      rgba(255, 255, 255, 0.18),
-      transparent 16%
-    ),
-    linear-gradient(135deg, rgba(166, 166, 176, 0.96), rgba(90, 92, 104, 0.98));
-  box-shadow: 0 calc(10 * var(--cw)) calc(18 * var(--cw)) rgba(0, 0, 0, 0.24);
+  background: transparent;
 }
 
-.boss-stage-stone.is-final-wave {
-  box-shadow:
-    0 calc(10 * var(--cw)) calc(18 * var(--cw)) rgba(0, 0, 0, 0.24),
-    0 0 calc(18 * var(--cw)) rgba(255, 84, 36, 0.18);
+.boss-stage-stone__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 calc(10 * var(--cw)) calc(18 * var(--cw)) rgba(0, 0, 0, 0.24));
+}
+
+.boss-stage-stone.is-final-wave .boss-stage-stone__image {
+  filter:
+    drop-shadow(0 calc(10 * var(--cw)) calc(18 * var(--cw)) rgba(0, 0, 0, 0.24))
+    drop-shadow(0 0 calc(18 * var(--cw)) rgba(255, 84, 36, 0.18));
 }
 
 .boss-stage-ending {
