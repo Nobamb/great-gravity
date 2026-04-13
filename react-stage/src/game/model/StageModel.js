@@ -701,6 +701,71 @@ export class StageModel {
     return true;
   }
 
+  reseedTriggerTargets(targetIds = [], triggerIds = []) {
+    if (!this.initialTriggerStates) {
+      return false;
+    }
+
+    const targetIdSet = new Set(targetIds);
+    const triggerIdSet = new Set(triggerIds);
+    const refreshedTargetStates = [];
+    const refreshedTriggerStates = [];
+
+    targetIdSet.forEach((targetId) => {
+      const element = this.container.querySelector(
+        `[data-collapse-id="${targetId}"]`,
+      );
+
+      if (!element) {
+        return;
+      }
+
+      refreshedTargetStates.push({
+        id: targetId,
+        element,
+        collider: element.dataset.collider || null,
+        collapseState: element.dataset.collapseState || null,
+        nestedSolidStates: Array.from(
+          element.querySelectorAll(this.solidSelector),
+        ).map((solidElement) => ({
+          element: solidElement,
+          collider: solidElement.dataset.collider || null,
+        })),
+      });
+    });
+
+    triggerIdSet.forEach((triggerId) => {
+      const element = this.container.querySelector(
+        `[data-trigger-id="${triggerId}"]`,
+      );
+
+      if (!element) {
+        return;
+      }
+
+      refreshedTriggerStates.push({
+        id: triggerId,
+        element,
+        triggerUsed: element.dataset.triggerUsed || null,
+      });
+    });
+
+    this.initialTriggerStates.targets = [
+      ...this.initialTriggerStates.targets.filter(
+        (state) => !targetIdSet.has(state.id),
+      ),
+      ...refreshedTargetStates,
+    ];
+    this.initialTriggerStates.triggers = [
+      ...this.initialTriggerStates.triggers.filter(
+        (state) => !triggerIdSet.has(state.id),
+      ),
+      ...refreshedTriggerStates,
+    ];
+
+    return refreshedTargetStates.length > 0 || refreshedTriggerStates.length > 0;
+  }
+
   expireTimedBlock(timedBlockId) {
     const timedBlock = this.timedBlocks.find(
       (item) => item.id === timedBlockId && !item.isCollapsed,
