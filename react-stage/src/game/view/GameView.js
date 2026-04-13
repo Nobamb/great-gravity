@@ -170,6 +170,12 @@ export class GameView {
     };
   }
 
+  refreshBossStageElements() {
+    this.bossStructureElement =
+      this.containerElement?.querySelector("[data-boss-structure='true']") ??
+      null;
+  }
+
   refreshStageAnchors() {
     this.monsterBasePositions = new Map(
       Array.from(this.monsterElements.entries()).map(([id, element]) => [
@@ -180,6 +186,7 @@ export class GameView {
         },
       ]),
     );
+    this.refreshBossStageElements();
   }
 
   bindControls({ onRetry, onNextStage } = {}) {
