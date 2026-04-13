@@ -1088,19 +1088,31 @@ export class GameController {
 
     if (this.bossState.phase === "pattern2") {
       const elapsed = now - this.bossState.phaseStartMs;
+      let intervalMs = 0;
       let intensityRatio = 0;
 
       if (elapsed < 1000) {
-        intensityRatio = 0.05;
+        intervalMs = 50;
+        intensityRatio = 0.025;
       } else if (elapsed < 3000) {
-        intensityRatio = 0.03;
+        intervalMs = 100;
+        intensityRatio = 0.015;
       } else if (elapsed < 5000) {
-        intensityRatio = 0.01;
+        intervalMs = 100;
+        intensityRatio = 0.005;
+      } else {
+        return { x: 0, y: 0 };
       }
 
+      const step = Math.floor(elapsed / intervalMs);
+      const randomX = Math.sin(step * 12.9898 + 78.233) * 43758.5453;
+      const randomY = Math.sin(step * 39.3468 + 11.135) * 12741.1731;
+      const normalizedX = (randomX - Math.floor(randomX)) * 2 - 1;
+      const normalizedY = (randomY - Math.floor(randomY)) * 2 - 1;
+
       return {
-        x: Math.sin(now / 22) * this.stageModel.bounds.width * intensityRatio,
-        y: Math.cos(now / 28) * this.stageModel.bounds.height * intensityRatio,
+        x: normalizedX * this.stageModel.bounds.width * intensityRatio,
+        y: normalizedY * this.stageModel.bounds.height * intensityRatio,
       };
     }
 
