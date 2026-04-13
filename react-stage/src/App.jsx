@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { startTransition, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
     BrowserRouter,
     Navigate,
@@ -34,7 +34,11 @@ function useGameRuntime({
     stage,
     nextStagePath,
     navigate,
+    bossStructureVersion,
+    requestBossStructureRebuildRef,
 }) {
+    const gameControllerRef = useRef(null);
+
     useEffect(() => {
         const container = containerRef.current;
         const characterElement = characterRef.current;
@@ -84,11 +88,15 @@ function useGameRuntime({
             inputController,
             gameView,
             physicsController,
+            requestBossStructureRebuild: () =>
+                requestBossStructureRebuildRef.current?.(),
         });
+        gameControllerRef.current = gameController;
 
         gameController.start();
 
         return () => {
+            gameControllerRef.current = null;
             gameController.destroy?.();
         };
     }, [
@@ -103,7 +111,16 @@ function useGameRuntime({
         stoneRef,
         treasureRef,
         treasureAnchorRef,
+        requestBossStructureRebuildRef,
     ]);
+
+    useLayoutEffect(() => {
+        if (bossStructureVersion === 0) {
+            return;
+        }
+
+        gameControllerRef.current?.handleBossStructureRebuilt?.();
+    }, [bossStructureVersion]);
 }
 
 function StageRuntime({ stage }) {
@@ -116,7 +133,15 @@ function StageRuntime({ stage }) {
     const stoneRef = useRef(null);
     const stoneAnchorRef = useRef(null);
     const stoneAimRef = useRef(null);
+    const requestBossStructureRebuildRef = useRef(null);
+    const [bossStructureVersion, setBossStructureVersion] = useState(0);
     const nextStagePath = stage.nextStageId ? getStagePath(stage.nextStageId) : null;
+
+    requestBossStructureRebuildRef.current = () => {
+        startTransition(() => {
+            setBossStructureVersion((currentVersion) => currentVersion + 1);
+        });
+    };
 
     useGameRuntime({
         containerRef,
@@ -130,6 +155,8 @@ function StageRuntime({ stage }) {
         stage,
         nextStagePath,
         navigate,
+        bossStructureVersion,
+        requestBossStructureRebuildRef,
     });
 
     return (
@@ -145,6 +172,7 @@ function StageRuntime({ stage }) {
                     stoneRef={stoneRef}
                     stoneAnchorRef={stoneAnchorRef}
                     stoneAimRef={stoneAimRef}
+                    bossStructureVersion={bossStructureVersion}
                 />
             </Screen>
         </div>
