@@ -35,7 +35,9 @@ function useGameRuntime({
     nextStagePath,
     navigate,
     bossStructureVersion,
+    bossStructureFluidsVisible,
     requestBossStructureRebuildRef,
+    requestBossStructureFluidVisibilityRef,
 }) {
     const gameControllerRef = useRef(null);
 
@@ -90,6 +92,8 @@ function useGameRuntime({
             physicsController,
             requestBossStructureRebuild: () =>
                 requestBossStructureRebuildRef.current?.(),
+            requestBossStructureFluidVisibility: (isVisible) =>
+                requestBossStructureFluidVisibilityRef.current?.(isVisible),
         });
         gameControllerRef.current = gameController;
 
@@ -112,6 +116,7 @@ function useGameRuntime({
         treasureRef,
         treasureAnchorRef,
         requestBossStructureRebuildRef,
+        requestBossStructureFluidVisibilityRef,
     ]);
 
     useLayoutEffect(() => {
@@ -121,6 +126,10 @@ function useGameRuntime({
 
         gameControllerRef.current?.handleBossStructureRebuilt?.();
     }, [bossStructureVersion]);
+
+    useLayoutEffect(() => {
+        gameControllerRef.current?.handleBossStructureFluidVisibilityCommitted?.();
+    }, [bossStructureFluidsVisible]);
 }
 
 function StageRuntime({ stage }) {
@@ -134,13 +143,18 @@ function StageRuntime({ stage }) {
     const stoneAnchorRef = useRef(null);
     const stoneAimRef = useRef(null);
     const requestBossStructureRebuildRef = useRef(null);
+    const requestBossStructureFluidVisibilityRef = useRef(null);
     const [bossStructureVersion, setBossStructureVersion] = useState(0);
+    const [bossStructureFluidsVisible, setBossStructureFluidsVisible] = useState(true);
     const nextStagePath = stage.nextStageId ? getStagePath(stage.nextStageId) : null;
 
     requestBossStructureRebuildRef.current = () => {
         startTransition(() => {
             setBossStructureVersion((currentVersion) => currentVersion + 1);
         });
+    };
+    requestBossStructureFluidVisibilityRef.current = (isVisible) => {
+        setBossStructureFluidsVisible(Boolean(isVisible));
     };
 
     useGameRuntime({
@@ -156,7 +170,9 @@ function StageRuntime({ stage }) {
         nextStagePath,
         navigate,
         bossStructureVersion,
+        bossStructureFluidsVisible,
         requestBossStructureRebuildRef,
+        requestBossStructureFluidVisibilityRef,
     });
 
     return (
@@ -173,6 +189,7 @@ function StageRuntime({ stage }) {
                     stoneAnchorRef={stoneAnchorRef}
                     stoneAimRef={stoneAimRef}
                     bossStructureVersion={bossStructureVersion}
+                    bossStructureFluidsVisible={bossStructureFluidsVisible}
                 />
             </Screen>
         </div>
