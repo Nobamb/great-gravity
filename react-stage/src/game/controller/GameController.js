@@ -57,6 +57,10 @@ const BOSS_STRUCTURE_TRIGGER_IDS = [
   "boss-stage-low-beam-trigger-left",
   "boss-stage-low-beam-trigger-right",
 ];
+const BOSS_STRUCTURE_FLUID_ZONE_IDS = [
+  "boss-stage-lava",
+  "boss-stage-water",
+];
 const STAGE7_LOCKED_TREASURE_MESSAGE =
   "지금은 보물에 접근할 수 없습니다!\n몬스터 2마리를 처치하고 오세요!";
 const STAGE4_LOCKED_TREASURE_MESSAGE =
@@ -96,6 +100,7 @@ export class GameController {
     gameView,
     physicsController = null,
     requestBossStructureRebuild = null,
+    requestBossStructureFluidVisibility = null,
   }) {
     this.stage = stage;
     this.nextStagePath = nextStagePath;
@@ -106,6 +111,8 @@ export class GameController {
     this.gameView = gameView;
     this.physicsController = physicsController;
     this.requestBossStructureRebuild = requestBossStructureRebuild;
+    this.requestBossStructureFluidVisibility =
+      requestBossStructureFluidVisibility;
 
     this.fixedDeltaTime = 1 / 60;
     this.accumulator = 0;
@@ -252,7 +259,25 @@ export class GameController {
       structurePhaseStartMs: 0,
       structureLastCycleStartedAtMs: 0,
       structureRebuildPending: false,
+      structureFluidsVisible: true,
+      structureFluidVisibilityCommitPending: false,
     };
+  }
+
+  setBossStructureFluidVisibility(isVisible) {
+    if (!this.bossState) {
+      return;
+    }
+
+    const nextVisibility = Boolean(isVisible);
+
+    if (this.bossState.structureFluidsVisible === nextVisibility) {
+      return;
+    }
+
+    this.bossState.structureFluidsVisible = nextVisibility;
+    this.bossState.structureFluidVisibilityCommitPending = true;
+    this.requestBossStructureFluidVisibility?.(nextVisibility);
   }
 
   isBossStructureAnimating() {
@@ -1369,6 +1394,29 @@ export class GameController {
     this.bossState.structureRebuildPending = false;
   }
 
+  handleBossStructureFluidVisibilityCommitted() {
+    if (!this.bossState?.structureFluidVisibilityCommitPending) {
+      return;
+    }
+
+    this.stageModel.markDirty?.();
+    const stageState = this.stageModel.refresh();
+
+    if (stageState) {
+      this.handleStageResize(stageState);
+      this.physicsController?.handleStageMutation(this.stageModel, {
+        resetDynamics: true,
+      });
+      this.syncPhysicsRuntimeState();
+    }
+
+    this.activeTrigger = null;
+    this.updateActiveTrigger();
+    this.physicsController?.render();
+    this.gameView.render(this.characterModel, this.getRenderState());
+    this.bossState.structureFluidVisibilityCommitPending = false;
+  }
+
   updateBossStructureCycle(now, layout) {
     if (!this.bossState || !layout) {
       return;
@@ -1395,6 +1443,12 @@ export class GameController {
       this.bossState.structurePhase = "rising";
       this.bossState.structurePhaseStartMs = now;
       this.bossState.structureLastCycleStartedAtMs = now;
+      this.setBossStructureFluidVisibility(false);
+      // 올라가기 시작할 때 유체(물/용암) 파티클을 제거하여 섞이는 문제를 방지합니다.
+      this.physicsController?.removeFluidBodiesByZoneIds?.(
+        BOSS_STRUCTURE_FLUID_ZONE_IDS,
+      );
+      this.stageModel.clearRuntimeWaterZones();
       return;
     }
 
@@ -1417,8 +1471,24 @@ export class GameController {
       ) {
         this.bossState.structurePhase = "idle";
         this.bossState.structurePhaseStartMs = now;
+        this.setBossStructureFluidVisibility(true);
       }
     }
+  }
+
+  // 보스 패턴 1에서 공격 손이 뻗는 범위 안의 굳은 용암(solidified blocks)을 파괴합니다.
+  destroySolidifiedBlocksInHandBounds(now, layout) {
+    if (!this.bossState || this.bossState.phase !== "pattern1") {
+      return;
+    }
+
+    const handBounds = this.getBossHandVisualBounds(now, layout);
+
+    if (!handBounds) {
+      return;
+    }
+
+    this.physicsController?.removeSolidifiedBlocksInBounds?.(handBounds);
   }
 
   startBossGroggy(now) {
@@ -1457,6 +1527,8 @@ export class GameController {
     this.bossState.structurePhase = "idle";
     this.bossState.structurePhaseStartMs = now;
     this.bossState.structureRebuildPending = false;
+    this.bossState.structureFluidsVisible = true;
+    this.bossState.structureFluidVisibilityCommitPending = false;
   }
 
   maybeApplyBossLavaDamage(now, layout) {
@@ -1639,6 +1711,8 @@ export class GameController {
       case "pattern1":
         this.bossState.pattern2StoneRects = [];
         this.resetPattern2StoneDebugState();
+        // 보스가 손을 뻗는 동안 해당 반경의 굳은 용암을 파괴합니다.
+        this.destroySolidifiedBlocksInHandBounds(now, layout);
         if (now - this.bossState.phaseStartMs >= BOSS_PATTERN1_DURATION_MS) {
           this.transitionBossToIdle(now);
         }
@@ -2298,6 +2372,10 @@ export class GameController {
   }
 
   restartStage() {
+    const needsBossFluidRestore = Boolean(
+      this.bossState && !this.bossState.structureFluidsVisible,
+    );
+
     this.gameView.resetStageState();
     this.inputController.resetTransientActions?.();
     this.stageModel.resetStage();
@@ -2314,6 +2392,10 @@ export class GameController {
     this.characterModel.resetToSpawn();
     this.gameView.refreshStageAnchors?.();
     this.initializeStageActors();
+
+    if (needsBossFluidRestore) {
+      this.setBossStructureFluidVisibility(true);
+    }
 
     this.physicsController?.reset(this.stageModel);
     this.syncPhysicsRuntimeState();
