@@ -727,6 +727,109 @@ export class PhysicsModel {
     return removedBlock;
   }
 
+  // 주어진 범위(bounds)와 겹치는 모든 굳은 용암 블록을 제거합니다.
+  removeSolidifiedBlocksInBounds(bounds) {
+    if (!bounds || this.solidifiedRects.length === 0) {
+      return 0;
+    }
+
+    const removed = [];
+    const remaining = [];
+
+    this.solidifiedRects.forEach((block) => {
+      const overlaps = !(
+        block.right <= bounds.left ||
+        block.left >= bounds.right ||
+        block.bottom <= bounds.top ||
+        block.top >= bounds.bottom
+      );
+
+      if (overlaps) {
+        removed.push(block);
+      } else {
+        remaining.push(block);
+      }
+    });
+
+    if (removed.length === 0) {
+      return 0;
+    }
+
+    this.solidifiedRects = remaining;
+    removed.forEach((block) => this.solidifiedCellKeys.delete(block.id));
+    return removed.length;
+  }
+
+  // 특정 zone ID들에 해당하는 유체 파티클을 모두 제거합니다.
+  removeFluidBodiesByZoneIds(zoneIds) {
+    if (!zoneIds || zoneIds.length === 0) {
+      return;
+    }
+
+    const zoneIdSet = new Set(zoneIds);
+    let cacheDirty = false;
+
+    this.fluidZones.forEach((zone) => {
+      if (!zoneIdSet.has(zone.id)) {
+        return;
+      }
+
+      if (zone.bodies.length > 0) {
+        this.removeBodies(zone.bodies);
+        zone.bodies = [];
+        cacheDirty = true;
+      }
+    });
+
+    if (cacheDirty) {
+      this.rebuildDynamicBodyCache();
+    }
+  }
+
+  // 특정 zone ID들에 해당하는 유체 파티클을 다시 생성합니다.
+  respawnFluidBodiesByZoneIds(zoneIds) {
+    if (!zoneIds || zoneIds.length === 0) {
+      return;
+    }
+
+    const zoneIdSet = new Set(zoneIds);
+    let cacheDirty = false;
+
+    this.fluidZones.forEach((zone) => {
+      if (!zoneIdSet.has(zone.id)) {
+        return;
+      }
+
+      // 기존 파티클이 남아있으면 먼저 제거
+      if (zone.bodies.length > 0) {
+        this.removeBodies(zone.bodies);
+        zone.bodies = [];
+        cacheDirty = true;
+      }
+
+      // 새 파티클 생성
+      const containerRect = this.container.getBoundingClientRect();
+      const originRect = createRelativeRect(
+        zone.element.getBoundingClientRect(),
+        containerRect,
+      );
+      zone.originRect = originRect;
+      zone.containmentRect = { ...originRect };
+
+      const newBodies = this.createFluidBodies(originRect, zone.config, {
+        densityScale: zone.densityScale,
+        spawnProfile: zone.spawnProfile,
+      });
+      zone.bodies = newBodies;
+      this.addBodies(newBodies);
+      cacheDirty = true;
+    });
+
+    if (cacheDirty) {
+      this.rebuildDynamicBodyCache();
+    }
+  }
+
   updateSolidifiedBlockPhysics(dt) {
     if (this.solidifiedRects.length === 0) {
       return;
