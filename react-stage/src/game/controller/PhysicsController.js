@@ -155,6 +155,33 @@ export class PhysicsController {
         return this.physicsModel.consumeTriggerHits();
     }
 
+    // 주어진 범위와 겹치는 굳은 용암 블록을 일괄 제거합니다.
+    removeSolidifiedBlocksInBounds(bounds) {
+        if (!this.physicsModel.enabled) {
+            return 0;
+        }
+
+        return this.physicsModel.removeSolidifiedBlocksInBounds(bounds);
+    }
+
+    // 특정 zone ID들의 유체 파티클을 제거합니다.
+    removeFluidBodiesByZoneIds(zoneIds) {
+        if (!this.physicsModel.enabled) {
+            return;
+        }
+
+        this.physicsModel.removeFluidBodiesByZoneIds(zoneIds);
+    }
+
+    // 특정 zone ID들의 유체 파티클을 재생성합니다.
+    respawnFluidBodiesByZoneIds(zoneIds) {
+        if (!this.physicsModel.enabled) {
+            return;
+        }
+
+        this.physicsModel.respawnFluidBodiesByZoneIds(zoneIds);
+    }
+
     destroy() {
         this.physicsView?.destroy?.();
         this.physicsModel?.destroy?.();
