@@ -1532,7 +1532,7 @@ function Stage7Layout({
   );
 }
 
-function BossStageStructureSet() {
+function BossStageStructureSet({ bossStructureFluidsVisible = true }) {
   return (
     <div className="boss-stage-structure__set" data-boss-structure="true">
       <div
@@ -1586,51 +1586,58 @@ function BossStageStructureSet() {
         />
       </div>
 
-      <LavaZone
-        className="boss-stage-fluid boss-stage-fluid--lava fluid-zone fluid-zone--lava"
-        zoneId="boss-stage-lava"
-        width="84%"
-        height="31%"
-        fluidSpawnProfile={{
-          fitToRect: true,
-          maxParticles: 72,
-          maxCols: 12,
-          maxRows: 5,
-          minParticleRadius: 5,
-          maxParticleRadius: 24,
-          colCountSpacingMultiplier: 1.42,
-          rowCountSpacingMultiplier: 1.55,
-          colStepMultiplier: 1.38,
-          rowStepMultiplier: 1.45,
-          rowOffsetMultiplier: 0.1,
-          spawnInsetMultiplier: 0.16,
-        }}
-      />
-      <WaterZone
-        className="boss-stage-fluid boss-stage-fluid--water fluid-zone fluid-zone--water"
-        zoneId="boss-stage-water"
-        width="84%"
-        height="31%"
-        fluidSpawnProfile={{
-          fitToRect: true,
-          maxParticles: 88,
-          maxCols: 13,
-          maxRows: 6,
-          minParticleRadius: 4,
-          maxParticleRadius: 22,
-          colCountSpacingMultiplier: 1.45,
-          rowCountSpacingMultiplier: 1.58,
-          colStepMultiplier: 1.4,
-          rowStepMultiplier: 1.5,
-          rowOffsetMultiplier: 0.12,
-          spawnInsetMultiplier: 0.18,
-        }}
-      />
+      {bossStructureFluidsVisible ? (
+        <>
+          <LavaZone
+            className="boss-stage-fluid boss-stage-fluid--lava fluid-zone fluid-zone--lava"
+            zoneId="boss-stage-lava"
+            width="84%"
+            height="31%"
+            fluidSpawnProfile={{
+              fitToRect: true,
+              maxParticles: 72,
+              maxCols: 12,
+              maxRows: 5,
+              minParticleRadius: 5,
+              maxParticleRadius: 24,
+              colCountSpacingMultiplier: 1.42,
+              rowCountSpacingMultiplier: 1.55,
+              colStepMultiplier: 1.38,
+              rowStepMultiplier: 1.45,
+              rowOffsetMultiplier: 0.1,
+              spawnInsetMultiplier: 0.16,
+            }}
+          />
+          <WaterZone
+            className="boss-stage-fluid boss-stage-fluid--water fluid-zone fluid-zone--water"
+            zoneId="boss-stage-water"
+            width="84%"
+            height="31%"
+            fluidSpawnProfile={{
+              fitToRect: true,
+              maxParticles: 88,
+              maxCols: 13,
+              maxRows: 6,
+              minParticleRadius: 4,
+              maxParticleRadius: 22,
+              colCountSpacingMultiplier: 1.45,
+              rowCountSpacingMultiplier: 1.58,
+              colStepMultiplier: 1.4,
+              rowStepMultiplier: 1.5,
+              rowOffsetMultiplier: 0.12,
+              spawnInsetMultiplier: 0.18,
+            }}
+          />
+        </>
+      ) : null}
     </div>
   );
 }
 
-function BossStageLayout({ bossStructureVersion = 0 }) {
+function BossStageLayout({
+  bossStructureVersion = 0,
+  bossStructureFluidsVisible = true,
+}) {
   const bossAssetUrls = createBossAssetUrls();
   const bossAssetStyles = createBossAssetStyles(bossAssetUrls);
 
@@ -1661,7 +1668,10 @@ function BossStageLayout({ bossStructureVersion = 0 }) {
         data-collider="solid"
         data-effect="jump-boost"
       ></div>
-      <BossStageStructureSet key={`boss-structure-${bossStructureVersion}`} />
+      <BossStageStructureSet
+        key={`boss-structure-${bossStructureVersion}`}
+        bossStructureFluidsVisible={bossStructureFluidsVisible}
+      />
       <div
         className="boss-stage-boss"
         data-boss-root="true"
@@ -1743,10 +1753,16 @@ function renderStageLayout(
   stoneAnchorRef,
   stoneAimRef,
   bossStructureVersion,
+  bossStructureFluidsVisible,
 ) {
   switch (stageId) {
     case "bossStage":
-      return <BossStageLayout bossStructureVersion={bossStructureVersion} />;
+      return (
+        <BossStageLayout
+          bossStructureVersion={bossStructureVersion}
+          bossStructureFluidsVisible={bossStructureFluidsVisible}
+        />
+      );
     case "stage7":
       return (
         <Stage7Layout
@@ -1824,6 +1840,7 @@ export default function StageGeometry({
   stoneAnchorRef,
   stoneAimRef,
   bossStructureVersion = 0,
+  bossStructureFluidsVisible = true,
 }) {
   const hasMonsterMission = stage.id === "stage4" || stage.id === "stage7";
   const hasBossHud = stage.id === "bossStage";
@@ -1886,6 +1903,7 @@ export default function StageGeometry({
         stoneAnchorRef,
         stoneAimRef,
         bossStructureVersion,
+        bossStructureFluidsVisible,
       )}
 
       <CharacterSprite ref={characterRef} heldStoneRef={heldStoneRef} />
