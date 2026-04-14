@@ -292,11 +292,11 @@ export class GameController {
   }
 
   shouldForceBossStructureSync() {
-    if (!this.bossState) {
-      return false;
-    }
-
-    return this.isBossStructureAnimating();
+    // 보스 구조의 상하 이동은 시각 연출로만 처리합니다.
+    // 이동 중 DOM 충돌체를 매 프레임 다시 읽으면 캐릭터가 구조물에 잘못 끼어
+    // 좌측으로 튕기듯 순간이동하는 현상이 발생할 수 있으므로,
+    // 실제 구조 재생성/유체 DOM 변경 시점에만 스테이지 동기화를 수행합니다.
+    return false;
   }
 
   tick(timestamp) {
@@ -1429,10 +1429,6 @@ export class GameController {
       "ending-drop",
       "final-stones",
     ].includes(this.bossState.phase);
-
-    if (this.bossState.structurePhase !== "idle") {
-      this.stageModel.markDirty?.();
-    }
 
     if (
       isBattleActive &&
