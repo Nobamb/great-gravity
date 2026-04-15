@@ -372,8 +372,9 @@ export class CharacterModel {
     this.vy = Math.min(this.vy + gravity * dt, maxFallSpeed);
 
     // X축 및 Y축 이동
+    const previousHorizontalBounds = this.getBounds();
     this.x += this.vx * dt;
-    this.resolveHorizontalCollisions(stage.solids);
+    this.resolveHorizontalCollisions(stage.solids, previousHorizontalBounds);
 
     this.onGround = false;
     const previousBounds = this.getBounds();
@@ -414,8 +415,9 @@ export class CharacterModel {
       this.vx = approach(this.vx, 0, deceleration * dt);
     }
 
+    const previousHorizontalBounds = this.getBounds();
     this.x += this.vx * dt;
-    this.resolveHorizontalCollisions(stage.solids);
+    this.resolveHorizontalCollisions(stage.solids, previousHorizontalBounds);
 
     if (input.jump) {
       this.swimPhase = "rising";
@@ -502,7 +504,7 @@ export class CharacterModel {
   /**
    * 수평 방향 지형 충돌을 체크하고 위치를 보정합니다.
    */
-  resolveHorizontalCollisions(solids) {
+  resolveHorizontalCollisions(solids, previousBounds = this.getBounds()) {
     let bounds = this.getBounds();
 
     for (const solid of solids) {
@@ -510,10 +512,23 @@ export class CharacterModel {
         continue;
       }
 
+      const previousVerticalOverlap =
+        previousBounds.bottom > solid.top && previousBounds.top < solid.bottom;
+
       if (this.vx > 0) {
+        if (!previousVerticalOverlap || previousBounds.right > solid.left) {
+          continue;
+        }
+
         this.x = solid.left - this.width;
       } else if (this.vx < 0) {
+        if (!previousVerticalOverlap || previousBounds.left < solid.right) {
+          continue;
+        }
+
         this.x = solid.right;
+      } else {
+        continue;
       }
 
       this.vx = 0;
