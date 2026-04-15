@@ -251,11 +251,11 @@ export class GameController {
 
   createBossState() {
     return {
-      // hp: 100,
+      hp: 100,
       // hp 50 이하일 때의 로직 확인
       // hp: 50,
       // 사망 처리 확인용
-      hp: 10,
+      // hp: 10,
       phase: "intro",
       phaseStartMs: 0,
       lastPatternStartMs: 0,
@@ -725,7 +725,9 @@ export class GameController {
 
   getBossRushLaneTop(layout) {
     const rushDimensions = this.getBossRushDimensions(layout);
-    const stageHeight = Number.isFinite(layout?.stageHeight) ? layout.stageHeight : 0;
+    const stageHeight = Number.isFinite(layout?.stageHeight)
+      ? layout.stageHeight
+      : 0;
     // 게임 화면의 Y축 절반 정도의 위치
     return stageHeight * 0.5 - rushDimensions.height / 2;
   }
@@ -773,10 +775,18 @@ export class GameController {
       naturalHeight: 0,
       aspectRatio: 1,
     };
-    const stageWidth = Number.isFinite(layout.stageWidth) ? layout.stageWidth : 0;
-    const stageHeight = Number.isFinite(layout.stageHeight) ? layout.stageHeight : 0;
-    const endCardWidth = Number.isFinite(layout.endCardWidth) ? layout.endCardWidth : 0;
-    const endCardHeight = Number.isFinite(layout.endCardHeight) ? layout.endCardHeight : 0;
+    const stageWidth = Number.isFinite(layout.stageWidth)
+      ? layout.stageWidth
+      : 0;
+    const stageHeight = Number.isFinite(layout.stageHeight)
+      ? layout.stageHeight
+      : 0;
+    const endCardWidth = Number.isFinite(layout.endCardWidth)
+      ? layout.endCardWidth
+      : 0;
+    const endCardHeight = Number.isFinite(layout.endCardHeight)
+      ? layout.endCardHeight
+      : 0;
     const aspectRatio =
       Number.isFinite(endAssetMetrics.aspectRatio) &&
       endAssetMetrics.aspectRatio > 0
@@ -1401,7 +1411,12 @@ export class GameController {
     }
 
     if (
-      ["ending-warning", "ending-approach", "ending-drop", "final-stones"].includes(phase)
+      [
+        "ending-warning",
+        "ending-approach",
+        "ending-drop",
+        "final-stones",
+      ].includes(phase)
     ) {
       return {
         visible: false,
@@ -1619,17 +1634,28 @@ export class GameController {
 
     const ending = this.getBossEndingState(now, layout);
 
-    if (!ending.cardVisible || (ending.translateZ ?? BOSS_ENDING_TRANSLATE_Z_START) < 0) {
+    if (
+      !ending.cardVisible ||
+      (ending.translateZ ?? BOSS_ENDING_TRANSLATE_Z_START) < 0
+    ) {
       return null;
     }
 
     const warningRect = this.getBossEndingWarningRect(layout);
     const warningX = Number.isFinite(warningRect.x) ? warningRect.x : 0;
     const warningY = Number.isFinite(warningRect.y) ? warningRect.y : 0;
-    const warningWidth = Number.isFinite(warningRect.width) ? warningRect.width : 0;
-    const warningHeight = Number.isFinite(warningRect.height) ? warningRect.height : 0;
-    const stageHeight = Number.isFinite(layout.stageHeight) ? layout.stageHeight : 0;
-    const dropProgress = Number.isFinite(ending.dropProgress) ? ending.dropProgress : 0;
+    const warningWidth = Number.isFinite(warningRect.width)
+      ? warningRect.width
+      : 0;
+    const warningHeight = Number.isFinite(warningRect.height)
+      ? warningRect.height
+      : 0;
+    const stageHeight = Number.isFinite(layout.stageHeight)
+      ? layout.stageHeight
+      : 0;
+    const dropProgress = Number.isFinite(ending.dropProgress)
+      ? ending.dropProgress
+      : 0;
     const dropDistance = stageHeight - warningY + warningHeight;
     const top = warningY + dropDistance * dropProgress;
 
