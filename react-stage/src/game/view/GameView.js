@@ -123,6 +123,9 @@ export class GameView {
       null;
     this.bossHandElement =
       this.containerElement?.querySelector("[data-boss-hand='true']") ?? null;
+    this.bossHandImageElement =
+      this.containerElement?.querySelector("[data-boss-hand-image='true']") ??
+      null;
     this.bossHitFlashElement =
       this.containerElement?.querySelector("[data-boss-hitflash='true']") ??
       null;
@@ -1111,14 +1114,20 @@ export class GameView {
       this.bossHandElement.hidden = !hand.visible;
 
       if (hand.visible) {
-        this.bossHandElement.style.backgroundImage =
-          "var(--boss-attack-hand-image)";
         this.bossHandElement.style.width = `${hand.width}px`;
         this.bossHandElement.style.height = `${hand.height}px`;
         this.bossHandElement.style.transform = `translate3d(${hand.x - (bossState.x ?? 0)}px, ${hand.y - (bossState.y ?? 0)}px, 0) scaleX(${spriteScaleX})`;
-      } else {
-        this.bossHandElement.style.backgroundImage = "";
       }
+    }
+
+    if (this.bossHandImageElement) {
+      const shouldTintHandAttack =
+        Boolean(bossState.isHandAttackTinted) &&
+        !bossState.isDamaged &&
+        !bossState.isDefeated;
+      this.bossHandImageElement.style.filter = shouldTintHandAttack
+        ? "drop-shadow(0 0 calc(16 * var(--cw)) rgba(255, 54, 24, 0.32)) sepia(55%) hue-rotate(-38deg) saturate(240%) brightness(1.08)"
+        : "var(--boss-hand-filter)";
     }
 
     if (this.bossRushWarningElement) {
@@ -1287,10 +1296,13 @@ export class GameView {
 
     if (this.bossHandElement) {
       this.bossHandElement.hidden = true;
-      this.bossHandElement.style.backgroundImage = "";
       this.bossHandElement.style.width = "";
       this.bossHandElement.style.height = "";
       this.bossHandElement.style.transform = "";
+    }
+
+    if (this.bossHandImageElement) {
+      this.bossHandImageElement.style.filter = "var(--boss-hand-filter)";
     }
 
     if (this.bossRushWarningElement) {
