@@ -12,6 +12,22 @@ function lerp(start, end, progress) {
   return start + (end - start) * progress;
 }
 
+function scaleRect(rect, scaleX, scaleY) {
+  if (!rect) {
+    return null;
+  }
+
+  return {
+    ...rect,
+    left: rect.left * scaleX,
+    top: rect.top * scaleY,
+    right: typeof rect.right === "number" ? rect.right * scaleX : undefined,
+    bottom: typeof rect.bottom === "number" ? rect.bottom * scaleY : undefined,
+    width: rect.width * scaleX,
+    height: rect.height * scaleY,
+  };
+}
+
 function expandTreasureInteractionBounds(bounds) {
   const horizontalPadding = bounds.width * 0.08;
   const topExpansion = bounds.height * 0.7;
@@ -57,10 +73,7 @@ const BOSS_STRUCTURE_TRIGGER_IDS = [
   "boss-stage-low-beam-trigger-left",
   "boss-stage-low-beam-trigger-right",
 ];
-const BOSS_STRUCTURE_FLUID_ZONE_IDS = [
-  "boss-stage-lava",
-  "boss-stage-water",
-];
+const BOSS_STRUCTURE_FLUID_ZONE_IDS = ["boss-stage-lava", "boss-stage-water"];
 const STAGE7_LOCKED_TREASURE_MESSAGE =
   "지금은 보물에 접근할 수 없습니다!\n몬스터 2마리를 처치하고 오세요!";
 const STAGE4_LOCKED_TREASURE_MESSAGE =
@@ -235,13 +248,18 @@ export class GameController {
 
   createBossState() {
     return {
-      hp: 100,
+      // hp: 100,
+      // hp 50 이하일 때의 로직 확인
+      hp: 50,
       phase: "intro",
       phaseStartMs: 0,
       lastPatternStartMs: 0,
       patternCursor: 0,
+      anchorX: null,
       rushDirection: -1,
-      rushLaneIndex: 0,
+      rushWarningRect: null,
+      rushPathStartRect: null,
+      rushPathTargetRect: null,
       damageCooldownUntilMs: 0,
       damageFlashUntilMs: 0,
       patternDamageCount: 0,
@@ -313,8 +331,7 @@ export class GameController {
 
       this.handleStageResize(stageState);
       this.physicsController?.handleStageMutation(this.stageModel, {
-        resetDynamics:
-          stageState.changed || shouldResetBossStructureDynamics,
+        resetDynamics: stageState.changed || shouldResetBossStructureDynamics,
       });
     }
 
@@ -622,6 +639,7 @@ export class GameController {
 
     this.bossState.phase = "idle";
     this.bossState.phaseStartMs = now;
+    this.resetBossRushPathState();
     this.bossState.pattern2StoneWave = [];
     this.bossState.pattern2StoneRects = [];
     this.resetPattern2StoneDebugState();
@@ -639,6 +657,52 @@ export class GameController {
     return 1;
   }
 
+  getBossRightAnchorX(layout) {
+    return layout.targetX;
+  }
+
+  getBossLeftAnchorX(layout) {
+    return layout.stageWidth - layout.targetX - layout.width;
+  }
+
+  getBossAnchorX(layout) {
+    if (!layout) {
+      return 0;
+    }
+
+    return typeof this.bossState?.anchorX === "number"
+      ? this.bossState.anchorX
+      : this.getBossRightAnchorX(layout);
+  }
+
+  getBossFacing(layout) {
+    if (!this.bossState || !layout) {
+      return 1;
+    }
+
+    const anchorX = this.getBossAnchorX(layout);
+    // 왼쪽 안착 지점 근처면 -1(왼쪽에서 오른쪽을 보고 있음), 아니면 1(오른쪽에서 왼쪽을 보고 있음)
+    const leftAnchorX = this.getBossLeftAnchorX(layout);
+    return Math.abs(anchorX - leftAnchorX) < 10 ? -1 : 1;
+  }
+
+  getBossRushLandingAnchorX(layout, direction) {
+    return direction < 0
+      ? this.getBossLeftAnchorX(layout)
+      : this.getBossRightAnchorX(layout);
+  }
+
+  commitBossRushLandingPosition(layout) {
+    if (!this.bossState || !layout) {
+      return;
+    }
+
+    this.bossState.anchorX = this.getBossRushLandingAnchorX(
+      layout,
+      this.bossState.rushDirection,
+    );
+  }
+
   resetBossPatternDamageWindow(phase = this.bossState?.phase ?? "idle") {
     if (!this.bossState) {
       return;
@@ -651,12 +715,96 @@ export class GameController {
   }
 
   getBossRushLaneTop(layout) {
-    const laneRatios = [0.26, 0.48, 0.68];
-    const laneRatio =
-      laneRatios[this.bossState?.rushLaneIndex % laneRatios.length] ??
-      laneRatios[0];
+    const rushDimensions = this.getBossRushDimensions(layout);
+    // 게임 화면의 Y축 절반 정도의 위치
+    return layout.stageHeight * 0.5 - rushDimensions.height / 2;
+  }
 
-    return layout.stageHeight * laneRatio - layout.rushHeight / 2;
+  getBossRushSpriteScaleX(direction) {
+    return direction > 0 ? 1 : -1;
+  }
+
+  getBossRushDimensions(layout) {
+    const rushAssetMetrics = this.gameView?.getBossRushAssetMetrics?.() ?? {
+      naturalWidth: 0,
+      naturalHeight: 0,
+      aspectRatio: 1,
+    };
+    const rushWidth = layout.width;
+    const aspectRatio =
+      rushAssetMetrics.aspectRatio > 0
+        ? rushAssetMetrics.aspectRatio
+        : Math.max(layout.width / Math.max(layout.height, 1), 1);
+    const rushHeight = rushWidth / aspectRatio;
+
+    return {
+      width: rushWidth,
+      height: rushHeight,
+    };
+  }
+
+  resetBossRushPathState() {
+    if (!this.bossState) {
+      return;
+    }
+
+    this.bossState.rushWarningRect = null;
+    this.bossState.rushPathStartRect = null;
+    this.bossState.rushPathTargetRect = null;
+  }
+
+  createBossRushPath(now, layout) {
+    const currentAnchorX = this.getBossAnchorX(layout);
+    const currentVisual = this.getBossVisualState(now, layout) ?? {
+      visible: true,
+      x: currentAnchorX,
+      y: layout.targetY,
+      width: layout.width,
+      height: layout.height,
+    };
+    const currentCenterX =
+      (currentVisual.x ?? currentAnchorX) +
+      (currentVisual.width ?? layout.width) / 2;
+    const direction = currentCenterX >= layout.stageWidth / 2 ? -1 : 1;
+    const rushDimensions = this.getBossRushDimensions(layout);
+    const rushTop = this.getBossRushLaneTop(layout);
+    const targetLeft = this.getBossRushLandingAnchorX(layout, direction);
+
+    return {
+      warningRect: {
+        left: 0,
+        top: rushTop,
+        right: layout.stageWidth,
+        bottom: rushTop + rushDimensions.height,
+        width: layout.stageWidth,
+        height: rushDimensions.height,
+      },
+      startRect: {
+        left: currentVisual.x ?? currentAnchorX,
+        top: rushTop,
+        right: (currentVisual.x ?? currentAnchorX) + rushDimensions.width,
+        bottom: rushTop + rushDimensions.height,
+        width: rushDimensions.width,
+        height: rushDimensions.height,
+      },
+      targetRect: {
+        left: targetLeft,
+        top: rushTop,
+        right: targetLeft + rushDimensions.width,
+        bottom: rushTop + rushDimensions.height,
+        width: rushDimensions.width,
+        height: rushDimensions.height,
+      },
+      direction,
+    };
+  }
+
+  getBossRushWarningRect() {
+    if (this.bossState?.phase !== "pattern3-warning") {
+      return null;
+    }
+
+    return this.bossState.rushWarningRect ?? null;
   }
 
   createBossStoneWave(now, finalWave = false) {
@@ -676,7 +824,11 @@ export class GameController {
       const minCenterX = currentWidth / 2;
       const maxCenterX = stageWidth - currentWidth / 2;
       const sampleCandidate = () =>
-        clamp(minCenterX + Math.random() * Math.max(1, maxCenterX - minCenterX), minCenterX, maxCenterX);
+        clamp(
+          minCenterX + Math.random() * Math.max(1, maxCenterX - minCenterX),
+          minCenterX,
+          maxCenterX,
+        );
       let chosenCenterX = sampleCandidate();
       let bestPenalty = Number.POSITIVE_INFINITY;
 
@@ -723,7 +875,9 @@ export class GameController {
               0,
               Math.min(
                 laneLabels.length - 1,
-                Math.floor((chosenCenterX / Math.max(stageWidth, 1)) * laneLabels.length),
+                Math.floor(
+                  (chosenCenterX / Math.max(stageWidth, 1)) * laneLabels.length,
+                ),
               ),
             )
           ],
@@ -735,12 +889,14 @@ export class GameController {
       const currentWidth = finalWave
         ? stageWidth * 0.036
         : stoneAssetMetrics.naturalWidth > 0
-          ? stoneAssetMetrics.naturalWidth * (stageWidth / BOSS_STAGE_REFERENCE_WIDTH)
+          ? stoneAssetMetrics.naturalWidth *
+            (stageWidth / BOSS_STAGE_REFERENCE_WIDTH)
           : clamp(stageWidth * (0.07 + Math.random() * 0.018), 72, 132);
       const baseWidth =
         currentWidth * (BOSS_STAGE_REFERENCE_WIDTH / Math.max(stageWidth, 1));
       const baseHeight =
-        stoneAssetMetrics.naturalHeight > 0 && stoneAssetMetrics.naturalWidth > 0
+        stoneAssetMetrics.naturalHeight > 0 &&
+        stoneAssetMetrics.naturalWidth > 0
           ? baseWidth / aspectRatio
           : baseWidth;
       const placement = (() => {
@@ -759,7 +915,9 @@ export class GameController {
                   0,
                   Math.min(
                     laneLabels.length - 1,
-                    Math.floor((centerX / Math.max(stageWidth, 1)) * laneLabels.length),
+                    Math.floor(
+                      (centerX / Math.max(stageWidth, 1)) * laneLabels.length,
+                    ),
                   ),
                 )
               ],
@@ -979,33 +1137,50 @@ export class GameController {
     }
 
     const elapsed = now - this.bossState.phaseStartMs;
-    const anchorX = layout.targetX + layout.width * 0.9;
-    const height = layout.height * 0.24; // Ensure enough height for the fist
-    const y = layout.floorTop - height * 0.98; // Better visual alignment with floor
-    const startEndX = anchorX - layout.width * 0.16;
-    const centerEndX = layout.stageWidth * 0.48;
-    const farEndX = layout.stageWidth * 0.02;
-    let endX = anchorX;
+    const facing = this.getBossFacing(layout);
+    const travelToCenterMs = 1000;
+    const centerHoldMs = 500;
+    const travelToEdgeMs = 300;
+    const retractMs = 500;
+    const attackDurationMs =
+      travelToCenterMs + centerHoldMs + travelToEdgeMs + retractMs;
 
-    // Faster punch for Pattern 1
-    if (elapsed < 1000) {
-      endX = lerp(startEndX, centerEndX, elapsed / 1000);
-    } else if (elapsed < 1500) {
-      endX = centerEndX;
-    } else if (elapsed < 1800) {
-      endX = lerp(centerEndX, farEndX, (elapsed - 1500) / 300);
-    } else if (elapsed < BOSS_PATTERN1_DURATION_MS) {
-      endX = lerp(farEndX, anchorX, (elapsed - 1800) / 500);
-    }
-
-    const width = Math.max(0, anchorX - endX);
-
-    if (width <= layout.width * 0.04) {
+    if (elapsed < 0 || elapsed >= attackDurationMs) {
       return null;
     }
 
+    const height = layout.height * 0.56;
+    const width = layout.width * 1.08;
+    const bossBottom = layout.targetY + layout.height;
+    const y = bossBottom - height;
+    const startTipX =
+      facing > 0 ? layout.stageWidth - width * 0.2 : width * 0.2;
+    const centerTipX = layout.stageWidth * 0.5;
+    const edgeTipX = facing > 0 ? 0 : layout.stageWidth;
+    let tipX = startTipX;
+
+    if (elapsed < travelToCenterMs) {
+      const t = elapsed / travelToCenterMs;
+      const ease = 1 - Math.pow(1 - t, 3);
+      tipX = startTipX + (centerTipX - startTipX) * ease;
+    } else if (elapsed < travelToCenterMs + centerHoldMs) {
+      tipX = centerTipX;
+    } else if (elapsed < travelToCenterMs + centerHoldMs + travelToEdgeMs) {
+      const t = (elapsed - (travelToCenterMs + centerHoldMs)) / travelToEdgeMs;
+      const ease = 1 - Math.pow(1 - t, 3);
+      tipX = centerTipX + (edgeTipX - centerTipX) * ease;
+    } else {
+      const t =
+        (elapsed - (travelToCenterMs + centerHoldMs + travelToEdgeMs)) /
+        retractMs;
+      const ease = t * t * t;
+      tipX = edgeTipX + (startTipX - edgeTipX) * ease;
+    }
+
+    const x = facing > 0 ? tipX : tipX - width;
+
     return {
-      x: endX,
+      x,
       y,
       width,
       height,
@@ -1074,26 +1249,34 @@ export class GameController {
       return null;
     }
 
+    if (
+      !this.bossState.rushPathStartRect ||
+      !this.bossState.rushPathTargetRect
+    ) {
+      return null;
+    }
+
     const progress = clamp(
       (now - this.bossState.phaseStartMs) / BOSS_PATTERN3_RUSH_MS,
       0,
       1,
     );
     const direction = this.bossState.rushDirection;
-    const startX =
-      direction < 0
-        ? layout.stageWidth + layout.width * 0.12
-        : -layout.width * 0.82;
-    const endX =
-      direction < 0
-        ? -layout.width * 0.82
-        : layout.stageWidth + layout.width * 0.12;
+    const startRect = this.bossState.rushPathStartRect;
+    const targetRect = this.bossState.rushPathTargetRect;
+
+    const left = lerp(startRect.left, targetRect.left, progress);
+    const top = lerp(startRect.top, targetRect.top, progress);
+    const width = lerp(startRect.width, targetRect.width, progress);
+    const height = lerp(startRect.height, targetRect.height, progress);
 
     return {
-      left: lerp(startX, endX, progress),
-      top: this.getBossRushLaneTop(layout) - layout.height * 0.08,
-      width: layout.width,
-      height: layout.height * 0.84,
+      left,
+      top,
+      right: left + width,
+      bottom: top + height,
+      width,
+      height,
       direction,
     };
   }
@@ -1104,6 +1287,7 @@ export class GameController {
     }
 
     const phase = this.bossState.phase;
+    const facing = this.getBossFacing(layout);
 
     if (phase === "intro") {
       const progress = clamp(
@@ -1114,12 +1298,13 @@ export class GameController {
 
       return {
         visible: true,
-        x: layout.targetX,
+        x: this.getBossAnchorX(layout),
         y: lerp(layout.introY, layout.targetY, progress),
         width: layout.width,
         height: layout.height,
         pose: "base",
-        facing: 1,
+        facing: facing,
+        spriteScaleX: facing,
       };
     }
 
@@ -1135,6 +1320,7 @@ export class GameController {
             height: rushRect.height,
             pose: "rush",
             facing: rushRect.direction,
+            spriteScaleX: this.getBossRushSpriteScaleX(rushRect.direction),
           }
         : null;
     }
@@ -1148,12 +1334,13 @@ export class GameController {
 
       return {
         visible: true,
-        x: layout.targetX,
+        x: this.getBossAnchorX(layout),
         y: lerp(layout.targetY, layout.defeatY, progress),
         width: layout.width,
         height: layout.height,
         pose: "base",
-        facing: 1,
+        facing: facing,
+        spriteScaleX: facing,
       };
     }
 
@@ -1164,18 +1351,41 @@ export class GameController {
     ) {
       return {
         visible: false,
-        x: layout.targetX,
+        x: this.getBossAnchorX(layout),
         y: layout.targetY,
         width: layout.width,
         height: layout.height,
         pose: "base",
-        facing: 1,
+        facing: facing,
+        spriteScaleX: facing,
+      };
+    }
+
+    if (phase === "pattern3-warning") {
+      const startRect = this.bossState.rushPathStartRect ?? {
+        left: this.getBossAnchorX(layout),
+        top: this.getBossRushLaneTop(layout),
+        width: layout.width,
+        height: this.getBossRushDimensions(layout).height,
+      };
+
+      return {
+        visible: true,
+        x: startRect.left,
+        y: startRect.top,
+        width: startRect.width,
+        height: startRect.height,
+        pose: "rush",
+        facing: this.bossState.rushDirection,
+        spriteScaleX: this.getBossRushSpriteScaleX(
+          this.bossState.rushDirection,
+        ),
       };
     }
 
     return {
       visible: true,
-      x: layout.targetX,
+      x: this.getBossAnchorX(layout),
       y: layout.targetY,
       width: layout.width,
       height: layout.height,
@@ -1184,10 +1394,11 @@ export class GameController {
           ? "attack"
           : phase === "pattern2"
             ? "upset"
-            : phase === "pattern3-warning" || phase === "pattern3-rush"
-              ? "rush"
+            : phase === "groggy"
+              ? "base"
               : "base",
-      facing: 1,
+      facing: facing,
+      spriteScaleX: facing,
     };
   }
 
@@ -1494,6 +1705,7 @@ export class GameController {
 
     this.bossState.phase = "groggy";
     this.bossState.phaseStartMs = now;
+    this.resetBossRushPathState();
     this.bossState.pendingGroggyAfterPattern = false;
     this.bossState.pattern2StoneWave = [];
     this.bossState.pattern2StoneRects = [];
@@ -1514,6 +1726,7 @@ export class GameController {
     this.bossState.pendingGroggyAfterPattern = false;
     this.bossState.damageCooldownUntilMs = 0;
     this.bossState.damageFlashUntilMs = 0;
+    this.resetBossRushPathState();
     this.bossState.pattern2StoneWave = [];
     this.bossState.pattern2StoneRects = [];
     this.resetPattern2StoneDebugState();
@@ -1547,8 +1760,7 @@ export class GameController {
     }
 
     if (
-      this.bossState.patternDamageCount >=
-      this.bossState.patternDamageLimit
+      this.bossState.patternDamageCount >= this.bossState.patternDamageLimit
     ) {
       return;
     }
@@ -1560,18 +1772,20 @@ export class GameController {
       return;
     }
 
-    const isHandTouchingLava = Boolean(handLavaBounds) &&
+    const isHandTouchingLava =
+      Boolean(handLavaBounds) &&
       this.stageModel.hazards.some(
-      (hazard) =>
-        (hazard.type === "lava" || hazard.type === "super-lava") &&
-        intersects(hazard, handLavaBounds),
-    );
-    const isBodyTouchingLava = Boolean(bodyBounds) &&
+        (hazard) =>
+          (hazard.type === "lava" || hazard.type === "super-lava") &&
+          intersects(hazard, handLavaBounds),
+      );
+    const isBodyTouchingLava =
+      Boolean(bodyBounds) &&
       this.stageModel.hazards.some(
         (hazard) =>
           (hazard.type === "lava" || hazard.type === "super-lava") &&
           intersects(hazard, bodyBounds),
-    );
+      );
 
     if (!isHandTouchingLava && !isBodyTouchingLava) {
       return;
@@ -1604,11 +1818,15 @@ export class GameController {
     const sequence = this.getBossPatternSequence();
     const nextPattern =
       sequence[this.bossState.patternCursor % sequence.length] ?? 1;
+    const layout = this.getBossLayoutMetrics();
+    const rushPath =
+      nextPattern === 3 && layout ? this.createBossRushPath(now, layout) : null;
 
     this.bossState.patternCursor += 1;
     this.bossState.lastPatternStartMs = now;
     this.bossState.phaseStartMs = now;
     this.bossState.pendingGroggyAfterPattern = false;
+    this.resetBossRushPathState();
     this.bossState.pattern2StoneWave = [];
     this.bossState.pattern2StoneRects = [];
     this.resetPattern2StoneDebugState();
@@ -1630,7 +1848,11 @@ export class GameController {
 
     this.bossState.phase = "pattern3-warning";
     this.resetBossPatternDamageWindow("pattern3-warning");
-    this.bossState.rushLaneIndex += 1;
+    this.bossState.rushDirection =
+      rushPath?.direction ?? this.bossState.rushDirection;
+    this.bossState.rushWarningRect = rushPath?.warningRect ?? null;
+    this.bossState.rushPathStartRect = rushPath?.startRect ?? null;
+    this.bossState.rushPathTargetRect = rushPath?.targetRect ?? null;
   }
 
   isCharacterTouchingBossHazard(now, layout) {
@@ -1735,7 +1957,7 @@ export class GameController {
         this.bossState.pattern2StoneRects = [];
         this.resetPattern2StoneDebugState();
         if (now - this.bossState.phaseStartMs >= BOSS_PATTERN3_RUSH_MS) {
-          this.bossState.rushDirection *= -1;
+          this.commitBossRushLandingPosition(layout);
           this.transitionBossToIdle(now);
         }
         break;
@@ -1810,16 +2032,7 @@ export class GameController {
     const layout = this.getBossLayoutMetrics();
     const visual = this.getBossVisualState(now, layout);
     const hand = this.getBossAttackHandState(now, layout);
-    const rushWarning =
-      this.bossState.phase === "pattern3-warning"
-        ? {
-            visible: true,
-            left: layout.warningLeft,
-            top: this.getBossRushLaneTop(layout),
-            width: layout.warningWidth,
-            height: layout.rushHeight,
-          }
-        : null;
+    const rushWarning = this.getBossRushWarningRect();
     const ending = this.getBossEndingState(now, layout);
     const stones = this.getBossCurrentStoneRects(now);
     const shake = this.getBossShakeOffset(now);
@@ -1827,12 +2040,14 @@ export class GameController {
 
     return {
       isVisible: Boolean(visual?.visible),
+      phase: this.bossState.phase,
       x: visual?.x ?? 0,
       y: visual?.y ?? 0,
       width: visual?.width ?? 0,
       height: visual?.height ?? 0,
       pose: visual?.pose ?? "base",
       facing: visual?.facing ?? -1,
+      spriteScaleX: visual?.spriteScaleX ?? null,
       hpPercent: this.bossState.hp,
       isGroggy: this.bossState.phase === "groggy",
       isDamaged: now < this.bossState.damageFlashUntilMs,
@@ -1886,9 +2101,27 @@ export class GameController {
     this.gameView.refreshStageAnchors?.();
     this.resetMonsterStatesToStageLayout();
     if (this.bossState) {
+      if (typeof this.bossState.anchorX === "number") {
+        this.bossState.anchorX *= stageState.scaleX;
+      }
       this.bossState.pattern2StoneRects = this.getBossStoneRectsFromWave(
         this.bossState.pattern2StoneWave,
         this.elapsedTimeMs,
+      );
+      this.bossState.rushWarningRect = scaleRect(
+        this.bossState.rushWarningRect,
+        stageState.scaleX,
+        stageState.scaleY,
+      );
+      this.bossState.rushPathStartRect = scaleRect(
+        this.bossState.rushPathStartRect,
+        stageState.scaleX,
+        stageState.scaleY,
+      );
+      this.bossState.rushPathTargetRect = scaleRect(
+        this.bossState.rushPathTargetRect,
+        stageState.scaleX,
+        stageState.scaleY,
       );
     }
     this.updateActiveTrigger();
