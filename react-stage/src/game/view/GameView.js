@@ -135,8 +135,9 @@ export class GameView {
     this.bossEndingElement =
       this.containerElement?.querySelector("[data-boss-ending='true']") ?? null;
     this.bossEndingWarningElement =
-      this.containerElement?.querySelector("[data-boss-ending-warning='true']") ??
-      null;
+      this.containerElement?.querySelector(
+        "[data-boss-ending-warning='true']",
+      ) ?? null;
     this.bossEndingCardElement =
       this.containerElement?.querySelector("[data-boss-ending-card='true']") ??
       null;
@@ -599,14 +600,6 @@ export class GameView {
       }));
   }
 
-  debugBossStone(eventName, payload = {}) {
-    console.info(`[boss-stone] ${eventName}`, payload);
-  }
-
-  debugBossEnding(payload = {}) {
-    console.info("[boss-ending]", payload);
-  }
-
   getBossStoneAssetMetrics() {
     return {
       naturalWidth: this.bossStoneAssetMetrics.naturalWidth,
@@ -632,7 +625,11 @@ export class GameView {
   }
 
   updateBossRushAssetMetrics(imageElement) {
-    if (!imageElement || imageElement.naturalWidth <= 0 || imageElement.naturalHeight <= 0) {
+    if (
+      !imageElement ||
+      imageElement.naturalWidth <= 0 ||
+      imageElement.naturalHeight <= 0
+    ) {
       return;
     }
 
@@ -690,14 +687,6 @@ export class GameView {
 
       if (!this.reportedBossImageLoads.has(loadKey)) {
         this.reportedBossImageLoads.add(loadKey);
-        this.debugBossEnding({
-          event: "end asset preload",
-          src: endSrc,
-          naturalWidth: preloadImage.naturalWidth,
-          naturalHeight: preloadImage.naturalHeight,
-          aspectRatio:
-            preloadImage.naturalWidth / Math.max(preloadImage.naturalHeight, 1),
-        });
       }
     });
     preloadImage.addEventListener("error", () => {
@@ -751,12 +740,6 @@ export class GameView {
           ? imageElement.naturalWidth / imageElement.naturalHeight
           : 1,
     };
-    this.debugBossStone("slot image load", {
-      slot: Number(slotIndex),
-      src: imageElement.currentSrc || imageElement.src || "",
-      naturalWidth: imageElement.naturalWidth,
-      naturalHeight: imageElement.naturalHeight,
-    });
   }
 
   logBossStoneSlotError(imageElement) {
@@ -869,19 +852,6 @@ export class GameView {
 
     if (renderSignature !== this.lastBossStoneRenderSignature) {
       this.lastBossStoneRenderSignature = renderSignature;
-      this.debugBossStone("rendered slots", {
-        slotCount: this.bossStoneSlots.length,
-        visibleCount: stones.length,
-        slots: this.bossStoneSlots.map((slot, index) => ({
-          slot: index,
-          hidden: slot.element.hidden,
-          stoneId: slot.element.dataset.bossStoneId ?? null,
-          left: slot.element.style.left || null,
-          top: slot.element.style.top || null,
-          width: slot.element.style.width || null,
-          height: slot.element.style.height || null,
-        })),
-      });
     }
   }
 
@@ -1188,7 +1158,8 @@ export class GameView {
         warningVisible ? (ending.warningOpacity ?? 1) : 0
       }`;
 
-      const containerRect = this.containerElement?.getBoundingClientRect?.() ?? null;
+      const containerRect =
+        this.containerElement?.getBoundingClientRect?.() ?? null;
       const warningRect =
         this.bossEndingWarningElement.getBoundingClientRect?.() ?? null;
       const resolvedWidthRaw = warningRect?.width ?? warningWidth;
@@ -1259,44 +1230,6 @@ export class GameView {
       ].join("|");
 
       if (debugSignature !== this.lastBossEndingDebugSignature) {
-        this.debugBossEnding({
-          phase,
-          src: endSrc,
-          assetLoaded: this.bossEndAssetMetrics.naturalWidth > 0,
-          warningVisible,
-          cardVisible,
-          rawWarningX: ending.warningX ?? null,
-          rawWarningY: ending.warningY ?? null,
-          rawWarningWidth: ending.warningWidth ?? null,
-          rawWarningHeight: ending.warningHeight ?? null,
-          warningX,
-          warningY,
-          warningWidth,
-          warningHeight,
-          warningRect: warningRect
-            ? {
-                left: warningRect.left,
-                top: warningRect.top,
-                width: warningRect.width,
-                height: warningRect.height,
-              }
-            : null,
-          resolvedX,
-          resolvedY,
-          resolvedWidth,
-          resolvedHeight,
-          translateZ: cardTranslateZ,
-          dropProgress: ending.dropProgress ?? 0,
-          dropDistance,
-          opacity: cardOpacity,
-          transform: cardTransform,
-          containerRect: containerRect
-            ? {
-                width: containerRect.width,
-                height: containerRect.height,
-              }
-            : null,
-        });
         this.lastBossEndingDebugSignature = debugSignature;
       }
     } else {
