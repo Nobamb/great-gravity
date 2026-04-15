@@ -148,6 +148,8 @@ export class GameController {
     this.customMissionAlarm = null;
     this.customMissionAlarmToken = 0;
     this.portalCooldownMs = 0;
+    this.previousBossSupportType = null;
+    this.previousBossStructureOffsetY = 0;
     this.tick = this.tick.bind(this);
   }
 
@@ -174,6 +176,7 @@ export class GameController {
     this.isAimingCannon = false;
     this.customMissionAlarm = null;
     this.portalCooldownMs = 0;
+    this.resetBossSupportTracking();
     this.gameView.bindControls({
       onRetry: () => {
         this.restartStage();
@@ -249,6 +252,11 @@ export class GameController {
     return this.stage?.id === BOSS_STAGE_ID;
   }
 
+  resetBossSupportTracking() {
+    this.previousBossSupportType = null;
+    this.previousBossStructureOffsetY = 0;
+  }
+
   createBossState() {
     return {
       hp: 100,
@@ -278,6 +286,7 @@ export class GameController {
       finalStoneWave: [],
       finalStoneBatchStartedAtMs: null,
       clearReady: false,
+      rushImpactUntilMs: 0,
       structurePhase: "idle",
       structurePhaseStartMs: 0,
       structureLastCycleStartedAtMs: 0,
@@ -322,6 +331,129 @@ export class GameController {
     return false;
   }
 
+  getBossStructureOffsetAtTime(timeMs = this.elapsedTimeMs) {
+    if (!this.isBossStage() || !this.bossState) {
+      return 0;
+    }
+
+    const layout = this.getBossLayoutMetrics();
+    return this.getBossStructureState(timeMs, layout).offsetY ?? 0;
+  }
+
+  getBossSupportRect(solid, structureOffsetY = 0) {
+    if (!solid) {
+      return null;
+    }
+
+    if (solid.supportType !== "boss-moving-structure") {
+      return solid;
+    }
+
+    return {
+      ...solid,
+      top: solid.top + structureOffsetY,
+      bottom: solid.bottom + structureOffsetY,
+    };
+  }
+
+  prepareBossSupportTransport(stepMs) {
+    const currentOffsetY = this.previousBossStructureOffsetY;
+
+    if (!this.isBossStage() || !this.bossState) {
+      this.resetBossSupportTracking();
+      return currentOffsetY;
+    }
+
+    const nextOffsetY = this.getBossStructureOffsetAtTime(
+      this.elapsedTimeMs + stepMs,
+    );
+
+    if (this.previousBossSupportType === "boss-moving-structure") {
+      const deltaY = nextOffsetY - currentOffsetY;
+
+      if (Math.abs(deltaY) > 0.01) {
+        this.characterModel.y += deltaY;
+      }
+    }
+
+    return nextOffsetY;
+  }
+
+  stabilizeBossStageSupport({
+    structureOffsetY = this.getBossStructureOffsetAtTime(),
+  } = {}) {
+    if (!this.isBossStage() || !this.bossState) {
+      this.resetBossSupportTracking();
+      return false;
+    }
+
+    const layout = this.getBossLayoutMetrics();
+
+    if (!layout) {
+      this.resetBossSupportTracking();
+      return false;
+    }
+
+    let snapped = false;
+    let support = null;
+
+    if (
+      !this.characterModel.isClimbing &&
+      !this.characterModel.isSwimming &&
+      this.characterModel.vy >= 0
+    ) {
+      const bounds = this.characterModel.getBounds();
+      const tolerance = Math.max(8, layout.stageHeight * 0.01);
+      const minHorizontalOverlap = Math.max(
+        16,
+        this.characterModel.width * 0.3,
+      );
+
+      support = this.stageModel.getSupportingSolid(bounds, {
+        tolerance,
+        minHorizontalOverlap,
+        supportTypes: ["boss-moving-structure", "boss-platform"],
+        solidRectTransform: (solid) =>
+          this.getBossSupportRect(solid, structureOffsetY),
+      });
+
+      if (support) {
+        const snappedY = support.rect.top - this.characterModel.height;
+
+        if (Math.abs(this.characterModel.y - snappedY) > 0.01) {
+          this.characterModel.y = snappedY;
+          snapped = true;
+        }
+
+        this.characterModel.vy = 0;
+        this.characterModel.onGround = true;
+        this.characterModel.groundEffect = support.solid.effect || null;
+      }
+    }
+
+    this.previousBossSupportType = support?.solid.supportType ?? null;
+    this.previousBossStructureOffsetY = structureOffsetY;
+    return snapped;
+  }
+
+  isCharacterInImmediateDeathState() {
+    if (this.characterModel.isTouchingHazard(this.stageModel.hazards)) {
+      return true;
+    }
+
+    if (
+      this.characterModel.hitIceCeiling ||
+      this.characterModel.breathRatio <= 0
+    ) {
+      return true;
+    }
+
+    const resetLimit =
+      this.stageModel.bounds.height +
+      this.characterModel.fallResetMargin * this.characterModel.physicsScale;
+    return this.characterModel.y > resetLimit;
+  }
+
   tick(timestamp) {
     const shouldForceBossStructureSync = this.shouldForceBossStructureSync();
 
@@ -362,12 +494,14 @@ export class GameController {
 
     while (this.accumulator >= this.fixedDeltaTime) {
       const input = this.inputController.getSnapshot();
+      const fixedStepMs = this.fixedDeltaTime * 1000;
+      const bossStructureOffsetY = this.prepareBossSupportTransport(fixedStepMs);
       this.beginCannonAimIfNeeded(input);
 
       let didDie = false;
       this.portalCooldownMs = Math.max(
         0,
-        this.portalCooldownMs - this.fixedDeltaTime * 1000,
+        this.portalCooldownMs - fixedStepMs,
       );
 
       if (this.isAimingCannon) {
@@ -383,7 +517,14 @@ export class GameController {
         );
       }
 
-      this.elapsedTimeMs += this.fixedDeltaTime * 1000;
+      this.elapsedTimeMs += fixedStepMs;
+      const stabilizedBossSupport = this.stabilizeBossStageSupport({
+        structureOffsetY: bossStructureOffsetY,
+      });
+
+      if (didDie && stabilizedBossSupport) {
+        didDie = this.isCharacterInImmediateDeathState();
+      }
 
       if (this.handleTreasureInteraction()) {
         this.handleStageClear();
@@ -1222,7 +1363,7 @@ export class GameController {
     const startTipX =
       facing > 0 ? layout.stageWidth - width * 0.2 : width * 0.2;
     const centerTipX = layout.stageWidth * 0.5;
-    const edgeTipX = facing > 0 ? 0 : layout.stageWidth;
+    const edgeTipX = facing > 0 ? 0 : layout.stageWidth * 0.9;
     let tipX = startTipX;
 
     if (elapsed < travelToCenterMs) {
@@ -1530,6 +1671,17 @@ export class GameController {
       };
     }
 
+    if (now < (this.bossState.rushImpactUntilMs ?? 0)) {
+      const rushImpactStartedAtMs =
+        (this.bossState.rushImpactUntilMs ?? 0) - 500;
+      const intensity = this.stageModel.bounds.width * 0.015;
+
+      return {
+        x: Math.sin((now - rushImpactStartedAtMs) / 18) * intensity,
+        y: 0,
+      };
+    }
+
     return { x: 0, y: 0 };
   }
 
@@ -1743,6 +1895,7 @@ export class GameController {
       this.syncPhysicsRuntimeState();
     }
 
+    this.stabilizeBossStageSupport();
     this.activeTrigger = null;
     this.updateActiveTrigger();
     this.physicsController?.render();
@@ -1766,6 +1919,7 @@ export class GameController {
       this.syncPhysicsRuntimeState();
     }
 
+    this.stabilizeBossStageSupport();
     this.activeTrigger = null;
     this.updateActiveTrigger();
     this.physicsController?.render();
@@ -1856,6 +2010,7 @@ export class GameController {
     this.bossState.pattern2StoneRects = [];
     this.resetPattern2StoneDebugState();
     this.bossState.finalStoneWave = [];
+    this.bossState.rushImpactUntilMs = 0;
   }
 
   startBossDefeat(now) {
@@ -1878,6 +2033,7 @@ export class GameController {
     this.bossState.finalStoneWave = [];
     this.bossState.clearReady = false;
     this.bossState.finalStoneBatchStartedAtMs = null;
+    this.bossState.rushImpactUntilMs = 0;
     this.bossState.structurePhase = "idle";
     this.bossState.structurePhaseStartMs = now;
     this.bossState.structureRebuildPending = false;
@@ -1976,6 +2132,7 @@ export class GameController {
     this.bossState.pattern2StoneRects = [];
     this.resetPattern2StoneDebugState();
     this.bossState.finalStoneWave = [];
+    this.bossState.rushImpactUntilMs = 0;
 
     if (nextPattern === 1) {
       this.bossState.phase = "pattern1";
@@ -2109,6 +2266,7 @@ export class GameController {
         this.resetPattern2StoneDebugState();
         if (now - this.bossState.phaseStartMs >= BOSS_PATTERN3_RUSH_MS) {
           this.commitBossRushLandingPosition(layout);
+          this.bossState.rushImpactUntilMs = now + 500;
           this.transitionBossToIdle(now);
         }
         break;
@@ -2206,6 +2364,8 @@ export class GameController {
       isGroggy: this.bossState.phase === "groggy",
       isDamaged: now < this.bossState.damageFlashUntilMs,
       isDefeated: this.bossState.phase === "defeated-fall",
+      isHandAttackTinted:
+        this.bossState.phase === "pattern1" && Boolean(hand?.visible),
       hand: hand
         ? {
             visible: true,
@@ -2258,6 +2418,7 @@ export class GameController {
       if (typeof this.bossState.anchorX === "number") {
         this.bossState.anchorX *= stageState.scaleX;
       }
+      this.previousBossStructureOffsetY *= stageState.scaleY;
       this.bossState.pattern2StoneRects = this.getBossStoneRectsFromWave(
         this.bossState.pattern2StoneWave,
         this.elapsedTimeMs,
