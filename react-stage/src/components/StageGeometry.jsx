@@ -1538,20 +1538,24 @@ function BossStageStructureSet({ bossStructureFluidsVisible = true }) {
       <div
         className="boss-stage-structure boss-stage-structure__pillar boss-stage-structure__pillar--left"
         data-collider="solid"
+        data-support-type="boss-moving-structure"
       ></div>
       <div
         className="boss-stage-structure boss-stage-structure__pillar boss-stage-structure__pillar--right"
         data-collider="solid"
+        data-support-type="boss-moving-structure"
       ></div>
       <div
         className="boss-stage-structure boss-stage-structure__beam boss-stage-structure__beam--top"
         data-collider="solid"
+        data-support-type="boss-moving-structure"
       ></div>
       <div
         className="boss-stage-structure boss-stage-structure__beam boss-stage-structure__beam--mid"
         data-collider="solid"
         data-triggerable="true"
         data-collapse-id="boss-stage-mid-beam"
+        data-support-type="boss-moving-structure"
       >
         <TriggerBlock
           className="trigger-block boss-stage-trigger boss-stage-trigger--mid-left"
@@ -1571,6 +1575,7 @@ function BossStageStructureSet({ bossStructureFluidsVisible = true }) {
         data-collider="solid"
         data-triggerable="true"
         data-collapse-id="boss-stage-low-beam"
+        data-support-type="boss-moving-structure"
       >
         <TriggerBlock
           className="trigger-block boss-stage-trigger boss-stage-trigger--low-left"
@@ -1647,26 +1652,31 @@ function BossStageLayout({
         className="boss-stage-floor boss-stage-floor--setting"
         data-collider="solid"
         data-spawn="player"
+        data-support-type="boss-platform"
       ></div>
       <div
         className="jump-block boss-stage-jump-block boss-stage-jump-block--left-low"
         data-collider="solid"
         data-effect="jump-boost"
+        data-support-type="boss-platform"
       ></div>
       <div
         className="jump-block boss-stage-jump-block boss-stage-jump-block--left-high"
         data-collider="solid"
         data-effect="jump-boost"
+        data-support-type="boss-platform"
       ></div>
       <div
         className="jump-block boss-stage-jump-block boss-stage-jump-block--right-low"
         data-collider="solid"
         data-effect="jump-boost"
+        data-support-type="boss-platform"
       ></div>
       <div
         className="jump-block boss-stage-jump-block boss-stage-jump-block--right-high"
         data-collider="solid"
         data-effect="jump-boost"
+        data-support-type="boss-platform"
       ></div>
       <BossStageStructureSet
         key={`boss-structure-${bossStructureVersion}`}
