@@ -1612,6 +1612,37 @@ export class GameController {
     };
   }
 
+  getBossEndingHazardRect(now, layout) {
+    if (!this.bossState || !layout) {
+      return null;
+    }
+
+    const ending = this.getBossEndingState(now, layout);
+
+    if (!ending.cardVisible || (ending.translateZ ?? BOSS_ENDING_TRANSLATE_Z_START) < 0) {
+      return null;
+    }
+
+    const warningRect = this.getBossEndingWarningRect(layout);
+    const warningX = Number.isFinite(warningRect.x) ? warningRect.x : 0;
+    const warningY = Number.isFinite(warningRect.y) ? warningRect.y : 0;
+    const warningWidth = Number.isFinite(warningRect.width) ? warningRect.width : 0;
+    const warningHeight = Number.isFinite(warningRect.height) ? warningRect.height : 0;
+    const stageHeight = Number.isFinite(layout.stageHeight) ? layout.stageHeight : 0;
+    const dropProgress = Number.isFinite(ending.dropProgress) ? ending.dropProgress : 0;
+    const dropDistance = stageHeight - warningY + warningHeight;
+    const top = warningY + dropDistance * dropProgress;
+
+    return {
+      left: warningX,
+      top,
+      right: warningX + warningWidth,
+      bottom: top + warningHeight,
+      width: warningWidth,
+      height: warningHeight,
+    };
+  }
+
   getBossStructureState(now, layout) {
     if (!this.bossState || !layout) {
       return {
@@ -1964,6 +1995,12 @@ export class GameController {
     const rushRect = this.getBossRushRect(now, layout);
 
     if (rushRect && intersects(characterBounds, rushRect)) {
+      return true;
+    }
+
+    const endingRect = this.getBossEndingHazardRect(now, layout);
+
+    if (endingRect && intersects(characterBounds, endingRect)) {
       return true;
     }
 
