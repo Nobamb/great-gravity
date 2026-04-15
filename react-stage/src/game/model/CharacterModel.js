@@ -28,6 +28,10 @@ function intersects(a, b) {
   );
 }
 
+function getHorizontalOverlap(a, b) {
+  return Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+}
+
 /**
  * [CharacterModel]
  * 캐릭터의 위치, 속도, 물리법칙 및 상태를 관리하는 데이터 모델 클래스입니다.
@@ -372,8 +376,9 @@ export class CharacterModel {
     this.resolveHorizontalCollisions(stage.solids);
 
     this.onGround = false;
+    const previousBounds = this.getBounds();
     this.y += this.vy * dt;
-    this.resolveVerticalCollisions(stage.solids);
+    this.resolveVerticalCollisions(stage.solids, previousBounds);
   }
 
   updateSwimming(dt, stage, input) {
@@ -429,8 +434,9 @@ export class CharacterModel {
       );
 
       this.vy = -swimRiseSpeed;
+      const previousBounds = this.getBounds();
       this.y -= travelDistance;
-      this.resolveVerticalCollisions(stage.solids);
+      this.resolveVerticalCollisions(stage.solids, previousBounds);
 
       if (this.vy === 0 || this.y <= targetY) {
         this.swimPhase = "falling";
@@ -449,8 +455,9 @@ export class CharacterModel {
       Math.max(this.vy, 0) + swimGravity * dt,
       swimMaxFallSpeed,
     );
+    const previousBounds = this.getBounds();
     this.y += this.vy * dt;
-    this.resolveVerticalCollisions(stage.solids);
+    this.resolveVerticalCollisions(stage.solids, previousBounds);
   }
 
   /**
@@ -482,9 +489,9 @@ export class CharacterModel {
       0,
       Math.max(0, stage.bounds.width - this.width),
     );
+    const previousBounds = this.getBounds();
     this.y += this.vy * dt;
-
-    this.resolveVerticalCollisions(stage.solids);
+    this.resolveVerticalCollisions(stage.solids, previousBounds);
 
     if (!stage.getLadderForBounds(this.getBounds(), ladderPadding)) {
       this.isClimbing = false;
@@ -517,7 +524,7 @@ export class CharacterModel {
   /**
    * 수직 방향 지형 충돌을 체크하고 위치를 보정합니다.
    */
-  resolveVerticalCollisions(solids) {
+  resolveVerticalCollisions(solids, previousBounds = this.getBounds()) {
     let bounds = this.getBounds();
     this.groundEffect = null;
     this.hitIceCeiling = false;
@@ -527,11 +534,41 @@ export class CharacterModel {
         continue;
       }
 
+      const horizontalOverlap = getHorizontalOverlap(bounds, solid);
+      const minimumHorizontalOverlap = Math.max(
+        1,
+        Math.min(this.width, solid.right - solid.left) * 0.2,
+      );
+      const wasAbove =
+        previousBounds.bottom <= solid.top &&
+        previousBounds.right > solid.left &&
+        previousBounds.left < solid.right;
+      const wasBelow =
+        previousBounds.top >= solid.bottom &&
+        previousBounds.right > solid.left &&
+        previousBounds.left < solid.right;
+
       if (this.vy > 0) {
+        if (
+          !wasAbove ||
+          bounds.bottom < solid.top ||
+          horizontalOverlap < minimumHorizontalOverlap
+        ) {
+          continue;
+        }
+
         this.y = solid.top - this.height;
         this.onGround = true;
         this.groundEffect = solid.effect;
       } else if (this.vy < 0) {
+        if (
+          !wasBelow ||
+          bounds.top > solid.bottom ||
+          horizontalOverlap < minimumHorizontalOverlap
+        ) {
+          continue;
+        }
+
         this.y = solid.bottom;
 
         if (solid.elementType === "ice") {
