@@ -27,6 +27,10 @@ function intersects(a, b) {
   return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 }
 
+function getHorizontalOverlap(a, b) {
+  return Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+}
+
 function expandRect(rect, padding) {
   return {
     left: rect.left - padding,
@@ -47,6 +51,7 @@ function normalizeSolidRect(rect) {
     bottom: rect.top + rect.height,
     effect: rect.effect || null,
     elementType: rect.elementType || null,
+    supportType: rect.supportType || null,
     isAnchored: rect.isAnchored === true,
     velocityY: rect.velocityY ?? 0,
   };
@@ -188,6 +193,7 @@ export class StageModel {
         ...rect,
         effect: element.dataset.effect || null,
         elementType: element.dataset.elementType || null,
+        supportType: element.dataset.supportType || null,
       });
     });
 
@@ -969,6 +975,91 @@ export class StageModel {
         return verticalGap <= tolerance && horizontalOverlap > 12;
       }) ?? null
     );
+  }
+
+  getSupportingSolid(
+    bounds,
+    {
+      tolerance = 8,
+      minHorizontalOverlap = 12,
+      supportTypes = null,
+      solidRectTransform = null,
+    } = {},
+  ) {
+    const allowedSupportTypes = Array.isArray(supportTypes)
+      ? new Set(supportTypes)
+      : null;
+    let bestMatch = null;
+
+    this.solids.forEach((solid) => {
+      if (
+        allowedSupportTypes &&
+        !allowedSupportTypes.has(solid.supportType || null)
+      ) {
+        return;
+      }
+
+      const transformedRect =
+        typeof solidRectTransform === "function"
+          ? solidRectTransform(solid)
+          : solid;
+      const solidRect = transformedRect
+        ? {
+            ...solid,
+            ...transformedRect,
+            right:
+              transformedRect.right ??
+              transformedRect.left + transformedRect.width,
+            bottom:
+              transformedRect.bottom ??
+              transformedRect.top + transformedRect.height,
+          }
+        : null;
+
+      if (!solidRect) {
+        return;
+      }
+
+      const verticalGap = solidRect.top - bounds.bottom;
+      const horizontalOverlap = getHorizontalOverlap(bounds, solidRect);
+
+      if (
+        verticalGap < -tolerance ||
+        verticalGap > tolerance ||
+        horizontalOverlap < minHorizontalOverlap
+      ) {
+        return;
+      }
+
+      const candidate = {
+        solid,
+        rect: solidRect,
+        verticalGap,
+        horizontalOverlap,
+      };
+
+      if (!bestMatch) {
+        bestMatch = candidate;
+        return;
+      }
+
+      const candidatePenalty = verticalGap < 0 ? 1 : 0;
+      const bestPenalty = bestMatch.verticalGap < 0 ? 1 : 0;
+      const candidateDistance = Math.abs(verticalGap);
+      const bestDistance = Math.abs(bestMatch.verticalGap);
+
+      if (
+        candidatePenalty < bestPenalty ||
+        (candidatePenalty === bestPenalty &&
+          (candidateDistance < bestDistance ||
+            (candidateDistance === bestDistance &&
+              solidRect.top < bestMatch.rect.top)))
+      ) {
+        bestMatch = candidate;
+      }
+    });
+
+    return bestMatch;
   }
 
   getNearbyCannon(bounds, padding = 0) {
