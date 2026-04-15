@@ -54,8 +54,11 @@ const BOSS_PATTERN3_RUSH_MS = 500;
 const BOSS_GROGGY_DURATION_MS = 1000;
 const BOSS_DAMAGE_COOLDOWN_MS = 1000;
 const BOSS_DEFEAT_FALL_MS = 3000;
-const BOSS_ENDING_WAIT_MS = 1000;
-const BOSS_ENDING_BANNER_MS = 1000;
+const BOSS_ENDING_WARNING_MS = 1000;
+const BOSS_ENDING_APPROACH_MS = 500;
+const BOSS_ENDING_APPROACH_STEP_MS = 100;
+const BOSS_ENDING_TRANSLATE_Z_START = -10000;
+const BOSS_ENDING_TRANSLATE_Z_STEP = 2000;
 const BOSS_ENDING_DROP_MS = 1000;
 const BOSS_FINAL_STONES_MS = 2200;
 const BOSS_STRUCTURE_REFILL_INTERVAL_MS = 30000;
@@ -250,7 +253,9 @@ export class GameController {
     return {
       // hp: 100,
       // hp 50 이하일 때의 로직 확인
-      hp: 50,
+      // hp: 50,
+      // 사망 처리 확인용
+      hp: 10,
       phase: "intro",
       phaseStartMs: 0,
       lastPatternStartMs: 0,
@@ -600,7 +605,10 @@ export class GameController {
       return null;
     }
 
-    const { width: stageWidth, height: stageHeight } = this.stageModel.bounds;
+    const rawStageWidth = this.stageModel?.bounds?.width ?? 0;
+    const rawStageHeight = this.stageModel?.bounds?.height ?? 0;
+    const stageWidth = Number.isFinite(rawStageWidth) ? rawStageWidth : 0;
+    const stageHeight = Number.isFinite(rawStageHeight) ? rawStageHeight : 0;
     const width = stageWidth * 0.34;
     const height = stageHeight * 0.56;
     const floorTop = stageHeight * 0.92;
@@ -608,6 +616,7 @@ export class GameController {
 
     return {
       stageWidth,
+      stageHeight,
       width,
       height,
       floorTop,
@@ -716,8 +725,9 @@ export class GameController {
 
   getBossRushLaneTop(layout) {
     const rushDimensions = this.getBossRushDimensions(layout);
+    const stageHeight = Number.isFinite(layout?.stageHeight) ? layout.stageHeight : 0;
     // 게임 화면의 Y축 절반 정도의 위치
-    return layout.stageHeight * 0.5 - rushDimensions.height / 2;
+    return stageHeight * 0.5 - rushDimensions.height / 2;
   }
 
   getBossRushSpriteScaleX(direction) {
@@ -730,16 +740,59 @@ export class GameController {
       naturalHeight: 0,
       aspectRatio: 1,
     };
-    const rushWidth = layout.width;
+    const rushWidth = Number.isFinite(layout?.width) ? layout.width : 0;
     const aspectRatio =
+      Number.isFinite(rushAssetMetrics.aspectRatio) &&
       rushAssetMetrics.aspectRatio > 0
         ? rushAssetMetrics.aspectRatio
-        : Math.max(layout.width / Math.max(layout.height, 1), 1);
-    const rushHeight = rushWidth / aspectRatio;
+        : Math.max(
+            rushWidth /
+              Math.max(Number.isFinite(layout?.height) ? layout.height : 0, 1),
+            1,
+          );
+    const rushHeight = rushWidth / Math.max(aspectRatio, 1);
 
     return {
       width: rushWidth,
       height: rushHeight,
+    };
+  }
+
+  getBossEndingWarningRect(layout) {
+    if (!layout) {
+      return {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+      };
+    }
+
+    const endAssetMetrics = this.gameView?.getBossEndAssetMetrics?.() ?? {
+      naturalWidth: 0,
+      naturalHeight: 0,
+      aspectRatio: 1,
+    };
+    const stageWidth = Number.isFinite(layout.stageWidth) ? layout.stageWidth : 0;
+    const stageHeight = Number.isFinite(layout.stageHeight) ? layout.stageHeight : 0;
+    const endCardWidth = Number.isFinite(layout.endCardWidth) ? layout.endCardWidth : 0;
+    const endCardHeight = Number.isFinite(layout.endCardHeight) ? layout.endCardHeight : 0;
+    const aspectRatio =
+      Number.isFinite(endAssetMetrics.aspectRatio) &&
+      endAssetMetrics.aspectRatio > 0
+        ? endAssetMetrics.aspectRatio
+        : Math.max(endCardWidth / Math.max(endCardHeight, 1), 1);
+    const safeAspectRatio =
+      Number.isFinite(aspectRatio) && aspectRatio > 0 ? aspectRatio : 1;
+    const height = stageHeight;
+    const width = height * safeAspectRatio;
+    const x = (stageWidth - width) / 2;
+
+    return {
+      x: Number.isFinite(x) ? x : 0,
+      y: 0,
+      width: Number.isFinite(width) ? width : 0,
+      height: Number.isFinite(height) ? height : 0,
     };
   }
 
@@ -1124,7 +1177,10 @@ export class GameController {
       return this.getPattern2StoneRects(now);
     }
 
-    if (this.bossState.phase === "final-stones") {
+    if (
+      this.bossState.phase === "ending-drop" ||
+      this.bossState.phase === "final-stones"
+    ) {
       return this.getFinalStoneRects(now);
     }
 
@@ -1345,9 +1401,7 @@ export class GameController {
     }
 
     if (
-      ["ending-wait", "ending-banner", "ending-drop", "final-stones"].includes(
-        phase,
-      )
+      ["ending-warning", "ending-approach", "ending-drop", "final-stones"].includes(phase)
     ) {
       return {
         visible: false,
@@ -1467,30 +1521,58 @@ export class GameController {
   getBossEndingState(now, layout) {
     if (!this.bossState || !layout) {
       return {
-        visible: false,
-        x: 0,
-        y: 0,
-        width: 0,
-        height: 0,
-        scale: 1,
+        warningVisible: false,
+        warningX: 0,
+        warningY: 0,
+        warningWidth: 0,
+        warningHeight: 0,
+        warningOpacity: 0,
+        cardVisible: false,
+        translateZ: BOSS_ENDING_TRANSLATE_Z_START,
+        dropProgress: 0,
         opacity: 0,
       };
     }
 
-    if (this.bossState.phase === "ending-banner") {
-      const progress = clamp(
-        (now - this.bossState.phaseStartMs) / BOSS_ENDING_BANNER_MS,
+    const warningRect = this.getBossEndingWarningRect(layout);
+
+    if (this.bossState.phase === "ending-warning") {
+      return {
+        warningVisible: true,
+        warningX: warningRect.x,
+        warningY: warningRect.y,
+        warningWidth: warningRect.width,
+        warningHeight: warningRect.height,
+        warningOpacity: 1,
+        cardVisible: false,
+        translateZ: BOSS_ENDING_TRANSLATE_Z_START,
+        dropProgress: 0,
+        opacity: 1,
+      };
+    }
+
+    if (this.bossState.phase === "ending-approach") {
+      const elapsed = now - this.bossState.phaseStartMs;
+      const stepCount = Math.min(
+        BOSS_ENDING_APPROACH_MS / BOSS_ENDING_APPROACH_STEP_MS,
+        Math.floor(elapsed / BOSS_ENDING_APPROACH_STEP_MS),
+      );
+      const translateZ = Math.min(
         0,
-        1,
+        BOSS_ENDING_TRANSLATE_Z_START +
+          stepCount * BOSS_ENDING_TRANSLATE_Z_STEP,
       );
 
       return {
-        visible: true,
-        x: (layout.stageWidth - layout.endCardWidth) / 2,
-        y: layout.stageHeight * 0.34,
-        width: layout.endCardWidth,
-        height: layout.endCardHeight,
-        scale: lerp(0.42, 1, progress),
+        warningVisible: true,
+        warningX: warningRect.x,
+        warningY: warningRect.y,
+        warningWidth: warningRect.width,
+        warningHeight: warningRect.height,
+        warningOpacity: 0.42,
+        cardVisible: true,
+        translateZ,
+        dropProgress: 0,
         opacity: 1,
       };
     }
@@ -1503,23 +1585,29 @@ export class GameController {
       );
 
       return {
-        visible: true,
-        x: (layout.stageWidth - layout.endCardWidth) / 2,
-        y: lerp(layout.stageHeight * 0.34, layout.stageHeight * 0.92, progress),
-        width: layout.endCardWidth,
-        height: layout.endCardHeight,
-        scale: 1,
-        opacity: 1 - progress * 0.75,
+        warningVisible: false,
+        warningX: warningRect.x,
+        warningY: warningRect.y,
+        warningWidth: warningRect.width,
+        warningHeight: warningRect.height,
+        warningOpacity: 0,
+        cardVisible: true,
+        translateZ: 0,
+        dropProgress: progress,
+        opacity: 1 - progress * 0.8,
       };
     }
 
     return {
-      visible: false,
-      x: 0,
-      y: 0,
-      width: 0,
-      height: 0,
-      scale: 1,
+      warningVisible: false,
+      warningX: 0,
+      warningY: 0,
+      warningWidth: 0,
+      warningHeight: 0,
+      warningOpacity: 0,
+      cardVisible: false,
+      translateZ: BOSS_ENDING_TRANSLATE_Z_START,
+      dropProgress: 0,
       opacity: 0,
     };
   }
@@ -1635,8 +1723,8 @@ export class GameController {
 
     const isBattleActive = ![
       "defeated-fall",
-      "ending-wait",
-      "ending-banner",
+      "ending-warning",
+      "ending-approach",
       "ending-drop",
       "final-stones",
     ].includes(this.bossState.phase);
@@ -1747,8 +1835,8 @@ export class GameController {
 
     if (
       this.bossState.phase === "final-stones" ||
-      this.bossState.phase === "ending-wait" ||
-      this.bossState.phase === "ending-banner" ||
+      this.bossState.phase === "ending-warning" ||
+      this.bossState.phase === "ending-approach" ||
       this.bossState.phase === "ending-drop" ||
       this.bossState.phase === "defeated-fall"
     ) {
@@ -1972,24 +2060,26 @@ export class GameController {
         this.bossState.pattern2StoneRects = [];
         this.resetPattern2StoneDebugState();
         if (now - this.bossState.phaseStartMs >= BOSS_DEFEAT_FALL_MS) {
-          this.bossState.phase = "ending-wait";
+          this.bossState.phase = "ending-warning";
           this.bossState.phaseStartMs = now;
         }
         break;
-      case "ending-wait":
+      case "ending-warning":
         this.bossState.pattern2StoneRects = [];
         this.resetPattern2StoneDebugState();
-        if (now - this.bossState.phaseStartMs >= BOSS_ENDING_WAIT_MS) {
-          this.bossState.phase = "ending-banner";
+        if (now - this.bossState.phaseStartMs >= BOSS_ENDING_WARNING_MS) {
+          this.bossState.phase = "ending-approach";
           this.bossState.phaseStartMs = now;
         }
         break;
-      case "ending-banner":
+      case "ending-approach":
         this.bossState.pattern2StoneRects = [];
         this.resetPattern2StoneDebugState();
-        if (now - this.bossState.phaseStartMs >= BOSS_ENDING_BANNER_MS) {
+        if (now - this.bossState.phaseStartMs >= BOSS_ENDING_APPROACH_MS) {
           this.bossState.phase = "ending-drop";
           this.bossState.phaseStartMs = now;
+          this.bossState.finalStoneBatchStartedAtMs = now;
+          this.bossState.finalStoneWave = this.createBossStoneWave(now, true);
         }
         break;
       case "ending-drop":
@@ -1998,8 +2088,6 @@ export class GameController {
         if (now - this.bossState.phaseStartMs >= BOSS_ENDING_DROP_MS) {
           this.bossState.phase = "final-stones";
           this.bossState.phaseStartMs = now;
-          this.bossState.finalStoneBatchStartedAtMs = now;
-          this.bossState.finalStoneWave = this.createBossStoneWave(now, true);
         }
         break;
       case "final-stones":
@@ -2007,7 +2095,10 @@ export class GameController {
         this.resetPattern2StoneDebugState();
         if (
           !this.bossState.clearReady &&
-          now - this.bossState.phaseStartMs >= BOSS_FINAL_STONES_MS &&
+          now -
+            (this.bossState.finalStoneBatchStartedAtMs ??
+              this.bossState.phaseStartMs) >=
+            BOSS_FINAL_STONES_MS &&
           this.getFinalStoneRects(now).length === 0
         ) {
           this.bossState.clearReady = true;
