@@ -134,6 +134,9 @@ export class GameView {
       null;
     this.bossEndingElement =
       this.containerElement?.querySelector("[data-boss-ending='true']") ?? null;
+    this.bossEndingWarningElement =
+      this.containerElement?.querySelector("[data-boss-ending-warning='true']") ??
+      null;
     this.bossEndingCardElement =
       this.containerElement?.querySelector("[data-boss-ending-card='true']") ??
       null;
@@ -150,12 +153,18 @@ export class GameView {
     this.reportedBossStoneSlotErrors = new Set();
     this.lastBossStoneRenderSignature = "";
     this.lastBossRushDebugSignature = "";
+    this.lastBossEndingDebugSignature = "";
     this.bossStoneAssetMetrics = {
       naturalWidth: 0,
       naturalHeight: 0,
       aspectRatio: 1,
     };
     this.bossRushAssetMetrics = {
+      naturalWidth: 0,
+      naturalHeight: 0,
+      aspectRatio: 1,
+    };
+    this.bossEndAssetMetrics = {
       naturalWidth: 0,
       naturalHeight: 0,
       aspectRatio: 1,
@@ -177,6 +186,7 @@ export class GameView {
     }
 
     this.preloadBossRushAssetMetrics();
+    this.preloadBossEndAssetMetrics();
     this.bindBossStoneSlotListeners();
   }
 
@@ -593,6 +603,10 @@ export class GameView {
     console.info(`[boss-stone] ${eventName}`, payload);
   }
 
+  debugBossEnding(payload = {}) {
+    console.info("[boss-ending]", payload);
+  }
+
   getBossStoneAssetMetrics() {
     return {
       naturalWidth: this.bossStoneAssetMetrics.naturalWidth,
@@ -606,6 +620,14 @@ export class GameView {
       naturalWidth: this.bossRushAssetMetrics.naturalWidth,
       naturalHeight: this.bossRushAssetMetrics.naturalHeight,
       aspectRatio: this.bossRushAssetMetrics.aspectRatio,
+    };
+  }
+
+  getBossEndAssetMetrics() {
+    return {
+      naturalWidth: this.bossEndAssetMetrics.naturalWidth,
+      naturalHeight: this.bossEndAssetMetrics.naturalHeight,
+      aspectRatio: this.bossEndAssetMetrics.aspectRatio,
     };
   }
 
@@ -633,6 +655,60 @@ export class GameView {
       this.updateBossRushAssetMetrics(preloadImage);
     });
     preloadImage.src = rushSrc;
+  }
+
+  updateBossEndAssetMetrics(imageElement) {
+    if (
+      !imageElement ||
+      imageElement.naturalWidth <= 0 ||
+      imageElement.naturalHeight <= 0
+    ) {
+      return;
+    }
+
+    this.bossEndAssetMetrics = {
+      naturalWidth: imageElement.naturalWidth,
+      naturalHeight: imageElement.naturalHeight,
+      aspectRatio: imageElement.naturalWidth / imageElement.naturalHeight,
+    };
+  }
+
+  preloadBossEndAssetMetrics() {
+    const endSrc = this.bossEndingElement?.dataset.bossEndSrc ?? "";
+
+    if (!endSrc || typeof Image === "undefined") {
+      if (!endSrc) {
+        console.warn("[boss-ending] missing end.webp src");
+      }
+      return;
+    }
+
+    const preloadImage = new Image();
+    preloadImage.addEventListener("load", () => {
+      this.updateBossEndAssetMetrics(preloadImage);
+      const loadKey = `end.webp:${endSrc}`;
+
+      if (!this.reportedBossImageLoads.has(loadKey)) {
+        this.reportedBossImageLoads.add(loadKey);
+        this.debugBossEnding({
+          event: "end asset preload",
+          src: endSrc,
+          naturalWidth: preloadImage.naturalWidth,
+          naturalHeight: preloadImage.naturalHeight,
+          aspectRatio:
+            preloadImage.naturalWidth / Math.max(preloadImage.naturalHeight, 1),
+        });
+      }
+    });
+    preloadImage.addEventListener("error", () => {
+      const failureKey = `end.webp:${endSrc}`;
+
+      if (!this.reportedBossImageErrors.has(failureKey)) {
+        console.warn("[boss-ending] failed to load end.webp", endSrc);
+        this.reportedBossImageErrors.add(failureKey);
+      }
+    });
+    preloadImage.src = endSrc;
   }
 
   bindBossStoneSlotListeners() {
@@ -1084,18 +1160,147 @@ export class GameView {
 
     this.renderBossStones(bossState.stones ?? []);
 
-    if (this.bossEndingElement && this.bossEndingCardElement) {
+    if (
+      this.bossEndingElement &&
+      this.bossEndingCardElement &&
+      this.bossEndingWarningElement
+    ) {
       const ending = bossState.ending ?? { visible: false };
-      this.bossEndingElement.hidden = !ending.visible;
+      const phase = bossState.phase ?? bossState.pose ?? "unknown";
+      const endSrc = this.bossEndingElement.dataset.bossEndSrc ?? "";
+      const warningVisible = Boolean(ending.warningVisible);
+      const cardVisible = Boolean(ending.cardVisible);
+      const warningX = Number.isFinite(ending.warningX) ? ending.warningX : 0;
+      const warningY = Number.isFinite(ending.warningY) ? ending.warningY : 0;
+      const warningWidth = Number.isFinite(ending.warningWidth)
+        ? ending.warningWidth
+        : 0;
+      const warningHeight = Number.isFinite(ending.warningHeight)
+        ? ending.warningHeight
+        : 0;
+      this.bossEndingElement.hidden = !warningVisible && !cardVisible;
 
-      if (ending.visible) {
-        this.bossEndingCardElement.style.width = `${ending.width}px`;
-        this.bossEndingCardElement.style.height = `${ending.height}px`;
-        this.bossEndingCardElement.style.transform = `translate3d(${ending.x}px, ${ending.y}px, 0) scale(${ending.scale ?? 1})`;
-        this.bossEndingCardElement.style.opacity = `${ending.opacity ?? 1}`;
+      this.bossEndingWarningElement.hidden = false;
+      this.bossEndingWarningElement.style.width = `${warningWidth}px`;
+      this.bossEndingWarningElement.style.height = `${warningHeight}px`;
+      this.bossEndingWarningElement.style.transform = `translate3d(${warningX}px, ${warningY}px, 0)`;
+      this.bossEndingWarningElement.style.opacity = `${
+        warningVisible ? (ending.warningOpacity ?? 1) : 0
+      }`;
+
+      const containerRect = this.containerElement?.getBoundingClientRect?.() ?? null;
+      const warningRect =
+        this.bossEndingWarningElement.getBoundingClientRect?.() ?? null;
+      const resolvedWidthRaw = warningRect?.width ?? warningWidth;
+      const resolvedHeightRaw = warningRect?.height ?? warningHeight;
+      const resolvedXRaw =
+        warningRect && containerRect
+          ? warningRect.left - containerRect.left
+          : warningX;
+      const resolvedYRaw =
+        warningRect && containerRect
+          ? warningRect.top - containerRect.top
+          : warningY;
+      const resolvedWidth = Number.isFinite(resolvedWidthRaw)
+        ? resolvedWidthRaw
+        : warningWidth;
+      const resolvedHeight = Number.isFinite(resolvedHeightRaw)
+        ? resolvedHeightRaw
+        : warningHeight;
+      const resolvedX = Number.isFinite(resolvedXRaw) ? resolvedXRaw : warningX;
+      const resolvedY = Number.isFinite(resolvedYRaw) ? resolvedYRaw : warningY;
+      const dropDistanceRaw =
+        warningRect && containerRect
+          ? containerRect.height - resolvedY + warningRect.height
+          : warningHeight * 1.2;
+      const dropDistance = Number.isFinite(dropDistanceRaw)
+        ? dropDistanceRaw
+        : warningHeight * 1.2;
+      const cardTranslateX = cardVisible ? resolvedX : warningX;
+      const cardTranslateY = cardVisible
+        ? resolvedY + dropDistance * (ending.dropProgress ?? 0)
+        : warningY;
+      const cardTranslateZ = cardVisible ? (ending.translateZ ?? 0) : -10000;
+      const cardOpacity = cardVisible ? (ending.opacity ?? 1) : 0;
+      const cardWidth = cardVisible ? resolvedWidth : warningWidth;
+      const cardHeight = cardVisible ? resolvedHeight : warningHeight;
+      const cardTransform = `translate3d(${cardTranslateX}px, ${cardTranslateY}px, ${cardTranslateZ}px)`;
+
+      if (cardVisible) {
+        this.bossEndingCardElement.style.width = `${cardWidth}px`;
+        this.bossEndingCardElement.style.height = `${cardHeight}px`;
+        this.bossEndingCardElement.style.transform = cardTransform;
+        this.bossEndingCardElement.style.opacity = `${cardOpacity}`;
       } else {
-        this.bossEndingCardElement.style.opacity = "0";
+        this.bossEndingCardElement.style.width = `${cardWidth}px`;
+        this.bossEndingCardElement.style.height = `${cardHeight}px`;
+        this.bossEndingCardElement.style.transform = cardTransform;
+        this.bossEndingCardElement.style.opacity = `${cardOpacity}`;
       }
+
+      const debugSignature = [
+        phase,
+        warningVisible ? 1 : 0,
+        cardVisible ? 1 : 0,
+        endSrc,
+        warningX,
+        warningY,
+        warningWidth,
+        warningHeight,
+        resolvedX,
+        resolvedY,
+        resolvedWidth,
+        resolvedHeight,
+        cardTranslateX,
+        cardTranslateY,
+        cardTranslateZ,
+        dropDistance,
+        cardOpacity,
+      ].join("|");
+
+      if (debugSignature !== this.lastBossEndingDebugSignature) {
+        this.debugBossEnding({
+          phase,
+          src: endSrc,
+          assetLoaded: this.bossEndAssetMetrics.naturalWidth > 0,
+          warningVisible,
+          cardVisible,
+          rawWarningX: ending.warningX ?? null,
+          rawWarningY: ending.warningY ?? null,
+          rawWarningWidth: ending.warningWidth ?? null,
+          rawWarningHeight: ending.warningHeight ?? null,
+          warningX,
+          warningY,
+          warningWidth,
+          warningHeight,
+          warningRect: warningRect
+            ? {
+                left: warningRect.left,
+                top: warningRect.top,
+                width: warningRect.width,
+                height: warningRect.height,
+              }
+            : null,
+          resolvedX,
+          resolvedY,
+          resolvedWidth,
+          resolvedHeight,
+          translateZ: cardTranslateZ,
+          dropProgress: ending.dropProgress ?? 0,
+          dropDistance,
+          opacity: cardOpacity,
+          transform: cardTransform,
+          containerRect: containerRect
+            ? {
+                width: containerRect.width,
+                height: containerRect.height,
+              }
+            : null,
+        });
+        this.lastBossEndingDebugSignature = debugSignature;
+      }
+    } else {
+      this.lastBossEndingDebugSignature = "";
     }
   }
 
@@ -1161,6 +1366,14 @@ export class GameView {
       this.bossEndingElement.hidden = true;
     }
 
+    if (this.bossEndingWarningElement) {
+      this.bossEndingWarningElement.hidden = true;
+      this.bossEndingWarningElement.style.width = "";
+      this.bossEndingWarningElement.style.height = "";
+      this.bossEndingWarningElement.style.transform = "";
+      this.bossEndingWarningElement.style.opacity = "0";
+    }
+
     if (this.bossEndingCardElement) {
       this.bossEndingCardElement.style.width = "";
       this.bossEndingCardElement.style.height = "";
@@ -1178,6 +1391,7 @@ export class GameView {
 
     this.clearBossStoneElements();
     this.lastBossRushDebugSignature = "";
+    this.lastBossEndingDebugSignature = "";
   }
 
   restoreBossStructureState(targetIds = [], triggerIds = []) {
