@@ -3702,14 +3702,6 @@ body {
   animation: bossGroggyPulse 0.1s linear infinite alternate;
 }
 
-.boss-stage-boss.is-attacking-hand:not(.is-damaged):not(.is-defeated) {
-  --boss-hand-filter: drop-shadow(
-      0 calc(8 * var(--cw)) calc(14 * var(--cw)) rgba(0, 0, 0, 0.32)
-    )
-    drop-shadow(0 0 calc(16 * var(--cw)) rgba(255, 54, 24, 0.32)) sepia(55%)
-    hue-rotate(-38deg) saturate(240%) brightness(1.08);
-}
-
 .boss-stage-boss.is-damaged,
 .boss-stage-boss.is-defeated {
   --boss-visual-filter: drop-shadow(
@@ -3734,11 +3726,22 @@ body {
   width: calc(220 * var(--cw));
   height: calc(54 * var(--cw));
   transform-origin: right center;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  background-color: transparent;
+}
+
+.boss-stage-boss__hand-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
   filter: var(--boss-hand-filter);
+}
+
+.boss-stage-boss.is-attacking-hand:not(.is-damaged):not(.is-defeated)
+  .boss-stage-boss__hand-image {
+  filter: drop-shadow(0 0 calc(16 * var(--cw)) rgba(255, 54, 24, 0.32))
+    sepia(55%) hue-rotate(-38deg) saturate(240%) brightness(1.08);
 }
 
 .boss-stage-rush-warning {
