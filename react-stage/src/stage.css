@@ -3632,7 +3632,7 @@ body {
 
 .boss-stage-hud__fill {
   position: absolute;
-  inset: 0   auto 0 0;
+  inset: 0 auto 0 0;
   width: 100%;
   border-radius: inherit;
   background: linear-gradient(to right, #ff724d 0%, #ff2b1b 44%, #b30807 100%);
@@ -3736,9 +3736,8 @@ body {
 .boss-stage-rush-warning {
   position: absolute;
   left: 0;
-  top: 50%;
+  top: 0%;
   transform: translateY(-50%);
-  border-radius: calc(999 * var(--cw));
   background: linear-gradient(
     90deg,
     rgba(255, 10, 10, 0.2),
@@ -3773,12 +3772,15 @@ body {
   height: 100%;
   object-fit: contain;
   pointer-events: none;
-  filter: drop-shadow(0 calc(10 * var(--cw)) calc(18 * var(--cw)) rgba(0, 0, 0, 0.24));
+  filter: drop-shadow(
+    0 calc(10 * var(--cw)) calc(18 * var(--cw)) rgba(0, 0, 0, 0.24)
+  );
 }
 
 .boss-stage-stone.is-final-wave .boss-stage-stone__image {
-  filter:
-    drop-shadow(0 calc(10 * var(--cw)) calc(18 * var(--cw)) rgba(0, 0, 0, 0.24))
+  filter: drop-shadow(
+      0 calc(10 * var(--cw)) calc(18 * var(--cw)) rgba(0, 0, 0, 0.24)
+    )
     drop-shadow(0 0 calc(18 * var(--cw)) rgba(255, 84, 36, 0.18));
 }
 
