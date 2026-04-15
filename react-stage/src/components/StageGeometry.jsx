@@ -1733,9 +1733,14 @@ function BossStageLayout({
       <div
         className="boss-stage-ending"
         data-boss-ending="true"
+        data-boss-end-src={bossAssetUrls.end}
         hidden
         style={bossAssetStyles}
       >
+        <div
+          className="boss-stage-ending__warning"
+          data-boss-ending-warning="true"
+        ></div>
         <div
           className="boss-stage-ending__card"
           data-boss-ending-card="true"
