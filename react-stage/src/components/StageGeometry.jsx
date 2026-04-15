@@ -1709,7 +1709,16 @@ function BossStageLayout({
           className="boss-stage-boss__hand"
           data-boss-hand="true"
           hidden
-        ></div>
+        >
+          <img
+            className="boss-stage-boss__hand-image"
+            data-boss-hand-image="true"
+            src={bossAssetUrls.attackHand}
+            style={{ filter: "var(--boss-hand-filter)" }}
+            alt=""
+            draggable="false"
+          />
+        </div>
       </div>
 
       <div
