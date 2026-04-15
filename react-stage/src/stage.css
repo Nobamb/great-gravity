@@ -3702,6 +3702,14 @@ body {
   animation: bossGroggyPulse 0.1s linear infinite alternate;
 }
 
+.boss-stage-boss.is-attacking-hand:not(.is-damaged):not(.is-defeated) {
+  --boss-hand-filter: drop-shadow(
+      0 calc(8 * var(--cw)) calc(14 * var(--cw)) rgba(0, 0, 0, 0.32)
+    )
+    drop-shadow(0 0 calc(16 * var(--cw)) rgba(255, 54, 24, 0.32)) sepia(55%)
+    hue-rotate(-38deg) saturate(240%) brightness(1.08);
+}
+
 .boss-stage-boss.is-damaged,
 .boss-stage-boss.is-defeated {
   --boss-visual-filter: drop-shadow(
