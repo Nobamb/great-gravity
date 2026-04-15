@@ -2365,7 +2365,7 @@ export class GameController {
       isDamaged: now < this.bossState.damageFlashUntilMs,
       isDefeated: this.bossState.phase === "defeated-fall",
       isHandAttackTinted:
-        this.bossState.phase === "pattern1" && Boolean(hand?.visible),
+        this.bossState.phase === "pattern1" && Boolean(hand),
       hand: hand
         ? {
             visible: true,
