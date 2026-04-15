@@ -149,7 +149,13 @@ export class GameView {
     this.reportedBossStoneSlotLoads = new Set();
     this.reportedBossStoneSlotErrors = new Set();
     this.lastBossStoneRenderSignature = "";
+    this.lastBossRushDebugSignature = "";
     this.bossStoneAssetMetrics = {
+      naturalWidth: 0,
+      naturalHeight: 0,
+      aspectRatio: 1,
+    };
+    this.bossRushAssetMetrics = {
       naturalWidth: 0,
       naturalHeight: 0,
       aspectRatio: 1,
@@ -170,6 +176,7 @@ export class GameView {
       );
     }
 
+    this.preloadBossRushAssetMetrics();
     this.bindBossStoneSlotListeners();
   }
 
@@ -594,6 +601,40 @@ export class GameView {
     };
   }
 
+  getBossRushAssetMetrics() {
+    return {
+      naturalWidth: this.bossRushAssetMetrics.naturalWidth,
+      naturalHeight: this.bossRushAssetMetrics.naturalHeight,
+      aspectRatio: this.bossRushAssetMetrics.aspectRatio,
+    };
+  }
+
+  updateBossRushAssetMetrics(imageElement) {
+    if (!imageElement || imageElement.naturalWidth <= 0 || imageElement.naturalHeight <= 0) {
+      return;
+    }
+
+    this.bossRushAssetMetrics = {
+      naturalWidth: imageElement.naturalWidth,
+      naturalHeight: imageElement.naturalHeight,
+      aspectRatio: imageElement.naturalWidth / imageElement.naturalHeight,
+    };
+  }
+
+  preloadBossRushAssetMetrics() {
+    const rushSrc = this.getBossPoseImageSrc("rush");
+
+    if (!rushSrc || typeof Image === "undefined") {
+      return;
+    }
+
+    const preloadImage = new Image();
+    preloadImage.addEventListener("load", () => {
+      this.updateBossRushAssetMetrics(preloadImage);
+    });
+    preloadImage.src = rushSrc;
+  }
+
   bindBossStoneSlotListeners() {
     this.bossStoneSlots.forEach(({ imageElement }) => {
       if (!imageElement) {
@@ -830,6 +871,10 @@ export class GameView {
     const currentSrc = imageElement.currentSrc || imageElement.src || "";
     const loadKey = `${assetLabel}:${currentSrc}`;
 
+    if (assetLabel === "rush.webp") {
+      this.updateBossRushAssetMetrics(imageElement);
+    }
+
     if (
       assetLabel === "attack-body.webp" &&
       currentSrc &&
@@ -925,13 +970,23 @@ export class GameView {
     this.bossRootElement.dataset.pose = bossState.pose ?? "base";
     this.bossRootElement.style.width = `${bossState.width ?? 0}px`;
     this.bossRootElement.style.height = `${bossState.height ?? 0}px`;
-    this.bossRootElement.style.transform = `translate3d(${bossState.x ?? 0}px, ${bossState.y ?? 0}px, 0) scaleX(${bossState.facing < 0 ? -1 : 1})`;
+    const spriteScaleX =
+      typeof bossState.spriteScaleX === "number"
+        ? bossState.spriteScaleX
+        : bossState.facing < 0
+          ? -1
+          : 1;
+    this.bossRootElement.style.left = `${bossState.x ?? 0}px`;
+    this.bossRootElement.style.top = `${bossState.y ?? 0}px`;
+    this.bossRootElement.style.transform = "none";
 
     if (this.bossVisualElement) {
       const pose = bossState.pose ?? "base";
       this.bossVisualElement.dataset.pose = pose;
       this.bossVisualElement.style.backgroundImage =
         pose === "attack" ? "var(--boss-attack-body-image)" : "";
+      this.bossVisualElement.style.transform = `scaleX(${spriteScaleX})`;
+      this.bossVisualElement.style.transformOrigin = "center center";
     }
 
     if (this.bossVisualImageElement) {
@@ -960,6 +1015,43 @@ export class GameView {
       }
     }
 
+    if (bossState.pose === "rush") {
+      const rootLeft = this.bossRootElement.style.left || "";
+      const rootTop = this.bossRootElement.style.top || "";
+      const visualTransform = this.bossVisualElement?.style.transform || "";
+      const assetLabel =
+        this.bossVisualImageElement?.dataset.assetLabel ??
+        this.getBossPoseAssetLabel("rush");
+      const debugSignature = [
+        bossState.phase ?? bossState.pose ?? "",
+        bossState.x ?? 0,
+        bossState.y ?? 0,
+        rootLeft,
+        rootTop,
+        spriteScaleX,
+        visualTransform,
+        assetLabel,
+      ].join("|");
+
+      if (debugSignature !== this.lastBossRushDebugSignature) {
+        console.info("[boss-rush]", {
+          phase: bossState.phase ?? bossState.pose ?? "rush",
+          x: bossState.x ?? 0,
+          y: bossState.y ?? 0,
+          left: bossState.x ?? 0,
+          top: bossState.y ?? 0,
+          spriteScaleX,
+          rootLeft,
+          rootTop,
+          visualTransform,
+          assetLabel,
+        });
+        this.lastBossRushDebugSignature = debugSignature;
+      }
+    } else {
+      this.lastBossRushDebugSignature = "";
+    }
+
     if (this.bossHitFlashElement) {
       this.bossHitFlashElement.hidden = true;
     }
@@ -973,7 +1065,7 @@ export class GameView {
           "var(--boss-attack-hand-image)";
         this.bossHandElement.style.width = `${hand.width}px`;
         this.bossHandElement.style.height = `${hand.height}px`;
-        this.bossHandElement.style.transform = `translate3d(${hand.x - (bossState.x ?? 0)}px, ${hand.y - (bossState.y ?? 0)}px, 0)`;
+        this.bossHandElement.style.transform = `translate3d(${hand.x - (bossState.x ?? 0)}px, ${hand.y - (bossState.y ?? 0)}px, 0) scaleX(${spriteScaleX})`;
       } else {
         this.bossHandElement.style.backgroundImage = "";
       }
@@ -1025,12 +1117,16 @@ export class GameView {
       this.bossRootElement.dataset.pose = "base";
       this.bossRootElement.style.width = "";
       this.bossRootElement.style.height = "";
+      this.bossRootElement.style.left = "";
+      this.bossRootElement.style.top = "";
       this.bossRootElement.style.transform = "";
     }
 
     if (this.bossVisualElement) {
       this.bossVisualElement.dataset.pose = "base";
       this.bossVisualElement.style.backgroundImage = "";
+      this.bossVisualElement.style.transform = "";
+      this.bossVisualElement.style.transformOrigin = "";
     }
 
     if (this.bossVisualImageElement) {
@@ -1081,6 +1177,7 @@ export class GameView {
     }
 
     this.clearBossStoneElements();
+    this.lastBossRushDebugSignature = "";
   }
 
   restoreBossStructureState(targetIds = [], triggerIds = []) {
