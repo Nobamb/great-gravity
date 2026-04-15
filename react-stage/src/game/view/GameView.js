@@ -1010,6 +1010,10 @@ export class GameView {
       Boolean(bossState.isDamaged),
     );
     this.bossRootElement.classList.toggle(
+      "is-attacking-hand",
+      Boolean(bossState.isHandAttackTinted),
+    );
+    this.bossRootElement.classList.toggle(
       "is-defeated",
       Boolean(bossState.isDefeated),
     );
@@ -1249,6 +1253,7 @@ export class GameView {
       this.bossRootElement.hidden = true;
       this.bossRootElement.classList.remove(
         "is-groggy",
+        "is-attacking-hand",
         "is-damaged",
         "is-defeated",
       );
