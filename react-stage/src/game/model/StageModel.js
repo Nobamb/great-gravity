@@ -1062,13 +1062,24 @@ export class StageModel {
     return bestMatch;
   }
 
-  getNearbyCannon(bounds, padding = 0) {
+  getNearbyCannon(
+    bounds,
+    padding = 0,
+    { centerY = null, maxCenterDelta = Number.POSITIVE_INFINITY } = {},
+  ) {
     const expandedBounds = expandRect(bounds, padding);
     let bestMatch = null;
     let bestArea = 0;
 
     this.cannons.forEach((cannon) => {
       if (cannon.isDisabled) {
+        return;
+      }
+
+      if (
+        Number.isFinite(centerY) &&
+        Math.abs(cannon.seatPoint.y - centerY) > maxCenterDelta
+      ) {
         return;
       }
 
