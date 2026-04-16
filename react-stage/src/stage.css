@@ -2527,6 +2527,28 @@ body {
   pointer-events: none;
 }
 
+.cannon--gold .cannon__interaction-seat,
+.cannon--gold .cannon__interaction-muzzle {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cannon--gold .cannon__interaction-seat {
+  left: 48%;
+  top: 36%;
+  width: 22%;
+  height: 18%;
+}
+
+.cannon--gold .cannon__interaction-muzzle {
+  left: 63%;
+  top: 42%;
+  width: 12%;
+  height: 12%;
+}
+
 .cannon--gold .cannon__seat {
   position: absolute;
   left: 46%;
