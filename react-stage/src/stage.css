@@ -1982,9 +1982,9 @@ body {
 
 .stage4-white-block--vertical {
   left: 80%;
-  top: 2%;
+  top: -85%;
   width: 2%;
-  height: 13.1%;
+  height: 100%;
 }
 
 .stage4-goal-ledge {
