@@ -1392,7 +1392,7 @@ function Stage7Layout({
         data-monster="true"
         data-monster-id="stage7-guardian"
         data-monster-direction="left"
-        data-monster-speed-multiplier="1.5"
+        data-monster-speed-multiplier="1"
       >
         <div className="stage3-monster-eye"></div>
         <div className="stage3-monster-teeth"></div>
@@ -1402,7 +1402,7 @@ function Stage7Layout({
         data-monster="true"
         data-monster-id="stage7-guardian-extra-1"
         data-monster-direction="left"
-        data-monster-speed-multiplier="1.5"
+        data-monster-speed-multiplier="1"
       >
         <div className="stage3-monster-eye"></div>
         <div className="stage3-monster-teeth"></div>
@@ -1705,11 +1705,7 @@ function BossStageLayout({
             draggable="false"
           />
         </div>
-        <div
-          className="boss-stage-boss__hand"
-          data-boss-hand="true"
-          hidden
-        >
+        <div className="boss-stage-boss__hand" data-boss-hand="true" hidden>
           <img
             className="boss-stage-boss__hand-image"
             data-boss-hand-image="true"
