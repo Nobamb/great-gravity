@@ -94,6 +94,11 @@ const STAGE_MISSION_CONFIGS = {
     lockedTreasureMessage: STAGE7_LOCKED_TREASURE_MESSAGE,
   },
 };
+const STAGE3_MID_VERTICAL_TRIGGER_ID = "stage3-mid-vertical-trigger";
+const STAGE3_REQUIRED_SOLIDIFIED_IDS = [
+  "stage3-mid-vertical-solid-top",
+  "stage3-mid-vertical-solid-mid",
+];
 
 function createNeutralInput(input) {
   return {
@@ -2468,15 +2473,41 @@ export class GameController {
     });
   }
 
+  getCurrentSolidifiedBlockIds() {
+    const isPhysicsInitialized =
+      this.physicsController?.physicsModel?.initialized === true;
+    const solidifiedBlocks = isPhysicsInitialized
+      ? (this.physicsController?.getSolidifiedBlocks?.() ?? [])
+      : (this.stageModel.runtimeSolids?.length > 0
+          ? this.stageModel.runtimeSolids
+          : this.stageModel.initialSolidifiedBlocks) ?? [];
+
+    return new Set(solidifiedBlocks.map((block) => block.id).filter(Boolean));
+  }
+
+  isTriggerLocked(triggerId) {
+    if (triggerId !== STAGE3_MID_VERTICAL_TRIGGER_ID) {
+      return false;
+    }
+
+    const solidifiedBlockIds = this.getCurrentSolidifiedBlockIds();
+    return STAGE3_REQUIRED_SOLIDIFIED_IDS.some((id) =>
+      solidifiedBlockIds.has(id),
+    );
+  }
+
   updateActiveTrigger() {
     const interactionPadding = Math.max(
       18,
       this.stageModel.bounds.width * 0.02,
     );
-    this.activeTrigger = this.stageModel.getInteractableTrigger(
+    const candidateTrigger = this.stageModel.getInteractableTrigger(
       this.characterModel.getBounds(),
       interactionPadding,
     );
+    this.activeTrigger = this.isTriggerLocked(candidateTrigger?.id)
+      ? null
+      : candidateTrigger;
   }
 
   handleTriggerInteraction(input) {
@@ -2491,9 +2522,12 @@ export class GameController {
       return;
     }
 
-    const collapseState = this.stageModel.activateTrigger(
-      this.activeTrigger.id,
-    );
+    if (this.isTriggerLocked(this.activeTrigger.id)) {
+      this.activeTrigger = null;
+      return;
+    }
+
+    const collapseState = this.stageModel.activateTrigger(this.activeTrigger.id);
 
     if (!collapseState) {
       return;
@@ -2561,9 +2595,15 @@ export class GameController {
       26,
       this.stageModel.bounds.width * 0.025,
     );
+    const characterBounds = this.characterModel.getBounds();
+    const characterHeight = characterBounds.bottom - characterBounds.top;
     const cannon = this.stageModel.getNearbyCannon(
-      this.characterModel.getBounds(),
+      characterBounds,
       interactionPadding,
+      {
+        centerY: (characterBounds.top + characterBounds.bottom) / 2,
+        maxCenterDelta: Math.max(12, characterHeight * 0.3),
+      },
     );
 
     if (!cannon) {
@@ -3335,8 +3375,11 @@ export class GameController {
     const triggerIds = this.physicsController?.consumeTriggerHits?.() ?? [];
 
     triggerIds.forEach((triggerId) => {
-      const collapseState =
-        this.stageModel.activateProjectileTrigger(triggerId);
+      if (this.isTriggerLocked(triggerId)) {
+        return;
+      }
+
+      const collapseState = this.stageModel.activateProjectileTrigger(triggerId);
 
       if (!collapseState) {
         return;
