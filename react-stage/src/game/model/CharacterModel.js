@@ -32,6 +32,10 @@ function getHorizontalOverlap(a, b) {
   return Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
 }
 
+function getVerticalOverlap(a, b) {
+  return Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+}
+
 function getSweptBounds(startBounds, endBounds) {
   return {
     left: Math.min(startBounds.left, endBounds.left),
@@ -589,34 +593,62 @@ export class CharacterModel {
   }
 
   resolveHorizontalCollisions(solids, previousBounds = this.getBounds()) {
-    let bounds = this.getBounds();
+    const bounds = this.getBounds();
+    const sweptBounds = getSweptBounds(previousBounds, bounds);
+    const collisionEpsilon = this.getCollisionEpsilon();
+    const minimumVerticalOverlap = collisionEpsilon;
+    let leftWall = null;
+    let leftWallPosition = Number.POSITIVE_INFINITY;
+    let rightWall = null;
+    let rightWallPosition = Number.NEGATIVE_INFINITY;
 
     for (const solid of solids) {
-      if (!intersects(bounds, solid)) {
+      const sweptVerticalOverlap = getVerticalOverlap(sweptBounds, solid);
+
+      if (sweptVerticalOverlap < minimumVerticalOverlap) {
         continue;
       }
 
-      const previousVerticalOverlap =
-        previousBounds.bottom > solid.top && previousBounds.top < solid.bottom;
-
       if (this.vx > 0) {
-        if (!previousVerticalOverlap || previousBounds.right > solid.left) {
+        const startedLeft =
+          previousBounds.right <= solid.left + collisionEpsilon;
+        const crossedLeft = bounds.right >= solid.left - collisionEpsilon;
+
+        if (!startedLeft || !crossedLeft) {
           continue;
         }
 
-        this.x = solid.left - this.width;
+        if (solid.left < leftWallPosition) {
+          leftWallPosition = solid.left;
+          leftWall = solid;
+        }
       } else if (this.vx < 0) {
-        if (!previousVerticalOverlap || previousBounds.left < solid.right) {
+        const startedRight =
+          previousBounds.left >= solid.right - collisionEpsilon;
+        const crossedRight = bounds.left <= solid.right + collisionEpsilon;
+
+        if (!startedRight || !crossedRight) {
           continue;
         }
 
-        this.x = solid.right;
+        if (solid.right > rightWallPosition) {
+          rightWallPosition = solid.right;
+          rightWall = solid;
+        }
       } else {
         continue;
       }
+    }
 
+    if (this.vx > 0 && leftWall) {
+      this.x = leftWall.left - this.width;
       this.vx = 0;
-      bounds = this.getBounds();
+      return;
+    }
+
+    if (this.vx < 0 && rightWall) {
+      this.x = rightWall.right;
+      this.vx = 0;
     }
   }
 
