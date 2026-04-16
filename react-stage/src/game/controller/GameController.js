@@ -2653,6 +2653,7 @@ export class GameController {
         this.characterModel.height / 2,
       vx: velocity.x,
       vy: velocity.y,
+      airControlProfile: "cannon",
     });
 
     if (usedCannon.singleUse) {
