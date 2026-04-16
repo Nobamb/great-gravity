@@ -3414,6 +3414,7 @@ body {
   --boss-stage-layer-background: 0;
   --boss-stage-layer-visuals: 2;
   --boss-stage-layer-visuals-overlay: 3;
+  --boss-stage-layer-danger-visuals: 35;
   background:
     radial-gradient(
       circle at 18% 88%,
@@ -3663,6 +3664,11 @@ body {
   pointer-events: none;
 }
 
+.boss-stage-boss[data-pose="rush"],
+.boss-stage-boss.is-attacking-hand {
+  z-index: var(--boss-stage-layer-danger-visuals);
+}
+
 .boss-stage-boss__visual,
 .boss-stage-boss__hand,
 .boss-stage-boss__flash {
@@ -3772,7 +3778,7 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: var(--boss-stage-layer-visuals-overlay);
+  z-index: var(--boss-stage-layer-danger-visuals);
 }
 
 .boss-stage-stone {
