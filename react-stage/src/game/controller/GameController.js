@@ -2491,7 +2491,7 @@ export class GameController {
     }
 
     const solidifiedBlockIds = this.getCurrentSolidifiedBlockIds();
-    return STAGE3_REQUIRED_SOLIDIFIED_IDS.some((id) =>
+    return STAGE3_REQUIRED_SOLIDIFIED_IDS.every((id) =>
       solidifiedBlockIds.has(id),
     );
   }
