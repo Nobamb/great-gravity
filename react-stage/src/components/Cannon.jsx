@@ -20,8 +20,16 @@ export default function Cannon({
                 data-cannon-launch-multiplier={String(launchMultiplier)}
                 data-cannon-disabled={disabled ? "true" : undefined}
             >
-                <div className={`cannon__seat ${seatClassName}`.trim()} data-cannon-seat="true"></div>
-                <div className="cannon__barrel" data-cannon-muzzle="true"></div>
+                <div
+                    className={`cannon__interaction-seat ${seatClassName}`.trim()}
+                    data-cannon-seat="true"
+                ></div>
+                <div
+                    className="cannon__interaction-muzzle"
+                    data-cannon-muzzle="true"
+                ></div>
+                <div className={`cannon__seat ${seatClassName}`.trim()}></div>
+                <div className="cannon__barrel"></div>
                 <div className="cannon__mouth"></div>
                 <div className="cannon__base"></div>
                 <div className="cannon__wheel cannon__wheel--left">
