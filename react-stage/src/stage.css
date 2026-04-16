@@ -3179,9 +3179,9 @@ body {
 
 .stage7-monster-wall--left {
   left: 50%;
-  top: 15%;
+  top: 18%;
   width: 2%;
-  height: 22%;
+  height: 17%;
 }
 
 .stage7-monster-wall--left-top {
@@ -3199,7 +3199,7 @@ body {
 }
 
 .stage7-monster-wall--top {
-  left: 51.2%;
+  left: 52%;
   top: 15%;
   width: 15.8%;
   height: 3.5%;
