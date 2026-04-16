@@ -77,6 +77,24 @@ export class CharacterModel {
     this.swimFallSpeedMultiplier = 0.3;
     this.maxBreathTime = 5;
     this.breathRecoveryMultiplier = 5;
+    this.airControlProfiles = {
+      default: {
+        maxMoveSpeedMultiplier: 1,
+        accelerationMultiplier: 1,
+        decelerationMultiplier: 1,
+        preserveMomentum: false,
+        minWallVerticalOverlapRatio: 0,
+        minWallVerticalOverlapPx: 0,
+      },
+      cannon: {
+        maxMoveSpeedMultiplier: 1.18,
+        accelerationMultiplier: 1.85,
+        decelerationMultiplier: 0.45,
+        preserveMomentum: true,
+        minWallVerticalOverlapRatio: 0.22,
+        minWallVerticalOverlapPx: 10,
+      },
+    };
 
     this.resetState();
   }
@@ -100,6 +118,7 @@ export class CharacterModel {
     this.breathRatio = 1;
     this.groundEffect = null; // 현재 밟고 있는 지형의 특수 효과
     this.hitIceCeiling = false;
+    this.airControlProfile = "default";
   }
 
   /**
@@ -134,7 +153,51 @@ export class CharacterModel {
     };
   }
 
-  launch({ x = this.x, y = this.y, vx = 0, vy = 0 } = {}) {
+  normalizeAirControlProfile(profile) {
+    return profile === "cannon" ? "cannon" : "default";
+  }
+
+  resetAirControlProfile() {
+    this.airControlProfile = "default";
+  }
+
+  getAirControlSettings() {
+    return (
+      this.airControlProfiles[this.airControlProfile] ??
+      this.airControlProfiles.default
+    );
+  }
+
+  isUsingCannonAirControl() {
+    return (
+      this.airControlProfile === "cannon" &&
+      !this.onGround &&
+      !this.isClimbing &&
+      !this.isSwimming
+    );
+  }
+
+  getMinimumHorizontalWallOverlap(collisionEpsilon) {
+    if (!this.isUsingCannonAirControl()) {
+      return collisionEpsilon;
+    }
+
+    const airControlSettings = this.getAirControlSettings();
+
+    return Math.max(
+      collisionEpsilon,
+      this.height * airControlSettings.minWallVerticalOverlapRatio,
+      airControlSettings.minWallVerticalOverlapPx * this.physicsScale,
+    );
+  }
+
+  launch({
+    x = this.x,
+    y = this.y,
+    vx = 0,
+    vy = 0,
+    airControlProfile = "default",
+  } = {}) {
     this.x = x;
     this.y = y;
     this.vx = vx;
@@ -149,6 +212,7 @@ export class CharacterModel {
     this.breathRatio = 1;
     this.groundEffect = null;
     this.hitIceCeiling = false;
+    this.airControlProfile = this.normalizeAirControlProfile(airControlProfile);
   }
 
   /**
@@ -170,6 +234,7 @@ export class CharacterModel {
     this.breathRatio = 1;
     this.groundEffect = null;
     this.hitIceCeiling = false;
+    this.airControlProfile = "default";
   }
 
   /**
@@ -270,6 +335,7 @@ export class CharacterModel {
       this.onGround = false;
       this.vx = 0;
       this.vy = 0;
+      this.resetAirControlProfile();
       this.clearSwimmingState();
     }
 
@@ -342,30 +408,47 @@ export class CharacterModel {
   updatePlatforming(dt, stage, input) {
     // 모든 물리 상수의 배율 적용
     const s = this.physicsScale;
-    const maxMoveSpeed = this.maxMoveSpeed * s;
+    const groundMaxMoveSpeed = this.maxMoveSpeed * s;
+    const airControlSettings = this.isUsingCannonAirControl()
+      ? this.getAirControlSettings()
+      : this.airControlProfiles.default;
+    const airMaxMoveSpeed =
+      groundMaxMoveSpeed * airControlSettings.maxMoveSpeedMultiplier;
     const groundAcceleration = this.groundAcceleration * s;
-    const airAcceleration = this.airAcceleration * s;
+    const airAcceleration =
+      this.airAcceleration * s * airControlSettings.accelerationMultiplier;
     const groundDeceleration =
       (this.groundEffect === "ice-slip"
         ? this.groundDeceleration * 0.12
         : this.groundDeceleration) * s;
-    const airDeceleration = this.airDeceleration * s;
+    const airDeceleration =
+      this.airDeceleration * s * airControlSettings.decelerationMultiplier;
     const gravity = this.gravity * s;
     const maxFallSpeed = this.maxFallSpeed * s;
     const jumpVelocity = this.jumpVelocity * s;
 
     // 수평 가속/감속 처리
     if (input.horizontal !== 0) {
-      const targetVelocity = input.horizontal * maxMoveSpeed;
+      const targetVelocity =
+        input.horizontal *
+        (this.onGround ? groundMaxMoveSpeed : airMaxMoveSpeed);
       const acceleration = this.onGround ? groundAcceleration : airAcceleration;
-      const maxVelocityChange = acceleration * dt;
-      const velocityDelta = clamp(
-        targetVelocity - this.vx,
-        -maxVelocityChange,
-        maxVelocityChange,
-      );
+      const isPreservingCannonMomentum =
+        !this.onGround &&
+        airControlSettings.preserveMomentum &&
+        Math.sign(this.vx) === input.horizontal &&
+        Math.abs(this.vx) > Math.abs(targetVelocity);
 
-      this.vx += velocityDelta;
+      if (!isPreservingCannonMomentum) {
+        const maxVelocityChange = acceleration * dt;
+        const velocityDelta = clamp(
+          targetVelocity - this.vx,
+          -maxVelocityChange,
+          maxVelocityChange,
+        );
+
+        this.vx += velocityDelta;
+      }
     } else {
       const deceleration = this.onGround ? groundDeceleration : airDeceleration;
       this.vx = approach(this.vx, 0, deceleration * dt);
@@ -394,6 +477,8 @@ export class CharacterModel {
   }
 
   updateSwimming(dt, stage, input) {
+    this.resetAirControlProfile();
+
     const s = this.physicsScale;
     const maxMoveSpeed = this.maxMoveSpeed * s * this.swimMoveSpeedMultiplier;
     const acceleration =
@@ -596,7 +681,8 @@ export class CharacterModel {
     const bounds = this.getBounds();
     const sweptBounds = getSweptBounds(previousBounds, bounds);
     const collisionEpsilon = this.getCollisionEpsilon();
-    const minimumVerticalOverlap = collisionEpsilon;
+    const minimumVerticalOverlap =
+      this.getMinimumHorizontalWallOverlap(collisionEpsilon);
     let leftWall = null;
     let leftWallPosition = Number.POSITIVE_INFINITY;
     let rightWall = null;
@@ -706,6 +792,7 @@ export class CharacterModel {
       this.vy = 0;
       this.onGround = true;
       this.groundEffect = landingSolid.effect || null;
+      this.resetAirControlProfile();
       return;
     }
 
