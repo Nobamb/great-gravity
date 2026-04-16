@@ -32,6 +32,15 @@ function getHorizontalOverlap(a, b) {
   return Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
 }
 
+function getSweptBounds(startBounds, endBounds) {
+  return {
+    left: Math.min(startBounds.left, endBounds.left),
+    top: Math.min(startBounds.top, endBounds.top),
+    right: Math.max(startBounds.right, endBounds.right),
+    bottom: Math.max(startBounds.bottom, endBounds.bottom),
+  };
+}
+
 /**
  * [CharacterModel]
  * 캐릭터의 위치, 속도, 물리법칙 및 상태를 관리하는 데이터 모델 클래스입니다.
@@ -372,14 +381,12 @@ export class CharacterModel {
     this.vy = Math.min(this.vy + gravity * dt, maxFallSpeed);
 
     // X축 및 Y축 이동
-    const previousHorizontalBounds = this.getBounds();
-    this.x += this.vx * dt;
-    this.resolveHorizontalCollisions(stage.solids, previousHorizontalBounds);
-
-    this.onGround = false;
-    const previousBounds = this.getBounds();
-    this.y += this.vy * dt;
-    this.resolveVerticalCollisions(stage.solids, previousBounds);
+    this.moveWithSubsteps(stage.solids, {
+      dx: this.vx * dt,
+      dy: this.vy * dt,
+      resetGround: true,
+      resetCollisionState: true,
+    });
   }
 
   updateSwimming(dt, stage, input) {
@@ -415,17 +422,11 @@ export class CharacterModel {
       this.vx = approach(this.vx, 0, deceleration * dt);
     }
 
-    const previousHorizontalBounds = this.getBounds();
-    this.x += this.vx * dt;
-    this.resolveHorizontalCollisions(stage.solids, previousHorizontalBounds);
-
     if (input.jump) {
       this.swimPhase = "rising";
       this.swimTargetY = this.y - jumpHeight;
       this.vy = -swimRiseSpeed;
     }
-
-    this.onGround = false;
 
     if (this.swimPhase === "rising" && typeof this.swimTargetY === "number") {
       const riseDistance = swimRiseSpeed * dt;
@@ -436,9 +437,12 @@ export class CharacterModel {
       );
 
       this.vy = -swimRiseSpeed;
-      const previousBounds = this.getBounds();
-      this.y -= travelDistance;
-      this.resolveVerticalCollisions(stage.solids, previousBounds);
+      this.moveWithSubsteps(stage.solids, {
+        dx: this.vx * dt,
+        dy: -travelDistance,
+        resetGround: true,
+        resetCollisionState: true,
+      });
 
       if (this.vy === 0 || this.y <= targetY) {
         this.swimPhase = "falling";
@@ -457,9 +461,12 @@ export class CharacterModel {
       Math.max(this.vy, 0) + swimGravity * dt,
       swimMaxFallSpeed,
     );
-    const previousBounds = this.getBounds();
-    this.y += this.vy * dt;
-    this.resolveVerticalCollisions(stage.solids, previousBounds);
+    this.moveWithSubsteps(stage.solids, {
+      dx: this.vx * dt,
+      dy: this.vy * dt,
+      resetGround: true,
+      resetCollisionState: true,
+    });
   }
 
   /**
@@ -491,9 +498,12 @@ export class CharacterModel {
       0,
       Math.max(0, stage.bounds.width - this.width),
     );
-    const previousBounds = this.getBounds();
-    this.y += this.vy * dt;
-    this.resolveVerticalCollisions(stage.solids, previousBounds);
+    this.moveWithSubsteps(stage.solids, {
+      dx: 0,
+      dy: this.vy * dt,
+      resetGround: true,
+      resetCollisionState: true,
+    });
 
     if (!stage.getLadderForBounds(this.getBounds(), ladderPadding)) {
       this.isClimbing = false;
@@ -504,6 +514,80 @@ export class CharacterModel {
   /**
    * 수평 방향 지형 충돌을 체크하고 위치를 보정합니다.
    */
+  getCollisionStepSize() {
+    return Math.max(4, 4 * this.physicsScale);
+  }
+
+  getCollisionEpsilon() {
+    return Math.max(2, 2 * this.physicsScale);
+  }
+
+  moveWithSubsteps(
+    solids,
+    {
+      dx = 0,
+      dy = 0,
+      resetGround = false,
+      resetCollisionState = false,
+    } = {},
+  ) {
+    if (resetGround) {
+      this.onGround = false;
+    }
+
+    if (resetCollisionState) {
+      this.groundEffect = null;
+      this.hitIceCeiling = false;
+    }
+
+    const maxDistance = Math.max(Math.abs(dx), Math.abs(dy));
+
+    if (maxDistance === 0) {
+      return;
+    }
+
+    const stepCount = Math.max(
+      1,
+      Math.ceil(maxDistance / this.getCollisionStepSize()),
+    );
+    let remainingDx = dx;
+    let remainingDy = dy;
+
+    for (let stepIndex = 0; stepIndex < stepCount; stepIndex += 1) {
+      const stepsRemaining = stepCount - stepIndex;
+      const stepDx = remainingDx / stepsRemaining;
+      const stepDy = remainingDy / stepsRemaining;
+
+      if (stepDx !== 0) {
+        const previousHorizontalBounds = this.getBounds();
+        this.x += stepDx;
+        this.resolveHorizontalCollisions(solids, previousHorizontalBounds);
+
+        if (this.vx === 0) {
+          remainingDx = 0;
+        } else {
+          remainingDx -= stepDx;
+        }
+      }
+
+      if (stepDy !== 0) {
+        const previousVerticalBounds = this.getBounds();
+        this.y += stepDy;
+        this.resolveVerticalCollisions(solids, previousVerticalBounds);
+
+        if (this.vy === 0) {
+          remainingDy = 0;
+        } else {
+          remainingDy -= stepDy;
+        }
+      }
+
+      if (remainingDx === 0 && remainingDy === 0) {
+        break;
+      }
+    }
+  }
+
   resolveHorizontalCollisions(solids, previousBounds = this.getBounds()) {
     let bounds = this.getBounds();
 
@@ -540,59 +624,66 @@ export class CharacterModel {
    * 수직 방향 지형 충돌을 체크하고 위치를 보정합니다.
    */
   resolveVerticalCollisions(solids, previousBounds = this.getBounds()) {
-    let bounds = this.getBounds();
-    this.groundEffect = null;
-    this.hitIceCeiling = false;
+    const bounds = this.getBounds();
+    const sweptBounds = getSweptBounds(previousBounds, bounds);
+    const collisionEpsilon = this.getCollisionEpsilon();
+    const minimumHorizontalOverlap = collisionEpsilon;
+    let landingSolid = null;
+    let landingTop = Number.POSITIVE_INFINITY;
+    let ceilingSolid = null;
+    let ceilingBottom = Number.NEGATIVE_INFINITY;
 
     for (const solid of solids) {
-      if (!intersects(bounds, solid)) {
+      const sweptHorizontalOverlap = getHorizontalOverlap(sweptBounds, solid);
+
+      if (sweptHorizontalOverlap < minimumHorizontalOverlap) {
         continue;
       }
 
-      const horizontalOverlap = getHorizontalOverlap(bounds, solid);
-      const minimumHorizontalOverlap = Math.max(
-        1,
-        Math.min(this.width, solid.right - solid.left) * 0.2,
-      );
-      const wasAbove =
-        previousBounds.bottom <= solid.top &&
-        previousBounds.right > solid.left &&
-        previousBounds.left < solid.right;
-      const wasBelow =
-        previousBounds.top >= solid.bottom &&
-        previousBounds.right > solid.left &&
-        previousBounds.left < solid.right;
-
       if (this.vy > 0) {
-        if (
-          !wasAbove ||
-          bounds.bottom < solid.top ||
-          horizontalOverlap < minimumHorizontalOverlap
-        ) {
+        const startedAbove =
+          previousBounds.bottom <= solid.top + collisionEpsilon;
+        const crossedTop = bounds.bottom >= solid.top - collisionEpsilon;
+
+        if (!startedAbove || !crossedTop) {
           continue;
         }
 
-        this.y = solid.top - this.height;
-        this.onGround = true;
-        this.groundEffect = solid.effect;
+        if (solid.top < landingTop) {
+          landingTop = solid.top;
+          landingSolid = solid;
+        }
       } else if (this.vy < 0) {
-        if (
-          !wasBelow ||
-          bounds.top > solid.bottom ||
-          horizontalOverlap < minimumHorizontalOverlap
-        ) {
+        const startedBelow =
+          previousBounds.top >= solid.bottom - collisionEpsilon;
+        const crossedBottom = bounds.top <= solid.bottom + collisionEpsilon;
+
+        if (!startedBelow || !crossedBottom) {
           continue;
         }
 
-        this.y = solid.bottom;
-
-        if (solid.elementType === "ice") {
-          this.hitIceCeiling = true;
+        if (solid.bottom > ceilingBottom) {
+          ceilingBottom = solid.bottom;
+          ceilingSolid = solid;
         }
       }
+    }
 
+    if (this.vy > 0 && landingSolid) {
+      this.y = landingSolid.top - this.height;
       this.vy = 0;
-      bounds = this.getBounds();
+      this.onGround = true;
+      this.groundEffect = landingSolid.effect || null;
+      return;
+    }
+
+    if (this.vy < 0 && ceilingSolid) {
+      this.y = ceilingSolid.bottom;
+      this.vy = 0;
+
+      if (ceilingSolid.elementType === "ice") {
+        this.hitIceCeiling = true;
+      }
     }
   }
 }
