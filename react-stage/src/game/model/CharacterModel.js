@@ -289,12 +289,20 @@ export class CharacterModel {
       return null;
     }
 
+    const overlapWidth =
+      Math.min(bounds.right, waterZone.right) -
+      Math.max(bounds.left, waterZone.left);
     const overlapHeight =
       Math.min(bounds.bottom, waterZone.bottom) -
       Math.max(bounds.top, waterZone.top);
-    const minimumSwimDepth = (bounds.bottom - bounds.top) * 0.5;
+    const overlapArea =
+      Math.max(0, overlapWidth) * Math.max(0, overlapHeight);
+    const bodyArea =
+      Math.max(0, bounds.right - bounds.left) *
+      Math.max(0, bounds.bottom - bounds.top);
+    const minimumSwimArea = bodyArea * 0.5;
 
-    if (overlapHeight < minimumSwimDepth) {
+    if (overlapArea < minimumSwimArea) {
       return null;
     }
 
