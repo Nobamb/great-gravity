@@ -78,69 +78,6 @@ body {
     radial-gradient(circle at 50% 100%, #2d112d 0%, #090912 74%);
 }
 
-.stage-shell--stage2 {
-  background:
-    radial-gradient(
-      circle at 49% 84%,
-      rgba(0, 255, 255, 0.08),
-      transparent 14%
-    ),
-    radial-gradient(
-      circle at 50% 42%,
-      rgba(255, 36, 18, 0.06),
-      transparent 24%
-    ),
-    #020202 !important;
-}
-
-.stage-shell--stage2 .bg-layer {
-  opacity: 0.12;
-  background-image: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.03),
-    transparent 35%
-  );
-  background-size: 100% 100%;
-}
-
-.stage-shell--stage2 .ambient-glow {
-  display: none;
-}
-
-.stage-shell--stage3 {
-  background:
-    radial-gradient(
-      circle at 22% 74%,
-      rgba(0, 255, 255, 0.06),
-      transparent 18%
-    ),
-    radial-gradient(
-      circle at 66% 56%,
-      rgba(255, 164, 28, 0.05),
-      transparent 16%
-    ),
-    radial-gradient(
-      circle at 82% 24%,
-      rgba(255, 64, 40, 0.08),
-      transparent 20%
-    ),
-    #020202 !important;
-}
-
-.stage-shell--stage3 .bg-layer {
-  opacity: 0.1;
-  background-image: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.025),
-    transparent 40%
-  );
-  background-size: 100% 100%;
-}
-
-.stage-shell--stage3 .ambient-glow {
-  display: none;
-}
-
 .stage-shell--stage4 {
   --stage4-main-floor-left: 21.2%;
   --stage4-main-floor-top: calc(84.8% - 60px);
@@ -167,37 +104,6 @@ body {
   --stage4-right-wall-bottom: calc(
     var(--stage4-main-floor-top) + var(--stage4-main-floor-height)
   );
-  background:
-    radial-gradient(
-      circle at 18% 82%,
-      rgba(28, 212, 255, 0.08),
-      transparent 16%
-    ),
-    radial-gradient(
-      circle at 47% 45%,
-      rgba(255, 96, 48, 0.06),
-      transparent 24%
-    ),
-    radial-gradient(
-      circle at 82% 18%,
-      rgba(255, 248, 232, 0.04),
-      transparent 18%
-    ),
-    #020202 !important;
-}
-
-.stage-shell--stage4 .bg-layer {
-  opacity: 0.08;
-  background-image: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.02),
-    transparent 42%
-  );
-  background-size: 100% 100%;
-}
-
-.stage-shell--stage4 .ambient-glow {
-  display: none;
 }
 
 .bg-layer {
@@ -1312,19 +1218,17 @@ body {
   top: 83.1%;
   width: 7.2%;
   height: 3.8%;
+  box-sizing: border-box;
   min-width: 0;
   min-height: 0;
   border-radius: calc(4 * var(--cw));
+  border: calc(2 * var(--cw)) solid rgba(255, 255, 255, 0.9);
   background:
-    linear-gradient(
-      to right,
-      rgba(255, 198, 58, 0.95),
-      rgba(255, 130, 24, 0.95)
-    ),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.18), rgba(0, 0, 0, 0.16));
+    linear-gradient(to bottom, rgba(24, 25, 31, 0.98), rgba(3, 3, 5, 0.98)),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.2));
   box-shadow:
-    0 0 calc(22 * var(--cw)) rgba(255, 165, 38, 0.42),
-    inset 0 0 calc(8 * var(--cw)) rgba(255, 255, 255, 0.18);
+    0 calc(8 * var(--cw)) calc(16 * var(--cw)) rgba(0, 0, 0, 0.34),
+    inset 0 0 0 calc(1 * var(--cw)) rgba(255, 255, 255, 0.1);
   opacity: calc(1 - (var(--timed-progress) * 0.78));
   z-index: 16;
 }
@@ -1343,7 +1247,7 @@ body {
 }
 
 .stage3-timed-block.is-ticking {
-  filter: saturate(0.92) brightness(0.98);
+  filter: brightness(1.08);
 }
 
 .stage3-jump-block {
@@ -2078,40 +1982,6 @@ body {
   top: 90.2%;
 }
 
-.stage-shell--stage5 {
-  background:
-    radial-gradient(
-      circle at 22% 76%,
-      rgba(71, 207, 255, 0.08),
-      transparent 18%
-    ),
-    radial-gradient(
-      circle at 64% 68%,
-      rgba(255, 114, 44, 0.08),
-      transparent 20%
-    ),
-    radial-gradient(
-      circle at 50% 8%,
-      rgba(205, 240, 255, 0.08),
-      transparent 16%
-    ),
-    #04070d !important;
-}
-
-.stage-shell--stage5 .bg-layer {
-  opacity: 0.12;
-  background-image:
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.04), transparent 40%),
-    radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
-  background-size:
-    100% 100%,
-    calc(26 * var(--cw)) calc(26 * var(--cw));
-}
-
-.stage-shell--stage5 .ambient-glow {
-  display: none;
-}
-
 .stage5-frame,
 .stage5-floor,
 .stage5-bg-pillar[data-collider="solid"] {
@@ -2647,32 +2517,6 @@ body {
   filter: saturate(0.45) brightness(0.78);
 }
 
-.stage-shell--stage6 {
-  background:
-    radial-gradient(circle at 88% 22%, rgba(255, 40, 0, 0.12), transparent 18%),
-    radial-gradient(
-      circle at 16% 74%,
-      rgba(255, 72, 12, 0.08),
-      transparent 12%
-    ),
-    linear-gradient(to bottom, rgba(76, 0, 0, 0.18), rgba(0, 0, 0, 0.88)),
-    #040507 !important;
-}
-
-.stage-shell--stage6 .bg-layer {
-  opacity: 0.08;
-  background-image:
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03), transparent 42%),
-    radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size:
-    100% 100%,
-    calc(36 * var(--cw)) calc(36 * var(--cw));
-}
-
-.stage-shell--stage6 .ambient-glow {
-  display: none;
-}
-
 .stage6-frame,
 .stage6-floor {
   position: absolute;
@@ -2984,32 +2828,6 @@ body {
   z-index: 0;
 }
 
-.stage-shell--stage7 {
-  background:
-    radial-gradient(
-      circle at 58% 10%,
-      rgba(13, 204, 188, 0.08),
-      transparent 16%
-    ),
-    radial-gradient(circle at 12% 52%, rgba(255, 39, 12, 0.1), transparent 18%),
-    linear-gradient(to bottom, rgba(9, 2, 5, 0.62), rgba(2, 2, 5, 0.96)),
-    #020202 !important;
-}
-
-.stage-shell--stage7 .bg-layer {
-  opacity: 0.07;
-  background-image:
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.04), transparent 48%),
-    radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
-  background-size:
-    100% 100%,
-    calc(34 * var(--cw)) calc(34 * var(--cw));
-}
-
-.stage-shell--stage7 .ambient-glow {
-  display: none;
-}
-
 .stage7-frame {
   position: absolute;
   background: linear-gradient(
@@ -3114,17 +2932,15 @@ body {
 .stage7-timed-block {
   --timed-progress: 0;
   position: absolute;
+  box-sizing: border-box;
   border-radius: calc(4 * var(--cw));
+  border: calc(2 * var(--cw)) solid rgba(255, 255, 255, 0.9);
   background:
-    linear-gradient(
-      to right,
-      rgba(255, 194, 54, 0.96),
-      rgba(255, 132, 20, 0.96)
-    ),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.18), rgba(0, 0, 0, 0.16));
+    linear-gradient(to bottom, rgba(24, 25, 31, 0.98), rgba(3, 3, 5, 0.98)),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.2));
   box-shadow:
-    0 0 calc(22 * var(--cw)) rgba(255, 165, 38, 0.42),
-    inset 0 0 calc(8 * var(--cw)) rgba(255, 255, 255, 0.18);
+    0 calc(8 * var(--cw)) calc(16 * var(--cw)) rgba(0, 0, 0, 0.34),
+    inset 0 0 0 calc(1 * var(--cw)) rgba(255, 255, 255, 0.1);
   opacity: calc(1 - (var(--timed-progress) * 0.78));
   z-index: 16;
 }
@@ -3144,7 +2960,7 @@ body {
 }
 
 .stage7-timed-block.is-ticking {
-  filter: saturate(0.92) brightness(0.98);
+  filter: brightness(1.08);
 }
 
 .stage7-contact-button {
@@ -3437,39 +3253,13 @@ body {
   --boss-stage-layer-visuals: 2;
   --boss-stage-layer-visuals-overlay: 3;
   --boss-stage-layer-danger-visuals: 35;
-  background:
-    radial-gradient(
-      circle at 18% 88%,
-      rgba(48, 204, 255, 0.08),
-      transparent 16%
-    ),
-    radial-gradient(
-      circle at 78% 20%,
-      rgba(255, 78, 33, 0.14),
-      transparent 24%
-    ),
-    radial-gradient(
-      circle at 58% 14%,
-      rgba(255, 255, 255, 0.04),
-      transparent 18%
-    ),
-    linear-gradient(to bottom, rgba(16, 2, 4, 0.7), rgba(2, 2, 8, 0.96)),
-    #020202 !important;
 }
 
 .stage-shell--bossStage .bg-layer {
   z-index: var(--boss-stage-layer-background);
-  opacity: 0.08;
-  background-image:
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03), transparent 36%),
-    radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size:
-    100% 100%,
-    calc(32 * var(--cw)) calc(32 * var(--cw));
 }
 
 .stage-shell--bossStage .ambient-glow {
-  display: none;
   z-index: var(--boss-stage-layer-background);
 }
 
@@ -3976,13 +3766,13 @@ body {
   background:
     radial-gradient(
       circle,
-      rgba(255, 255, 255, 0.08),
-      rgba(255, 255, 255, 0) 34%
+      rgba(255, 224, 214, 0.2),
+      rgba(255, 224, 214, 0) 34%
     ),
     radial-gradient(
       circle,
-      rgba(54, 54, 54, 0.62) 0 42%,
-      rgba(7, 7, 7, 0.92) 63%,
+      rgba(164, 22, 10, 0.64) 0 42%,
+      rgba(66, 7, 8, 0.92) 63%,
       rgba(0, 0, 0, 0) 78%
     );
   filter: blur(calc(8 * var(--cw)));
@@ -3991,34 +3781,34 @@ body {
 .portal--in .portal__core {
   background: radial-gradient(
     circle at 34% 30%,
-    rgba(96, 96, 96, 0.26),
-    rgba(11, 11, 11, 0.96) 48%,
-    #000 76%
+    rgba(255, 164, 141, 0.32),
+    rgba(129, 18, 13, 0.94) 48%,
+    rgba(43, 4, 6, 1) 76%
   );
   box-shadow:
-    inset 0 0 calc(20 * var(--cw)) rgba(255, 255, 255, 0.08),
-    0 0 calc(24 * var(--cw)) rgba(0, 0, 0, 0.55);
+    inset 0 0 calc(20 * var(--cw)) rgba(255, 232, 225, 0.12),
+    0 0 calc(24 * var(--cw)) rgba(255, 62, 28, 0.34);
 }
 
 .portal--in .portal__swirl--a {
   background: conic-gradient(
     from 0deg,
-    rgba(255, 255, 255, 0.12),
-    rgba(45, 45, 45, 0.06) 22%,
-    rgba(0, 0, 0, 0.78) 54%,
-    rgba(255, 255, 255, 0.1) 84%,
-    rgba(255, 255, 255, 0.12)
+    rgba(255, 229, 221, 0.18),
+    rgba(255, 98, 66, 0.12) 22%,
+    rgba(93, 8, 8, 0.82) 54%,
+    rgba(255, 190, 172, 0.16) 84%,
+    rgba(255, 229, 221, 0.18)
   );
 }
 
 .portal--in .portal__swirl--b {
   background: conic-gradient(
     from 40deg,
-    rgba(255, 255, 255, 0.04),
-    rgba(68, 68, 68, 0.22) 20%,
-    rgba(0, 0, 0, 0.92) 55%,
-    rgba(255, 255, 255, 0.06) 86%,
-    rgba(255, 255, 255, 0.04)
+    rgba(255, 230, 225, 0.08),
+    rgba(255, 116, 76, 0.24) 20%,
+    rgba(69, 7, 7, 0.92) 55%,
+    rgba(255, 215, 205, 0.1) 86%,
+    rgba(255, 230, 225, 0.08)
   );
 }
 
@@ -4026,8 +3816,8 @@ body {
   inset: 20%;
   background: radial-gradient(
     circle,
-    rgba(255, 255, 255, 0.18),
-    rgba(255, 255, 255, 0) 62%
+    rgba(255, 195, 182, 0.34),
+    rgba(255, 195, 182, 0) 62%
   );
   filter: blur(calc(3 * var(--cw)));
 }
