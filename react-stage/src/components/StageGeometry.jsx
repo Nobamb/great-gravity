@@ -1,5 +1,6 @@
 import BackgroundLayer from "./BackgroundLayer.jsx";
 import DefaultBlock from "./DefaultBlock.jsx";
+import JumpBlock from "./JumpBlock.jsx";
 import BreathHud from "./BreathHud.jsx";
 import Cannon from "./Cannon.jsx";
 import CharacterSprite from "./CharacterSprite.jsx";
@@ -83,11 +84,7 @@ function Stage1Layout({ treasureRef }) {
         data-collider="solid"
         data-spawn="player"
       ></div>
-      <div
-        className="jump-block stage1-jump-block"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
+      <JumpBlock className="stage1-jump-block" />
 
       <DefaultBlock className="stone-bridge" />
       <div className="ladder" data-collider="ladder"></div>
@@ -240,26 +237,10 @@ function Stage2Layout({
         data-spawn="player"
       ></div>
 
-      <div
-        className="jump-block stage2-jump-block stage2-jump-block--low-left"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
-      <div
-        className="jump-block stage2-jump-block stage2-jump-block--upper-left"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
-      <div
-        className="jump-block stage2-jump-block stage2-jump-block--right"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
-      <div
-        className="jump-block stage2-jump-block stage2-jump-block--upper-right"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
+      <JumpBlock className="stage2-jump-block stage2-jump-block--low-left" />
+      <JumpBlock className="stage2-jump-block stage2-jump-block--upper-left" />
+      <JumpBlock className="stage2-jump-block stage2-jump-block--right" />
+      <JumpBlock className="stage2-jump-block stage2-jump-block--upper-right" />
 
       <div className="stage2-throw-stone-anchor" ref={stoneAnchorRef}></div>
       <div
@@ -405,11 +386,7 @@ function Stage3Layout({
         data-timed-block="true"
         data-collapse-id="stage3-timed-block-low"
       ></div>
-      <div
-        className="jump-block stage3-jump-block stage3-jump-block--mid"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
+      <JumpBlock className="stage3-jump-block stage3-jump-block--mid" />
 
       <DefaultBlock className="stage3-main-platform stage3-frame" />
       <DefaultBlock className="stage3-center-support stage3-frame" />
@@ -610,16 +587,8 @@ function Stage4Layout({
         <div className="stage3-monster-teeth"></div>
       </div>
 
-      <div
-        className="jump-block stage4-jump-block stage4-jump-block--lower"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
-      <div
-        className="jump-block stage4-jump-block stage4-jump-block--upper"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
+      <JumpBlock className="stage4-jump-block stage4-jump-block--lower" />
+      <JumpBlock className="stage4-jump-block stage4-jump-block--upper" />
 
       <Cannon
         className="stage3-cannon stage4-cannon"
@@ -628,11 +597,7 @@ function Stage4Layout({
         seatClassName="stage4-cannon-seat"
       />
 
-      <div
-        className="jump-block stage4-jump-block stage4-jump-block--goal"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
+      <JumpBlock className="stage4-jump-block stage4-jump-block--goal" />
       <div
         className="stage3-white-gate stage4-white-block stage4-white-block--vertical"
         data-collider="solid"
@@ -794,21 +759,9 @@ function Stage5Layout({
         triggerDirection="top"
       />
 
-      <div
-        className="jump-block stage5-jump-block stage5-jump-block--left-top"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
-      <div
-        className="jump-block stage5-jump-block stage5-jump-block--left-bottom"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
-      <div
-        className="jump-block stage5-jump-block stage5-jump-block--right"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
+      <JumpBlock className="stage5-jump-block stage5-jump-block--left-top" />
+      <JumpBlock className="stage5-jump-block stage5-jump-block--left-bottom" />
+      <JumpBlock className="stage5-jump-block stage5-jump-block--right" />
 
       <div className="stage5-stone-anchor" ref={stoneAnchorRef}></div>
       <div
@@ -1240,16 +1193,8 @@ function Stage7Layout({
       <div className="stage7-stone-anchor" ref={stoneAnchorRef}></div>
       <div className="throw-stone stage7-projectile-stone" ref={stoneRef}></div>
 
-      <div
-        className="jump-block stage7-jump-block stage7-jump-block--left"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
-      <div
-        className="jump-block stage7-jump-block stage7-jump-block--center"
-        data-collider="solid"
-        data-effect="jump-boost"
-      ></div>
+      <JumpBlock className="stage7-jump-block stage7-jump-block--left" />
+      <JumpBlock className="stage7-jump-block stage7-jump-block--center" />
 
       <div
         className="stage7-white-block stage7-lava-wall stage7-lava-wall--left"
@@ -1466,30 +1411,22 @@ function BossStageLayout({
         data-spawn="player"
         data-support-type="boss-platform"
       ></div>
-      <div
-        className="jump-block boss-stage-jump-block boss-stage-jump-block--left-low"
-        data-collider="solid"
-        data-effect="jump-boost"
+      <JumpBlock
+        className="boss-stage-jump-block boss-stage-jump-block--left-low"
         data-support-type="boss-platform"
-      ></div>
-      <div
-        className="jump-block boss-stage-jump-block boss-stage-jump-block--left-high"
-        data-collider="solid"
-        data-effect="jump-boost"
+      />
+      <JumpBlock
+        className="boss-stage-jump-block boss-stage-jump-block--left-high"
         data-support-type="boss-platform"
-      ></div>
-      <div
-        className="jump-block boss-stage-jump-block boss-stage-jump-block--right-low"
-        data-collider="solid"
-        data-effect="jump-boost"
+      />
+      <JumpBlock
+        className="boss-stage-jump-block boss-stage-jump-block--right-low"
         data-support-type="boss-platform"
-      ></div>
-      <div
-        className="jump-block boss-stage-jump-block boss-stage-jump-block--right-high"
-        data-collider="solid"
-        data-effect="jump-boost"
+      />
+      <JumpBlock
+        className="boss-stage-jump-block boss-stage-jump-block--right-high"
         data-support-type="boss-platform"
-      ></div>
+      />
       <BossStageStructureSet
         key={`boss-structure-${bossStructureVersion}`}
         bossStructureFluidsVisible={bossStructureFluidsVisible}
