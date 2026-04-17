@@ -562,30 +562,23 @@ function Stage4Layout({
       <DefaultBlock className="stage3-frame stage4-tank-left-wall" />
       <DefaultBlock className="stage3-frame stage4-tank-right-wall" />
       <DefaultBlock className="stage3-frame stage4-tank-top" />
-      <div
+      <DefaultBlock
         className="stage3-frame stage4-tank-gate stage4-tank-gate--upper"
-        data-collider="solid"
-        data-triggerable="true"
-        data-collapse-id="stage4-upper-gate"
-      ></div>
-      <div
-        className="stage3-frame stage4-tank-gate stage4-tank-gate--lower"
-        data-collider="solid"
-        data-triggerable="true"
-        data-collapse-id="stage4-lower-gate"
-      ></div>
-
-      <TriggerBlock
-        className="trigger-block stage4-tank-trigger stage4-tank-trigger--upper"
-        triggerId="stage4-upper-gate-trigger"
+        hasTrigger={true}
+        triggerPlacement="left"
+        triggerId="stage4-upper-gate-trigger stage4-tank-trigger stage4-tank-trigger--upper"
         triggerDirection="left"
         triggerTargets="stage4-upper-gate"
+        data-collapse-id="stage4-upper-gate"
       />
-      <TriggerBlock
-        className="trigger-block stage4-tank-trigger stage4-tank-trigger--lower"
-        triggerId="stage4-lower-gate-trigger"
+      <DefaultBlock
+        className="stage3-frame stage4-tank-gate stage4-tank-gate--lower"
+        hasTrigger={true}
+        triggerPlacement="left"
+        triggerId="stage4-lower-gate-trigger stage4-tank-trigger stage4-tank-trigger--lower"
         triggerDirection="left"
         triggerTargets="stage4-lower-gate"
+        data-collapse-id="stage4-lower-gate"
       />
 
       <WaterZone
