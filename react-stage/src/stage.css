@@ -438,7 +438,7 @@ body {
   top: 24%;
   width: calc(15 * var(--cw));
   height: 60%;
-  background: #6d6d6d;
+  background: #9b6666;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
@@ -449,7 +449,7 @@ body {
   width: 100vw;
   height: 1.9%;
   min-height: calc(14 * var(--cw));
-  background: linear-gradient(to right, #9b6666 0 70%, #6d6d6d 70% 100%);
+  background: linear-gradient(to right, #9b6666 0 70%, #9b6666 70% 100%);
 }
 
 .mid-ledge {
@@ -459,7 +459,7 @@ body {
   width: calc(14.2% + calc(15 * var(--cw)));
   height: 1.9%;
   min-height: calc(14 * var(--cw));
-  background: linear-gradient(to right, #9b6666 0 68%, #6d6d6d 68% 100%);
+  background: linear-gradient(to right, #9b6666 0 68%, #9b6666 68% 100%);
 }
 
 [data-triggerable="true"] {
@@ -604,7 +604,7 @@ body {
   width: calc(23% - calc(15 * var(--cw)));
   height: 1.9%;
   min-height: calc(14 * var(--cw));
-  background: #6d6d6d;
+  background: #9b6666;
   box-shadow: 0 calc(10 * var(--cw)) calc(20 * var(--cw)) rgba(0, 0, 0, 0.32);
 }
 
@@ -615,7 +615,7 @@ body {
   width: calc(23% - calc(15 * var(--cw)));
   height: 1.9%;
   min-height: calc(14 * var(--cw));
-  background: #6d6d6d;
+  background: #9b6666;
   box-shadow: 0 calc(10 * var(--cw)) calc(20 * var(--cw)) rgba(0, 0, 0, 0.32);
 }
 
