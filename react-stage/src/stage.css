@@ -1774,18 +1774,13 @@ body {
 }
 
 .stage4-tank-trigger {
-  left: 29.6%;
-  width: 5.6%;
-  height: 3%;
   border-radius: calc(4 * var(--cw));
 }
 
 .stage4-tank-trigger--upper {
-  top: calc(var(--stage4-tank-top-edge) + 13.9%);
 }
 
 .stage4-tank-trigger--lower {
-  top: calc(var(--stage4-tank-top-edge) + 34.4%);
 }
 
 .stage4-fluid-zone {
