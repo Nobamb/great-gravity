@@ -837,8 +837,6 @@ body {
 .stage2-jump-block {
   min-width: 0;
   min-height: 0;
-  height: 5.8%;
-  border-radius: 0;
 }
 
 .stage2-jump-block--low-left {
@@ -1266,8 +1264,6 @@ body {
 .stage3-jump-block {
   min-width: 0;
   min-height: 0;
-  height: 3.6%;
-  border-radius: 0;
 }
 
 .stage3-jump-block--mid {
@@ -1850,8 +1846,6 @@ body {
 .stage4-jump-block {
   min-width: 0;
   min-height: 0;
-  height: 3.6%;
-  border-radius: 0;
 }
 
 .stage4-jump-block--upper {
@@ -1870,7 +1864,6 @@ body {
   left: 67.8%;
   top: 15.1%;
   width: 8.8%;
-  height: 3.6%;
 }
 
 .stage4-cannon {
@@ -3135,8 +3128,6 @@ body {
 .stage7-jump-block {
   min-width: 0;
   min-height: 0;
-  height: 5%;
-  border-radius: 0;
   z-index: 17;
 }
 
@@ -3315,8 +3306,6 @@ body {
   min-width: 0;
   min-height: 0;
   width: 8.4%;
-  height: 4.9%;
-  border-radius: 0;
   z-index: 18;
 }
 
