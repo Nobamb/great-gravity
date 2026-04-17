@@ -724,7 +724,7 @@ body {
 }
 
 .stage2-fluid-divider--right {
-  left: 69.1%;
+  left: 67%;
 }
 
 .stage2-divider-trigger {
@@ -772,8 +772,8 @@ body {
 }
 
 .stage2-white-block {
-  top: 76.2%;
-  width: 22.7%;
+  top: 78%;
+  width: 24.3%;
   height: 2.7%;
   background: #f2f2f2;
   box-shadow:
@@ -787,12 +787,11 @@ body {
 
 .stage2-white-block--right {
   left: 69.1%;
-  transform: rotate(165deg);
 }
 
 .stage2-button-hitbox,
 .stage2-button-trigger {
-  left: 4.35%;
+  left: 7%;
   top: 58.05%;
   border-radius: calc(4 * var(--cw));
 }
