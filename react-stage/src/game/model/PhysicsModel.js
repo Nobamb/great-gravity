@@ -593,7 +593,7 @@ export class PhysicsModel {
   }
 
   getSolidifyCellSize() {
-    return clamp(this.container.clientWidth * 0.022, 18, 30);
+    return this.container.clientWidth * 0.022;
   }
 
   getSolidifiedCellKey(rect) {
