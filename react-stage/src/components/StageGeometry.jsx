@@ -92,17 +92,41 @@ function Stage1Layout({ treasureRef }) {
       <DefaultBlock className="stone-bridge" />
       <div className="ladder" data-collider="ladder"></div>
 
-      <DefaultBlock className="main-support zIndex100" hasTrigger={true} triggerPlacement="top" triggerId="main-support-trigger" triggerDirection="top" data-collapse-id="main-support" triggerTargets="main-support" />
+      <DefaultBlock
+        className="main-support zIndex100"
+        hasTrigger={true}
+        triggerPlacement="top"
+        triggerId="main-support-trigger"
+        triggerDirection="top"
+        data-collapse-id="main-support"
+        triggerTargets="main-support"
+      />
 
       <DefaultBlock className="top-beam zIndex100" />
 
-      <DefaultBlock className="mid-ledge zIndex100" hasTrigger={true} triggerPlacement="left" triggerId="mid-ledge-trigger" triggerDirection="left" data-collapse-id="mid-ledge" triggerTargets="mid-ledge" />
+      <DefaultBlock
+        className="mid-ledge zIndex100"
+        hasTrigger={true}
+        triggerPlacement="left"
+        triggerId="mid-ledge-trigger"
+        triggerDirection="left"
+        data-collapse-id="mid-ledge"
+        triggerTargets="mid-ledge"
+      />
 
       <DefaultBlock className="goal-location zIndex100" />
 
       <TreasurePile ref={treasureRef} />
 
-      <DefaultBlock className="right-frame zIndex100" hasTrigger={true} triggerPlacement="top" triggerId="right-frame-trigger" triggerDirection="top" data-collapse-id="right-frame" triggerTargets="right-frame" />
+      <DefaultBlock
+        className="right-frame zIndex100"
+        hasTrigger={true}
+        triggerPlacement="top"
+        triggerId="right-frame-trigger"
+        triggerDirection="top"
+        data-collapse-id="right-frame"
+        triggerTargets="right-frame"
+      />
 
       <LavaZone
         className="lava-fall fluid-zone fluid-zone--lava"
@@ -129,11 +153,27 @@ function Stage2Layout({
     <>
       <DefaultBlock className="stage2-left-frame stage2-post stage2-post--outer" />
       <DefaultBlock className="stage2-left-frame stage2-post stage2-post--inner" />
-      <DefaultBlock className="stage2-left-frame stage2-cap" hasTrigger={true} triggerPlacement="right" data-collapse-id="stage2-left-cap" triggerId="stage2-left-cap-trigger" triggerDirection="right" triggerTargets="stage2-left-cap" />
+      <DefaultBlock
+        className="stage2-left-frame stage2-cap"
+        hasTrigger={true}
+        triggerPlacement="right"
+        data-collapse-id="stage2-left-cap"
+        triggerId="stage2-left-cap-trigger"
+        triggerDirection="right"
+        triggerTargets="stage2-left-cap"
+      />
 
       <DefaultBlock className="stage2-right-frame stage2-post stage2-post--outer" />
       <DefaultBlock className="stage2-right-frame stage2-post stage2-post--inner" />
-      <DefaultBlock className="stage2-right-frame stage2-cap" hasTrigger={true} triggerPlacement="right" data-collapse-id="stage2-right-cap" triggerId="stage2-right-cap-trigger" triggerDirection="left" triggerTargets="stage2-right-cap" />
+      <DefaultBlock
+        className="stage2-right-frame stage2-cap"
+        hasTrigger={true}
+        triggerPlacement="left"
+        data-collapse-id="stage2-right-cap"
+        triggerId="stage2-right-cap-trigger"
+        triggerDirection="left"
+        triggerTargets="stage2-right-cap"
+      />
 
       <LavaZone
         className="stage2-fluid-zone stage2-fluid-zone--left-lava fluid-zone fluid-zone--lava"
@@ -152,8 +192,24 @@ function Stage2Layout({
         zoneId="stage2-right-lava"
       />
 
-      <DefaultBlock className="stage2-fluid-divider stage2-fluid-divider--left" hasTrigger={true} triggerPlacement="right" data-collapse-id="stage2-left-divider" triggerId="stage2-left-divider-trigger" triggerDirection="left" triggerTargets="stage2-left-divider" />
-      <DefaultBlock className="stage2-fluid-divider stage2-fluid-divider--right" hasTrigger={true} triggerPlacement="right" data-collapse-id="stage2-right-divider" triggerId="stage2-right-divider-trigger" triggerDirection="right" triggerTargets="stage2-right-divider" />
+      <DefaultBlock
+        className="stage2-fluid-divider stage2-fluid-divider--left"
+        hasTrigger={true}
+        triggerPlacement="right"
+        data-collapse-id="stage2-left-divider"
+        triggerId="stage2-left-divider-trigger"
+        triggerDirection="left"
+        triggerTargets="stage2-left-divider"
+      />
+      <DefaultBlock
+        className="stage2-fluid-divider stage2-fluid-divider--right"
+        hasTrigger={true}
+        triggerPlacement="left"
+        data-collapse-id="stage2-right-divider"
+        triggerId="stage2-right-divider-trigger"
+        triggerDirection="left"
+        triggerTargets="stage2-right-divider"
+      />
 
       <div
         className="stage2-white-block stage2-white-block--left zIndex100"
@@ -263,7 +319,17 @@ function Stage3Layout({
       <DefaultBlock className="stage3-left-tower stage3-frame" />
       <DefaultBlock className="stage3-left-tower stage3-frame stage3-frame--right" />
       <DefaultBlock className="stage3-left-tower-cap stage3-frame" />
-      <DefaultBlock className="stage3-left-tower-divider stage3-frame" hasTrigger={true} triggerPlacement="right" triggerId="stage3-divider-trigger" triggerDirection="right" data-collapse-id="stage3-left-tower-divider" id="stage3-left-tower-divider" triggerTargets="stage3-left-tower-divider" projectileTrigger={true} />
+      <DefaultBlock
+        className="stage3-left-tower-divider stage3-frame"
+        hasTrigger={true}
+        triggerPlacement="right"
+        triggerId="stage3-divider-trigger"
+        triggerDirection="right"
+        data-collapse-id="stage3-left-tower-divider"
+        id="stage3-left-tower-divider"
+        triggerTargets="stage3-left-tower-divider"
+        projectileTrigger={true}
+      />
       <div
         className="stage3-timed-block stage3-timed-block--upper"
         data-collider="solid"
@@ -309,7 +375,17 @@ function Stage3Layout({
         data-timed-block="true"
         data-collapse-id="stage3-timed-block"
       ></div>
-      <DefaultBlock className="stage3-mid-vertical-block stage3-frame" hasTrigger={true} triggerPlacement="top" triggerId="stage3-mid-vertical-trigger" triggerDirection="top" data-collapse-id="stage3-mid-vertical-block" id="stage3-mid-vertical-block" triggerTargets="stage3-mid-vertical-block" projectileTrigger={true} />
+      <DefaultBlock
+        className="stage3-mid-vertical-block stage3-frame"
+        hasTrigger={true}
+        triggerPlacement="top"
+        triggerId="stage3-mid-vertical-trigger"
+        triggerDirection="top"
+        data-collapse-id="stage3-mid-vertical-block"
+        id="stage3-mid-vertical-block"
+        triggerTargets="stage3-mid-vertical-block"
+        projectileTrigger={true}
+      />
       <div
         className="stage3-initial-solidified stage3-mid-vertical-solid stage3-mid-vertical-solid--top"
         data-solidified-block="true"
@@ -362,8 +438,28 @@ function Stage3Layout({
         variant="normal"
       />
 
-      <DefaultBlock className="stage3-right-chamber stage3-frame stage3-frame--right-outer" hasTrigger={true} triggerPlacement="bottom" triggerId="stage3-right-chamber-outer-trigger" triggerDirection="bottom" data-collapse-id="stage3-right-chamber-outer" id="stage3-right-chamber-outer" triggerTargets="stage3-right-chamber-outer" projectileTrigger={true} />
-      <DefaultBlock className="stage3-right-chamber-mid stage3-frame" hasTrigger={true} triggerPlacement="bottom" triggerId="stage3-right-chamber-mid-trigger" triggerDirection="bottom" data-collapse-id="stage3-right-chamber-mid" id="stage3-right-chamber-mid" triggerTargets="stage3-right-chamber-mid" projectileTrigger={true} />
+      <DefaultBlock
+        className="stage3-right-chamber stage3-frame stage3-frame--right-outer"
+        hasTrigger={true}
+        triggerPlacement="bottom"
+        triggerId="stage3-right-chamber-outer-trigger"
+        triggerDirection="bottom"
+        data-collapse-id="stage3-right-chamber-outer"
+        id="stage3-right-chamber-outer"
+        triggerTargets="stage3-right-chamber-outer"
+        projectileTrigger={true}
+      />
+      <DefaultBlock
+        className="stage3-right-chamber-mid stage3-frame"
+        hasTrigger={true}
+        triggerPlacement="bottom"
+        triggerId="stage3-right-chamber-mid-trigger"
+        triggerDirection="bottom"
+        data-collapse-id="stage3-right-chamber-mid"
+        id="stage3-right-chamber-mid"
+        triggerTargets="stage3-right-chamber-mid"
+        projectileTrigger={true}
+      />
       <DefaultBlock className="stage3-right-chamber stage3-frame stage3-frame--right-inner" />
       <DefaultBlock className="stage3-right-chamber-cap stage3-frame" />
       <div
@@ -612,7 +708,15 @@ function Stage5Layout({
 }) {
   return (
     <>
-      <DefaultBlock className="stage5-bg-pillar stage5-bg-pillar--left" hasTrigger={true} triggerPlacement="right" data-collapse-id="stage5-top-box-gate-anchor" triggerId="stage5-top-box-gate-trigger" triggerDirection="right" triggerTargets="stage5-top-box-left,stage5-top-box-right,stage5-top-box-bottom,stage5-treasure-block-north,stage5-treasure-block-south,stage5-treasure-block-west,stage5-treasure-block-east" />
+      <DefaultBlock
+        className="stage5-bg-pillar stage5-bg-pillar--left"
+        hasTrigger={true}
+        triggerPlacement="right"
+        data-collapse-id="stage5-top-box-gate-anchor"
+        triggerId="stage5-top-box-gate-trigger"
+        triggerDirection="right"
+        triggerTargets="stage5-top-box-left,stage5-top-box-right,stage5-top-box-bottom,stage5-treasure-block-north,stage5-treasure-block-south,stage5-treasure-block-west,stage5-treasure-block-east"
+      />
       <div
         className="spawn-pad stage5-spawn-pad"
         data-collider="solid"
@@ -646,14 +750,56 @@ function Stage5Layout({
         anchored={false}
       />
 
-      <DefaultBlock className="stage5-frame stage5-grid-box stage5-grid-box--outer-left" hasTrigger={true} triggerPlacement="top" data-collapse-id="stage5-grid-outer-left" triggerId="stage5-grid-outer-left-trigger" triggerDirection="top" />
-      <DefaultBlock className="stage5-frame stage5-grid-box stage5-grid-box--outer-top" hasTrigger={true} triggerPlacement="left" data-collapse-id="stage5-grid-outer-top" triggerId="stage5-grid-outer-top-trigger" triggerDirection="left" />
-      <DefaultBlock className="stage5-frame stage5-grid-box stage5-grid-box--outer-right" hasTrigger={true} triggerPlacement="top" data-collapse-id="stage5-grid-outer-right" triggerId="stage5-grid-outer-right-trigger" triggerDirection="top" />
+      <DefaultBlock
+        className="stage5-frame stage5-grid-box stage5-grid-box--outer-left"
+        hasTrigger={true}
+        triggerPlacement="top"
+        data-collapse-id="stage5-grid-outer-left"
+        triggerId="stage5-grid-outer-left-trigger"
+        triggerDirection="top"
+      />
+      <DefaultBlock
+        className="stage5-frame stage5-grid-box stage5-grid-box--outer-top"
+        hasTrigger={true}
+        triggerPlacement="left"
+        data-collapse-id="stage5-grid-outer-top"
+        triggerId="stage5-grid-outer-top-trigger"
+        triggerDirection="left"
+      />
+      <DefaultBlock
+        className="stage5-frame stage5-grid-box stage5-grid-box--outer-right"
+        hasTrigger={true}
+        triggerPlacement="top"
+        data-collapse-id="stage5-grid-outer-right"
+        triggerId="stage5-grid-outer-right-trigger"
+        triggerDirection="top"
+      />
       <DefaultBlock className="stage5-frame stage5-grid-box stage5-grid-box--outer-bottom" />
 
-      <DefaultBlock className="stage5-frame stage5-grid-box stage5-grid-box--mid-horizontal-left" hasTrigger={true} triggerPlacement="left" data-collapse-id="stage5-grid-mid-horizontal-left" triggerId="stage5-grid-mid-horizontal-left-trigger" triggerDirection="left" />
-      <DefaultBlock className="stage5-frame stage5-grid-box stage5-grid-box--mid-horizontal-right" hasTrigger={true} triggerPlacement="right" data-collapse-id="stage5-grid-mid-horizontal-right" triggerId="stage5-grid-mid-horizontal-right-trigger" triggerDirection="right" />
-      <DefaultBlock className="stage5-frame stage5-grid-box stage5-grid-box--mid-vertical" hasTrigger={true} triggerPlacement="top" data-collapse-id="stage5-grid-mid-vertical" triggerId="stage5-grid-mid-vertical-trigger" triggerDirection="top" />
+      <DefaultBlock
+        className="stage5-frame stage5-grid-box stage5-grid-box--mid-horizontal-left"
+        hasTrigger={true}
+        triggerPlacement="left"
+        data-collapse-id="stage5-grid-mid-horizontal-left"
+        triggerId="stage5-grid-mid-horizontal-left-trigger"
+        triggerDirection="left"
+      />
+      <DefaultBlock
+        className="stage5-frame stage5-grid-box stage5-grid-box--mid-horizontal-right"
+        hasTrigger={true}
+        triggerPlacement="right"
+        data-collapse-id="stage5-grid-mid-horizontal-right"
+        triggerId="stage5-grid-mid-horizontal-right-trigger"
+        triggerDirection="right"
+      />
+      <DefaultBlock
+        className="stage5-frame stage5-grid-box stage5-grid-box--mid-vertical"
+        hasTrigger={true}
+        triggerPlacement="top"
+        data-collapse-id="stage5-grid-mid-vertical"
+        triggerId="stage5-grid-mid-vertical-trigger"
+        triggerDirection="top"
+      />
 
       <div
         className="jump-block stage5-jump-block stage5-jump-block--left-top"
@@ -814,7 +960,15 @@ function Stage6Layout({
       <DefaultBlock className="stage6-frame stage6-frame--mid" />
       <DefaultBlock className="stage6-frame stage6-frame--left" />
       <DefaultBlock className="stage6-frame stage6-frame--right" />
-      <DefaultBlock className="stage6-frame stage6-frame--center" hasTrigger={true} triggerPlacement="bottom" data-collapse-id="stage6-center-frame" triggerId="stage6-center-frame-trigger" triggerDirection="bottom" triggerTargets="stage6-center-frame" />
+      <DefaultBlock
+        className="stage6-frame stage6-frame--center"
+        hasTrigger={true}
+        triggerPlacement="bottom"
+        data-collapse-id="stage6-center-frame"
+        triggerId="stage6-center-frame-trigger"
+        triggerDirection="bottom"
+        triggerTargets="stage6-center-frame"
+      />
       <DefaultBlock className="stage6-floor" />
 
       <TriggerBlock
@@ -944,9 +1098,30 @@ function Stage7Layout({
       ></div>
 
       <DefaultBlock className="stage7-frame stage7-left-top-floor" />
-      <DefaultBlock className="stage7-frame stage7-left-mid-floor" hasTrigger={true} triggerPlacement="right" data-collapse-id="stage7-left-mid-floor" triggerId="stage7-left-mid-floor-trigger" triggerDirection="right" />
-      <DefaultBlock className="stage7-frame stage7-left-vert stage7-left-vert--left" hasTrigger={true} triggerPlacement="top" data-collapse-id="stage7-left-vert-left" triggerId="stage7-left-vert-left-trigger" triggerDirection="top" />
-      <DefaultBlock className="stage7-frame stage7-left-vert stage7-left-vert--right" hasTrigger={true} triggerPlacement="top" data-collapse-id="stage7-left-vert-right" triggerId="stage7-left-vert-right-trigger" triggerDirection="top" />
+      <DefaultBlock
+        className="stage7-frame stage7-left-mid-floor"
+        hasTrigger={true}
+        triggerPlacement="right"
+        data-collapse-id="stage7-left-mid-floor"
+        triggerId="stage7-left-mid-floor-trigger"
+        triggerDirection="right"
+      />
+      <DefaultBlock
+        className="stage7-frame stage7-left-vert stage7-left-vert--left"
+        hasTrigger={true}
+        triggerPlacement="top"
+        data-collapse-id="stage7-left-vert-left"
+        triggerId="stage7-left-vert-left-trigger"
+        triggerDirection="top"
+      />
+      <DefaultBlock
+        className="stage7-frame stage7-left-vert stage7-left-vert--right"
+        hasTrigger={true}
+        triggerPlacement="top"
+        data-collapse-id="stage7-left-vert-right"
+        triggerId="stage7-left-vert-right-trigger"
+        triggerDirection="top"
+      />
       <DefaultBlock className="stage7-frame stage7-left-bottom-floor" />
 
       <LavaZone
@@ -1025,7 +1200,14 @@ function Stage7Layout({
         triggerDirection="bottom"
         triggerTargets="stage7-cage-white-left,stage7-cage-white-bottom,stage7-lava-white-left,stage7-lava-white-top,stage7-lava-white-bottom,stage7-door-white-left,stage7-door-white-top"
       />
-      <DefaultBlock className="stage7-frame stage7-monster-wall stage7-monster-wall--right" hasTrigger={true} triggerPlacement="top" data-collapse-id="stage7-monster-right" triggerId="stage7-monster-right-trigger" triggerDirection="top" />
+      <DefaultBlock
+        className="stage7-frame stage7-monster-wall stage7-monster-wall--right"
+        hasTrigger={true}
+        triggerPlacement="top"
+        data-collapse-id="stage7-monster-right"
+        triggerId="stage7-monster-right-trigger"
+        triggerDirection="top"
+      />
 
       <div
         className="stage3-monster stage7-monster"
