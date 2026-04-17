@@ -77,7 +77,7 @@ function TriggerBlock({
   );
 }
 
-function Stage1Layout({ treasureRef }) {
+function Stage1Layout({ treasureRef, treasureAnchorRef }) {
   return (
     <>
       <div
@@ -114,6 +114,7 @@ function Stage1Layout({ treasureRef }) {
 
       <DefaultBlock className="goal-location zIndex100" />
 
+      <div className="stage1-treasure-anchor" ref={treasureAnchorRef}></div>
       <TreasurePile ref={treasureRef} />
 
       <DefaultBlock
@@ -1595,7 +1596,12 @@ function renderStageLayout(
       );
     case "stage1":
     default:
-      return <Stage1Layout treasureRef={treasureRef} />;
+      return (
+        <Stage1Layout
+          treasureRef={treasureRef}
+          treasureAnchorRef={treasureAnchorRef}
+        />
+      );
   }
 }
 
