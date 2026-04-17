@@ -516,6 +516,20 @@ body {
   height: 100%;
 }
 
+.trigger-block--right {
+  right: calc(-30 * var(--cw));
+  top: 0;
+  width: calc(30 * var(--cw));
+  height: 100%;
+}
+
+.trigger-block--bottom {
+  left: 0;
+  bottom: calc(-30 * var(--cw));
+  width: 100%;
+  height: calc(30 * var(--cw));
+}
+
 .trigger-block.is-interactable {
   filter: brightness(1.14);
   box-shadow:
@@ -700,7 +714,7 @@ body {
 
 .stage2-fluid-divider {
   top: 48.6%;
-  width: 22.7%;
+  width: 26.5%;
   height: 3%;
   z-index: 12;
 }
