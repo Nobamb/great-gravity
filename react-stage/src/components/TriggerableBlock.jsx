@@ -1,7 +1,7 @@
 function TriggerBlock({ placement, triggerId, triggerDirection, triggerTargets, projectileTrigger = true, interactTrigger = true }) {
     return (
         <div
-            className={`trigger-block trigger-block--${placement}`}
+            className={`trigger-block trigger-block--${placement} ${triggerId || ""}`}
             data-trigger-id={triggerId}
             data-trigger-direction={triggerDirection}
             data-trigger-targets={triggerTargets}
