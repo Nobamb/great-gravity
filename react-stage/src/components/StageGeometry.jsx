@@ -1,6 +1,7 @@
 import BackgroundLayer from "./BackgroundLayer.jsx";
 import DefaultBlock from "./DefaultBlock.jsx";
 import JumpBlock from "./JumpBlock.jsx";
+import Ladder from "./Ladder.jsx";
 import BreathHud from "./BreathHud.jsx";
 import Cannon from "./Cannon.jsx";
 import CharacterSprite from "./CharacterSprite.jsx";
@@ -87,7 +88,7 @@ function Stage1Layout({ treasureRef }) {
       <JumpBlock className="stage1-jump-block" />
 
       <DefaultBlock className="stone-bridge" />
-      <div className="ladder" data-collider="ladder"></div>
+      <Ladder width="4.2%" height="49%" right="37.2%" top="24%" />
 
       <DefaultBlock
         className="main-support zIndex100"
