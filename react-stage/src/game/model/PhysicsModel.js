@@ -973,9 +973,10 @@ export class PhysicsModel {
     config,
     { densityScale = 1, spawnProfile = null } = {},
   ) {
+    const cwFactor = this.container.clientWidth / 1280;
     const normalizedDensityScale = Math.max(1, densityScale);
-    const minParticleRadius = spawnProfile?.minParticleRadius ?? 3.5;
-    const maxParticleRadius = spawnProfile?.maxParticleRadius ?? 12;
+    const minParticleRadius = (spawnProfile?.minParticleRadius ?? 3.5) * cwFactor;
+    const maxParticleRadius = (spawnProfile?.maxParticleRadius ?? 12) * cwFactor;
     const colCountSpacingMultiplier =
       spawnProfile?.colCountSpacingMultiplier ?? 1.65;
     const rowCountSpacingMultiplier =
