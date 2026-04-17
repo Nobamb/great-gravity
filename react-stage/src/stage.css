@@ -643,6 +643,17 @@ body {
   z-index: 20;
 }
 
+.stage1-treasure-anchor {
+  position: absolute;
+  left: 88.5%;
+  top: 58%;
+  width: calc(100 * var(--cw));
+  height: calc(60 * var(--cw));
+  transform: translate(-50%, -100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
 .stage2-post,
 .stage2-cap,
 .stage2-fluid-divider,
