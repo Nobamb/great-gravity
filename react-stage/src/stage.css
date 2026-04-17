@@ -79,9 +79,12 @@ body {
 }
 
 .stage-shell--stage4 {
+  --stage4-main-floor-lift: calc(60 * var(--cw));
+  --stage4-main-floor-width-trim: calc(30 * var(--cw));
+  --stage4-cannon-seat-offset: calc(20 * var(--cw));
   --stage4-main-floor-left: 21.2%;
-  --stage4-main-floor-top: calc(84.8% - 60px);
-  --stage4-main-floor-width: calc(53.2% - 30px);
+  --stage4-main-floor-top: calc(84.8% - var(--stage4-main-floor-lift));
+  --stage4-main-floor-width: calc(53.2% - var(--stage4-main-floor-width-trim));
   --stage4-main-floor-height: 3%;
   --stage4-lower-floor-left: 20.8%;
   --stage4-lower-floor-top: 91.8%;
@@ -104,6 +107,10 @@ body {
   --stage4-right-wall-bottom: calc(
     var(--stage4-main-floor-top) + var(--stage4-main-floor-height)
   );
+}
+
+.stage-shell--stage3 {
+  --stage3-right-structure-offset-y: calc(30 * var(--cw));
 }
 
 .bg-layer {
@@ -1470,7 +1477,7 @@ body {
 }
 
 .stage3-right-chamber {
-  top: calc(8.5% - 30px);
+  top: calc(8.5% - var(--stage3-right-structure-offset-y));
   width: 2.2%;
   height: 32.8%;
   z-index: 12;
@@ -1479,7 +1486,7 @@ body {
 .stage3-right-chamber-mid {
   position: absolute;
   left: 73.5%;
-  top: calc(8.5% - 30px);
+  top: calc(8.5% - var(--stage3-right-structure-offset-y));
   width: 2.2%;
   height: 32.8%;
   z-index: 12;
@@ -1490,7 +1497,7 @@ body {
   left: 0;
   top: 100%;
   width: 100%;
-  height: 30px;
+  height: calc(30 * var(--cw));
   z-index: 13;
 }
 
@@ -1499,7 +1506,7 @@ body {
   left: 0;
   top: 100%;
   width: 100%;
-  height: 30px;
+  height: calc(30 * var(--cw));
   z-index: 13;
 }
 
@@ -1513,7 +1520,7 @@ body {
 
 .stage3-right-chamber-cap {
   left: 60.2%;
-  top: calc(8.5% - 30px);
+  top: calc(8.5% - var(--stage3-right-structure-offset-y));
   width: 28.8%;
   height: 3%;
   z-index: 12;
@@ -1521,7 +1528,7 @@ body {
 
 .stage3-right-water-shelf {
   left: 60.2%;
-  top: calc(17.4% - 30px);
+  top: calc(17.4% - var(--stage3-right-structure-offset-y));
   width: 14.2%;
   height: 2.5%;
   z-index: 12;
@@ -1538,7 +1545,7 @@ body {
 
 .stage3-right-floor {
   left: 60.2%;
-  top: calc(38.5% - 30px);
+  top: calc(38.5% - var(--stage3-right-structure-offset-y));
   width: 28.8%;
   height: 2.8%;
   z-index: 12;
@@ -1546,21 +1553,21 @@ body {
 
 .stage3-fluid-zone--right-water {
   left: 62.4%;
-  top: calc(11.3% - 30px);
+  top: calc(11.3% - var(--stage3-right-structure-offset-y));
   width: 11.8%;
   height: 5.8%;
 }
 
 .stage3-fluid-zone--right-lava {
   left: 62.4%;
-  top: calc(19.8% - 30px);
+  top: calc(19.8% - var(--stage3-right-structure-offset-y));
   width: 11.8%;
   height: 7%;
 }
 
 .stage3-white-gate {
   left: 60.2%;
-  top: calc(28.5% - 30px);
+  top: calc(28.5% - var(--stage3-right-structure-offset-y));
   width: 28.8%;
   height: 2.7%;
   background: #f2f2f2;
@@ -1573,7 +1580,7 @@ body {
 .stage3-monster {
   position: absolute;
   left: 66.4%;
-  top: calc(31.2% - 30px);
+  top: calc(31.2% - var(--stage3-right-structure-offset-y));
   width: calc(48 * var(--cw));
   height: calc(52 * var(--cw));
   border-radius: calc(18 * var(--cw)) calc(18 * var(--cw)) calc(10 * var(--cw))
@@ -1676,7 +1683,7 @@ body {
 
 .stage3-treasure-base {
   left: 79.8%;
-  top: calc(38.5% - 30px);
+  top: calc(38.5% - var(--stage3-right-structure-offset-y));
   width: 7%;
   height: 2.8%;
   z-index: 12;
@@ -1685,7 +1692,7 @@ body {
 .stage3-treasure-anchor,
 .stage3-treasure-pile {
   left: 84.8%;
-  top: calc(38.4% - 30px);
+  top: calc(38.4% - var(--stage3-right-structure-offset-y));
 }
 
 .stage3-treasure-anchor {
@@ -1879,7 +1886,10 @@ body {
 
 .stage4-cannon {
   left: var(--stage4-upper-jump-left);
-  top: calc(var(--stage4-main-floor-top) - calc(82 * var(--cw)) + 20px);
+  top: calc(
+    var(--stage4-main-floor-top) - calc(82 * var(--cw)) +
+      var(--stage4-cannon-seat-offset)
+  );
   bottom: auto;
 }
 
