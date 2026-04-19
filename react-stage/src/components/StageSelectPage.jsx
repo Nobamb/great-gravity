@@ -12,6 +12,8 @@ import {
 const STAR_TRACK = "\u2606";
 const STAR_FILL = "\u2605";
 const LOCKED_STAGE_MESSAGE = "이전 스테이지를 클리어해야 해당 스테이지를 진행할 수 있습니다.";
+const MOBILE_MAX_WIDTH_QUERY = "(max-width: 1023px)";
+const MOBILE_ITEMS_PER_PAGE = 4;
 
 function StarRating({ value }) {
     return (
@@ -35,24 +37,101 @@ function StarRating({ value }) {
     );
 }
 
+function getInitialCompactLayout() {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+        return false;
+    }
+
+    return window.matchMedia(MOBILE_MAX_WIDTH_QUERY).matches;
+}
+
 export default function StageSelectPage() {
     const navigate = useNavigate();
     const popupTimerRef = useRef(null);
     const [progress] = useState(() => getProgressSnapshot());
     const [selectedStageId, setSelectedStageId] = useState(null);
     const [popupMessage, setPopupMessage] = useState(null);
+    const [isCompactLayout, setIsCompactLayout] = useState(getInitialCompactLayout);
+    const [currentPageIndex, setCurrentPageIndex] = useState(0);
     const selectedStage = useMemo(
         () => STAGE_LIST.find((stage) => stage.id === selectedStageId) ?? null,
         [selectedStageId],
     );
     const selectedProgress = selectedStage ? progress[selectedStage.id] : null;
     const showStageActions = Boolean(selectedStage && selectedProgress?.unlocked);
+    const totalPages = Math.max(1, Math.ceil(STAGE_LIST.length / MOBILE_ITEMS_PER_PAGE));
+    const visibleStages = useMemo(() => {
+        if (!isCompactLayout) {
+            return STAGE_LIST;
+        }
+
+        const startIndex = currentPageIndex * MOBILE_ITEMS_PER_PAGE;
+        return STAGE_LIST.slice(startIndex, startIndex + MOBILE_ITEMS_PER_PAGE);
+    }, [currentPageIndex, isCompactLayout]);
+    const pageIndicatorText = isCompactLayout
+        ? `${currentPageIndex + 1}/${totalPages}`
+        : "1/1";
 
     useEffect(() => () => {
         if (popupTimerRef.current) {
             window.clearTimeout(popupTimerRef.current);
         }
     }, []);
+
+    useEffect(() => {
+        if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+            return undefined;
+        }
+
+        const mediaQueryList = window.matchMedia(MOBILE_MAX_WIDTH_QUERY);
+        const handleChange = (event) => {
+            setIsCompactLayout(event.matches);
+        };
+
+        setIsCompactLayout(mediaQueryList.matches);
+
+        if (typeof mediaQueryList.addEventListener === "function") {
+            mediaQueryList.addEventListener("change", handleChange);
+            return () => {
+                mediaQueryList.removeEventListener("change", handleChange);
+            };
+        }
+
+        mediaQueryList.addListener(handleChange);
+        return () => {
+            mediaQueryList.removeListener(handleChange);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!isCompactLayout) {
+            if (currentPageIndex !== 0) {
+                setCurrentPageIndex(0);
+            }
+            return;
+        }
+
+        setCurrentPageIndex((previousPageIndex) =>
+            Math.min(previousPageIndex, totalPages - 1),
+        );
+    }, [currentPageIndex, isCompactLayout, totalPages]);
+
+    useEffect(() => {
+        if (!isCompactLayout || !selectedStageId) {
+            return;
+        }
+
+        const selectedStageIndex = STAGE_LIST.findIndex((stage) => stage.id === selectedStageId);
+
+        if (selectedStageIndex < 0) {
+            return;
+        }
+
+        const nextPageIndex = Math.floor(selectedStageIndex / MOBILE_ITEMS_PER_PAGE);
+        setCurrentPageIndex((previousPageIndex) =>
+            previousPageIndex === nextPageIndex ? previousPageIndex : nextPageIndex,
+        );
+    }, [isCompactLayout, selectedStageId]);
 
     function showLockedPopup() {
         setPopupMessage(LOCKED_STAGE_MESSAGE);
@@ -111,7 +190,7 @@ export default function StageSelectPage() {
                 </div>
 
                 <div className="stage-select__grid">
-                    {STAGE_LIST.map((stage) => {
+                    {visibleStages.map((stage) => {
                         const stageProgress = progress[stage.id];
                         const isUnlocked = Boolean(stageProgress?.unlocked);
                         const isSelected = stage.id === selectedStageId;
@@ -177,6 +256,45 @@ export default function StageSelectPage() {
                             )}
                         </div>
                     </div>
+
+                    <div className="stage-select__pagination" aria-label="stage pages">
+                        <button
+                            type="button"
+                            className="stage-select__page-button"
+                            onClick={() => {
+                                if (!isCompactLayout) {
+                                    return;
+                                }
+
+                                setCurrentPageIndex((previousPageIndex) =>
+                                    Math.max(0, previousPageIndex - 1),
+                                );
+                            }}
+                            disabled={!isCompactLayout || currentPageIndex === 0}
+                        >
+                            이전
+                        </button>
+                        <span className="stage-select__page-indicator">
+                            {pageIndicatorText}
+                        </span>
+                        <button
+                            type="button"
+                            className="stage-select__page-button"
+                            onClick={() => {
+                                if (!isCompactLayout) {
+                                    return;
+                                }
+
+                                setCurrentPageIndex((previousPageIndex) =>
+                                    Math.min(totalPages - 1, previousPageIndex + 1),
+                                );
+                            }}
+                            disabled={!isCompactLayout || currentPageIndex === totalPages - 1}
+                        >
+                            다음
+                        </button>
+                    </div>
+
                     {showStageActions ? (
                         <div className="stage-select__actions">
                             <button
