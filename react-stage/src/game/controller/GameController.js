@@ -122,6 +122,9 @@ export class GameController {
     physicsController = null,
     requestBossStructureRebuild = null,
     requestBossStructureFluidVisibility = null,
+    onStageAttempt = null,
+    onStageClear = null,
+    onMainMenu = null,
   }) {
     this.stage = stage;
     this.nextStagePath = nextStagePath;
@@ -134,6 +137,9 @@ export class GameController {
     this.requestBossStructureRebuild = requestBossStructureRebuild;
     this.requestBossStructureFluidVisibility =
       requestBossStructureFluidVisibility;
+    this.onStageAttempt = onStageAttempt;
+    this.onStageClear = onStageClear;
+    this.onMainMenu = onMainMenu;
 
     this.fixedDeltaTime = 1 / 60;
     this.accumulator = 0;
@@ -191,6 +197,12 @@ export class GameController {
             this.navigate?.(this.nextStagePath);
           }
         : null,
+      onMain: () => {
+        this.onMainMenu?.();
+      },
+    });
+    this.onStageAttempt?.({
+      stageId: this.stage?.id ?? null,
     });
     this.gameView.hideClearOverlay();
     this.gameView.setNextStageVisibility(false);
@@ -3000,6 +3012,9 @@ export class GameController {
     this.lastTimestamp = 0;
     this.activeTrigger = null;
     this.updateActiveTrigger();
+    this.onStageAttempt?.({
+      stageId: this.stage?.id ?? null,
+    });
   }
 
   isCharacterTouchingTreasure() {
@@ -3110,6 +3125,8 @@ export class GameController {
   }
 
   handleStageClear() {
+    const starRating = this.getStarRating(this.elapsedTimeMs);
+
     this.isStageCleared = true;
     this.inputController.resetTransientActions?.();
     this.activeTrigger = null;
@@ -3119,9 +3136,14 @@ export class GameController {
     this.activeCannon = null;
     this.isAimingCannon = false;
     this.customMissionAlarm = null;
+    this.onStageClear?.({
+      stageId: this.stage?.id ?? null,
+      timeMs: this.elapsedTimeMs,
+      stars: starRating,
+    });
     this.gameView.showClearOverlay({
       timeText: this.formatTime(this.elapsedTimeMs),
-      stars: this.getStarRating(this.elapsedTimeMs),
+      stars: starRating,
       showNextStage: Boolean(
         this.stage?.supportsNextStage && this.nextStagePath,
       ),
