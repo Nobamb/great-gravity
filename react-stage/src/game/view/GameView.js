@@ -151,6 +151,7 @@ export class GameView {
     this.activeMissionAlarmToken = null;
     this.boundRetryClick = null;
     this.boundNextClick = null;
+    this.boundMainClick = null;
     this.reportedBossImageErrors = new Set();
     this.reportedBossImageLoads = new Set();
     this.reportedBossStoneSlotLoads = new Set();
@@ -228,9 +229,10 @@ export class GameView {
     this.refreshBossStageElements();
   }
 
-  bindControls({ onRetry, onNextStage } = {}) {
+  bindControls({ onRetry, onNextStage, onMain } = {}) {
     this.bindButton(this.clearRetryButton, "boundRetryClick", onRetry);
     this.bindButton(this.clearNextButton, "boundNextClick", onNextStage);
+    this.bindButton(this.clearMainButton, "boundMainClick", onMain);
   }
 
   bindButton(buttonElement, propertyKey, handler) {
@@ -1593,6 +1595,9 @@ export class GameView {
     if (this.clearNextButton && this.boundNextClick) {
       this.clearNextButton.removeEventListener("click", this.boundNextClick);
     }
+    if (this.clearMainButton && this.boundMainClick) {
+      this.clearMainButton.removeEventListener("click", this.boundMainClick);
+    }
 
     for (const timerId of this.collapseTimers.values()) {
       window.clearTimeout(timerId);
@@ -1645,5 +1650,6 @@ export class GameView {
     this.hideMissionAlarm();
     this.boundRetryClick = null;
     this.boundNextClick = null;
+    this.boundMainClick = null;
   }
 }
