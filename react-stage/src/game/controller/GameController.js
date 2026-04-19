@@ -122,7 +122,6 @@ export class GameController {
     physicsController = null,
     requestBossStructureRebuild = null,
     requestBossStructureFluidVisibility = null,
-    onStageAttempt = null,
     onStageClear = null,
     onMainMenu = null,
   }) {
@@ -137,7 +136,6 @@ export class GameController {
     this.requestBossStructureRebuild = requestBossStructureRebuild;
     this.requestBossStructureFluidVisibility =
       requestBossStructureFluidVisibility;
-    this.onStageAttempt = onStageAttempt;
     this.onStageClear = onStageClear;
     this.onMainMenu = onMainMenu;
 
@@ -159,6 +157,7 @@ export class GameController {
     this.customMissionAlarm = null;
     this.customMissionAlarmToken = 0;
     this.portalCooldownMs = 0;
+    this.currentRunDeathCount = 0;
     this.previousBossSupportType = null;
     this.previousBossStructureOffsetY = 0;
     this.tick = this.tick.bind(this);
@@ -185,11 +184,13 @@ export class GameController {
     this.stoneAim = null;
     this.activeCannon = null;
     this.isAimingCannon = false;
+    this.currentRunDeathCount = 0;
     this.customMissionAlarm = null;
     this.portalCooldownMs = 0;
     this.resetBossSupportTracking();
     this.gameView.bindControls({
       onRetry: () => {
+        this.currentRunDeathCount = 0;
         this.restartStage();
       },
       onNextStage: this.nextStagePath
@@ -200,9 +201,6 @@ export class GameController {
       onMain: () => {
         this.onMainMenu?.();
       },
-    });
-    this.onStageAttempt?.({
-      stageId: this.stage?.id ?? null,
     });
     this.gameView.hideClearOverlay();
     this.gameView.setNextStageVisibility(false);
@@ -2965,6 +2963,7 @@ export class GameController {
     this.stoneAim = null;
     this.activeCannon = null;
     this.isAimingCannon = false;
+    this.currentRunDeathCount += 1;
     this.restartStage();
   }
 
@@ -3012,9 +3011,6 @@ export class GameController {
     this.lastTimestamp = 0;
     this.activeTrigger = null;
     this.updateActiveTrigger();
-    this.onStageAttempt?.({
-      stageId: this.stage?.id ?? null,
-    });
   }
 
   isCharacterTouchingTreasure() {
@@ -3140,6 +3136,7 @@ export class GameController {
       stageId: this.stage?.id ?? null,
       timeMs: this.elapsedTimeMs,
       stars: starRating,
+      deathCount: this.currentRunDeathCount,
     });
     this.gameView.showClearOverlay({
       timeText: this.formatTime(this.elapsedTimeMs),
