@@ -34,7 +34,6 @@ export default function ClearOverlay() {
                     <button
                         type="button"
                         className="clear-action clear-action--main"
-                        disabled
                     >
                         메인화면
                     </button>
