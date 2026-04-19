@@ -6,8 +6,10 @@ import {
     Routes,
     useNavigate,
 } from "react-router-dom";
+import MainPage from "./components/MainPage.jsx";
 import Screen from "./components/Screen.jsx";
 import StageGeometry from "./components/StageGeometry.jsx";
+import StageSelectPage from "./components/StageSelectPage.jsx";
 import { GameController } from "./game/controller/GameController.js";
 import { InputController } from "./game/controller/InputController.js";
 import { PhysicsController } from "./game/controller/PhysicsController.js";
@@ -18,9 +20,14 @@ import { GameView } from "./game/view/GameView.js";
 import { PhysicsView } from "./game/view/PhysicsView.js";
 import {
     getStagePath,
-    STAGE_DEFINITIONS,
+    LEGACY_STAGE_ROUTES,
     STAGE_LIST,
 } from "./stages/stageDefinitions.js";
+import {
+    getProgressSnapshot,
+    recordStageAttempt,
+    recordStageClear,
+} from "./stages/progressStorage.js";
 
 function useGameRuntime({
     containerRef,
@@ -38,6 +45,9 @@ function useGameRuntime({
     bossStructureFluidsVisible,
     requestBossStructureRebuildRef,
     requestBossStructureFluidVisibilityRef,
+    onStageAttemptRef,
+    onStageClearRef,
+    onMainMenuRef,
 }) {
     const gameControllerRef = useRef(null);
 
@@ -94,6 +104,9 @@ function useGameRuntime({
                 requestBossStructureRebuildRef.current?.(),
             requestBossStructureFluidVisibility: (isVisible) =>
                 requestBossStructureFluidVisibilityRef.current?.(isVisible),
+            onStageAttempt: (payload) => onStageAttemptRef.current?.(payload),
+            onStageClear: (payload) => onStageClearRef.current?.(payload),
+            onMainMenu: () => onMainMenuRef.current?.(),
         });
         gameControllerRef.current = gameController;
 
@@ -109,14 +122,17 @@ function useGameRuntime({
         heldStoneRef,
         navigate,
         nextStagePath,
+        onMainMenuRef,
+        onStageAttemptRef,
+        onStageClearRef,
+        requestBossStructureRebuildRef,
+        requestBossStructureFluidVisibilityRef,
         stage,
         stoneAnchorRef,
         stoneAimRef,
         stoneRef,
-        treasureRef,
         treasureAnchorRef,
-        requestBossStructureRebuildRef,
-        requestBossStructureFluidVisibilityRef,
+        treasureRef,
     ]);
 
     useLayoutEffect(() => {
@@ -144,6 +160,9 @@ function StageRuntime({ stage }) {
     const stoneAimRef = useRef(null);
     const requestBossStructureRebuildRef = useRef(null);
     const requestBossStructureFluidVisibilityRef = useRef(null);
+    const onStageAttemptRef = useRef(null);
+    const onStageClearRef = useRef(null);
+    const onMainMenuRef = useRef(null);
     const [bossStructureVersion, setBossStructureVersion] = useState(0);
     const [bossStructureFluidsVisible, setBossStructureFluidsVisible] = useState(true);
     const nextStagePath = stage.nextStageId ? getStagePath(stage.nextStageId) : null;
@@ -155,6 +174,15 @@ function StageRuntime({ stage }) {
     };
     requestBossStructureFluidVisibilityRef.current = (isVisible) => {
         setBossStructureFluidsVisible(Boolean(isVisible));
+    };
+    onStageAttemptRef.current = () => {
+        recordStageAttempt(stage.id);
+    };
+    onStageClearRef.current = ({ timeMs, stars }) => {
+        recordStageClear(stage.id, { timeMs, stars });
+    };
+    onMainMenuRef.current = () => {
+        navigate("/");
     };
 
     useGameRuntime({
@@ -173,6 +201,9 @@ function StageRuntime({ stage }) {
         bossStructureFluidsVisible,
         requestBossStructureRebuildRef,
         requestBossStructureFluidVisibilityRef,
+        onStageAttemptRef,
+        onStageClearRef,
+        onMainMenuRef,
     });
 
     return (
@@ -196,19 +227,59 @@ function StageRuntime({ stage }) {
     );
 }
 
+function StageRoute({ stage }) {
+    const progress = getProgressSnapshot();
+
+    if (!progress[stage.id]?.unlocked) {
+        return <Navigate to="/select" replace />;
+    }
+
+    return <StageRuntime stage={stage} />;
+}
+
+function MenuScreen({ children }) {
+    return (
+        <div className="app-shell">
+            <Screen>{children}</Screen>
+        </div>
+    );
+}
+
 export default function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<Navigate to={STAGE_DEFINITIONS.stage1.path} replace />} />
+                <Route
+                    path="/"
+                    element={(
+                        <MenuScreen>
+                            <MainPage />
+                        </MenuScreen>
+                    )}
+                />
+                <Route
+                    path="/select"
+                    element={(
+                        <MenuScreen>
+                            <StageSelectPage />
+                        </MenuScreen>
+                    )}
+                />
                 {STAGE_LIST.map((stage) => (
                     <Route
                         key={stage.id}
                         path={stage.path}
-                        element={<StageRuntime stage={stage} />}
+                        element={<StageRoute stage={stage} />}
                     />
                 ))}
-                <Route path="*" element={<Navigate to={STAGE_DEFINITIONS.stage1.path} replace />} />
+                {LEGACY_STAGE_ROUTES.map((legacyRoute) => (
+                    <Route
+                        key={legacyRoute.path}
+                        path={legacyRoute.path}
+                        element={<Navigate to={legacyRoute.redirectTo} replace />}
+                    />
+                ))}
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </BrowserRouter>
     );
