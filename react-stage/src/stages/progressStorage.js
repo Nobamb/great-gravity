@@ -9,7 +9,7 @@ function createDefaultStageProgress(stageId) {
     return {
         unlocked: stageId === "stage1",
         cleared: false,
-        attemptCount: 0,
+        deathCount: 0,
         bestTimeMs: null,
         bestStars: 0,
     };
@@ -47,8 +47,8 @@ function normalizeStageProgress(stageId, value) {
         ...base,
         unlocked: Boolean(stageValue.unlocked ?? base.unlocked),
         cleared: Boolean(stageValue.cleared),
-        attemptCount: Number.isFinite(stageValue.attemptCount)
-            ? Math.max(0, Math.floor(stageValue.attemptCount))
+        deathCount: Number.isFinite(stageValue.deathCount)
+            ? Math.max(0, Math.floor(stageValue.deathCount))
             : 0,
         bestTimeMs,
         bestStars: bestTimeMs === null ? 0 : bestStars,
@@ -109,23 +109,7 @@ export function getProgressSnapshot() {
     return loadProgress();
 }
 
-export function recordStageAttempt(stageId) {
-    const progress = loadProgress();
-    const stageProgress = progress[stageId];
-
-    if (!stageProgress) {
-        return progress;
-    }
-
-    progress[stageId] = {
-        ...stageProgress,
-        attemptCount: stageProgress.attemptCount + 1,
-    };
-
-    return saveProgress(progress);
-}
-
-export function recordStageClear(stageId, { timeMs, stars } = {}) {
+export function recordStageClear(stageId, { timeMs, stars, deathCount } = {}) {
     const progress = loadProgress();
     const stageProgress = progress[stageId];
     const stageDefinition = getStageDefinition(stageId);
@@ -139,14 +123,20 @@ export function recordStageClear(stageId, { timeMs, stars } = {}) {
     const safeStars = Number.isFinite(stars)
         ? Math.max(0, Math.min(3, stars))
         : 0;
+    const safeDeathCount = Number.isFinite(deathCount)
+        ? Math.max(0, Math.floor(deathCount))
+        : 0;
     const shouldUpdateBestTime =
         safeTimeMs !== null &&
         (stageProgress.bestTimeMs === null || safeTimeMs < stageProgress.bestTimeMs);
+    const shouldUpdateDeathCount =
+        !stageProgress.cleared || safeDeathCount < stageProgress.deathCount;
 
     progress[stageId] = {
         ...stageProgress,
         unlocked: true,
         cleared: true,
+        deathCount: shouldUpdateDeathCount ? safeDeathCount : stageProgress.deathCount,
         bestTimeMs: shouldUpdateBestTime ? safeTimeMs : stageProgress.bestTimeMs,
         bestStars: shouldUpdateBestTime ? safeStars : stageProgress.bestStars,
     };
