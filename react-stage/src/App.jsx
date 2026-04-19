@@ -25,7 +25,6 @@ import {
 } from "./stages/stageDefinitions.js";
 import {
     getProgressSnapshot,
-    recordStageAttempt,
     recordStageClear,
 } from "./stages/progressStorage.js";
 
@@ -45,7 +44,6 @@ function useGameRuntime({
     bossStructureFluidsVisible,
     requestBossStructureRebuildRef,
     requestBossStructureFluidVisibilityRef,
-    onStageAttemptRef,
     onStageClearRef,
     onMainMenuRef,
 }) {
@@ -104,7 +102,6 @@ function useGameRuntime({
                 requestBossStructureRebuildRef.current?.(),
             requestBossStructureFluidVisibility: (isVisible) =>
                 requestBossStructureFluidVisibilityRef.current?.(isVisible),
-            onStageAttempt: (payload) => onStageAttemptRef.current?.(payload),
             onStageClear: (payload) => onStageClearRef.current?.(payload),
             onMainMenu: () => onMainMenuRef.current?.(),
         });
@@ -123,7 +120,6 @@ function useGameRuntime({
         navigate,
         nextStagePath,
         onMainMenuRef,
-        onStageAttemptRef,
         onStageClearRef,
         requestBossStructureRebuildRef,
         requestBossStructureFluidVisibilityRef,
@@ -160,7 +156,6 @@ function StageRuntime({ stage }) {
     const stoneAimRef = useRef(null);
     const requestBossStructureRebuildRef = useRef(null);
     const requestBossStructureFluidVisibilityRef = useRef(null);
-    const onStageAttemptRef = useRef(null);
     const onStageClearRef = useRef(null);
     const onMainMenuRef = useRef(null);
     const [bossStructureVersion, setBossStructureVersion] = useState(0);
@@ -175,11 +170,8 @@ function StageRuntime({ stage }) {
     requestBossStructureFluidVisibilityRef.current = (isVisible) => {
         setBossStructureFluidsVisible(Boolean(isVisible));
     };
-    onStageAttemptRef.current = () => {
-        recordStageAttempt(stage.id);
-    };
-    onStageClearRef.current = ({ timeMs, stars }) => {
-        recordStageClear(stage.id, { timeMs, stars });
+    onStageClearRef.current = ({ timeMs, stars, deathCount }) => {
+        recordStageClear(stage.id, { timeMs, stars, deathCount });
     };
     onMainMenuRef.current = () => {
         navigate("/");
@@ -201,7 +193,6 @@ function StageRuntime({ stage }) {
         bossStructureFluidsVisible,
         requestBossStructureRebuildRef,
         requestBossStructureFluidVisibilityRef,
-        onStageAttemptRef,
         onStageClearRef,
         onMainMenuRef,
     });
