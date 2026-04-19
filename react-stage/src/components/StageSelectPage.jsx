@@ -9,6 +9,10 @@ import {
     getProgressSnapshot,
 } from "../stages/progressStorage.js";
 
+const STAR_TRACK = "\u2606";
+const STAR_FILL = "\u2605";
+const LOCKED_STAGE_MESSAGE = "이전 스테이지를 클리어해야 해당 스테이지를 진행할 수 있습니다.";
+
 function StarRating({ value }) {
     return (
         <div className="stage-select-card__stars" aria-label={`${value} stars`}>
@@ -17,12 +21,12 @@ function StarRating({ value }) {
 
                 return (
                     <span className="stage-select-card__star" key={index}>
-                        <span className="stage-select-card__star-track">☆</span>
+                        <span className="stage-select-card__star-track">{STAR_TRACK}</span>
                         <span
                             className="stage-select-card__star-mask"
                             style={{ width: `${fillAmount * 100}%` }}
                         >
-                            <span className="stage-select-card__star-fill">★</span>
+                            <span className="stage-select-card__star-fill">{STAR_FILL}</span>
                         </span>
                     </span>
                 );
@@ -51,7 +55,7 @@ export default function StageSelectPage() {
     }, []);
 
     function showLockedPopup() {
-        setPopupMessage("이전 스테이지를 클리어해야 해당 스테이지를 진행할 수 있습니다.");
+        setPopupMessage(LOCKED_STAGE_MESSAGE);
 
         if (popupTimerRef.current) {
             window.clearTimeout(popupTimerRef.current);
@@ -102,7 +106,7 @@ export default function StageSelectPage() {
                         <span>메인 화면으로</span>
                     </button>
                     <h1 className="stage-select__title">
-                        스테이지를 <span>선택해주세요</span>
+                        스테이지를<span>선택해주세요</span>
                     </h1>
                 </div>
 
@@ -140,7 +144,7 @@ export default function StageSelectPage() {
                                         <StarRating value={stageProgress?.bestStars ?? 0} />
                                         <div className="stage-select-card__meta">
                                             <p>
-                                                시도 횟수: <span>{stageProgress?.attemptCount ?? 0}</span>
+                                                사망 횟수: <span>{stageProgress?.deathCount ?? 0}</span>
                                             </p>
                                             <p>
                                                 클리어 시간: <span>{isCleared ? formatProgressTime(stageProgress?.bestTimeMs) : "--:--:--"}</span>
@@ -165,11 +169,11 @@ export default function StageSelectPage() {
                         <div className="stage-select__selection-meta">
                             {showStageActions ? (
                                 <>
-                                    <span>시도 횟수 {selectedProgress?.attemptCount ?? 0}</span>
+                                    <span>사망 횟수 {selectedProgress?.deathCount ?? 0}</span>
                                     <span>최고 기록 {formatProgressTime(selectedProgress?.bestTimeMs)}</span>
                                 </>
                             ) : (
-                                <span>카드를 클릭하면 시작하기와 랭킹보기 버튼이 나타납니다.</span>
+                                <span>카드를 클릭하면 시작하기와 랭킹보기 버튼이 나타납니다</span>
                             )}
                         </div>
                     </div>
