@@ -2405,17 +2405,17 @@ body {
 .stage5-treasure-block--east {
   width: 1vw;
   min-width: calc(12 * var(--cw));
-  height: 9.8%;
+  height: 15%;
+    top: 75%;
 }
 
 .stage5-treasure-block--west {
   left: 62.2%;
-  top: 77.1%;
+
 }
 
 .stage5-treasure-block--east {
   left: 72%;
-  top: 77.1%;
 }
 
 .fluid-zone--fire {
@@ -3217,12 +3217,12 @@ body {
 
 .stage7-stone-source--upper {
   left: 87.7%;
-  top: 30.1%;
+  top: 32%;
 }
 
 .stage7-stone-source--upper-right {
   left: 92.4%;
-  top: 30.1%;
+  top: 32%;
 }
 
 .stage7-jump-block {
