@@ -46,6 +46,8 @@ function expandTreasureInteractionBounds(bounds) {
 
 const TIMED_BLOCK_DURATION_MS = 1000;
 const CUSTOM_MISSION_ALARM_DURATION_MS = 1600;
+const RESTART_HOLD_FILL_MS = 900;
+const RESTART_HOLD_TRIGGER_MS = 1000;
 const BOSS_STAGE_ID = "bossStage";
 const BOSS_PATTERN_INTERVAL_MS = 5000;
 const BOSS_INTRO_DURATION_MS = 3000;
@@ -160,6 +162,7 @@ export class GameController {
     this.customMissionAlarmToken = 0;
     this.portalCooldownMs = 0;
     this.currentRunDeathCount = 0;
+    this.restartHoldMs = 0;
     this.previousBossSupportType = null;
     this.previousBossStructureOffsetY = 0;
     this.tick = this.tick.bind(this);
@@ -189,6 +192,7 @@ export class GameController {
     this.currentRunDeathCount = 0;
     this.customMissionAlarm = null;
     this.portalCooldownMs = 0;
+    this.resetRestartHoldState();
     this.resetBossSupportTracking();
     this.gameView.bindControls({
       onRetry: () => {
@@ -512,6 +516,13 @@ export class GameController {
     while (this.accumulator >= this.fixedDeltaTime) {
       const input = this.inputController.getSnapshot();
       const fixedStepMs = this.fixedDeltaTime * 1000;
+
+      if (this.advanceRestartHold(input.restartHeld, fixedStepMs)) {
+        this.restartStage();
+        this.accumulator = 0;
+        break;
+      }
+
       const bossStructureOffsetY = this.prepareBossSupportTransport(fixedStepMs);
       this.beginCannonAimIfNeeded(input);
 
@@ -637,7 +648,47 @@ export class GameController {
       stageMission: this.getStageMissionRenderState(),
       missionAlarm: this.getMissionAlarmRenderState(),
       bossState: this.getBossRenderState(),
+      restartHold: this.getRestartHoldRenderState(),
     };
+  }
+
+  getRestartHoldRenderState() {
+    if (this.isStageCleared || this.restartHoldMs <= 0) {
+      return {
+        visible: false,
+        progress: 0,
+        isComplete: false,
+      };
+    }
+
+    return {
+      visible: true,
+      progress: Math.min(1, this.restartHoldMs / RESTART_HOLD_FILL_MS),
+      isComplete: this.restartHoldMs >= RESTART_HOLD_FILL_MS,
+    };
+  }
+
+  advanceRestartHold(isHeld, stepMs) {
+    if (this.isStageCleared || !isHeld) {
+      this.restartHoldMs = 0;
+      return false;
+    }
+
+    this.restartHoldMs = Math.min(
+      RESTART_HOLD_TRIGGER_MS,
+      this.restartHoldMs + stepMs,
+    );
+
+    return this.restartHoldMs >= RESTART_HOLD_TRIGGER_MS;
+  }
+
+  resetRestartHoldState() {
+    this.restartHoldMs = 0;
+    this.gameView.setRestartHoldState({
+      visible: false,
+      progress: 0,
+      isComplete: false,
+    });
   }
 
   getStageMissionConfig() {
@@ -2965,6 +3016,7 @@ export class GameController {
     this.stoneAim = null;
     this.activeCannon = null;
     this.isAimingCannon = false;
+    this.resetRestartHoldState();
     this.currentRunDeathCount += 1;
     this.restartStage();
   }
@@ -2974,6 +3026,7 @@ export class GameController {
       this.bossState && !this.bossState.structureFluidsVisible,
     );
 
+    this.resetRestartHoldState();
     this.gameView.resetStageState();
     this.inputController.resetTransientActions?.();
     this.stageModel.resetStage();
@@ -3006,6 +3059,7 @@ export class GameController {
     this.isAimingCannon = false;
     this.customMissionAlarm = null;
     this.portalCooldownMs = 0;
+    this.resetRestartHoldState();
     this.gameView.hideClearOverlay();
     this.gameView.setNextStageVisibility(false);
     this.gameView.updateTimer(this.formatTime(this.elapsedTimeMs));
@@ -3128,6 +3182,7 @@ export class GameController {
       this.elapsedTimeMs,
     );
 
+    this.resetRestartHoldState();
     this.isStageCleared = true;
     this.inputController.resetTransientActions?.();
     this.activeTrigger = null;
