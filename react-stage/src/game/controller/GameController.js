@@ -1,3 +1,5 @@
+import { getStarRatingForTime } from "../../stages/progressStorage.js";
+
 function intersects(a, b) {
   return (
     a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
@@ -3121,7 +3123,10 @@ export class GameController {
   }
 
   handleStageClear() {
-    const starRating = this.getStarRating(this.elapsedTimeMs);
+    const starRating = getStarRatingForTime(
+      this.stage?.id,
+      this.elapsedTimeMs,
+    );
 
     this.isStageCleared = true;
     this.inputController.resetTransientActions?.();
@@ -3145,12 +3150,6 @@ export class GameController {
         this.stage?.supportsNextStage && this.nextStagePath,
       ),
     });
-  }
-
-  getStarRating(timeMs) {
-    const overtimeMs = Math.max(0, timeMs - 30000);
-    const penaltySteps = Math.ceil(overtimeMs / 5000);
-    return Math.max(0, 3 - penaltySteps * 0.5);
   }
 
   formatTime(timeMs) {
