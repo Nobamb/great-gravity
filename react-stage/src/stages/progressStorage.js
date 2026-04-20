@@ -39,9 +39,9 @@ function normalizeStageProgress(stageId, value) {
     const bestTimeMs = Number.isFinite(stageValue.bestTimeMs)
         ? Math.max(0, stageValue.bestTimeMs)
         : null;
-    const bestStars = Number.isFinite(stageValue.bestStars)
-        ? Math.max(0, Math.min(3, stageValue.bestStars))
-        : 0;
+    const bestStars = bestTimeMs === null
+        ? 0
+        : getStarRatingForTime(stageId, bestTimeMs);
 
     return {
         ...base,
@@ -109,7 +109,7 @@ export function getProgressSnapshot() {
     return loadProgress();
 }
 
-export function recordStageClear(stageId, { timeMs, stars, deathCount } = {}) {
+export function recordStageClear(stageId, { timeMs, deathCount } = {}) {
     const progress = loadProgress();
     const stageProgress = progress[stageId];
     const stageDefinition = getStageDefinition(stageId);
@@ -120,9 +120,7 @@ export function recordStageClear(stageId, { timeMs, stars, deathCount } = {}) {
 
     const nextStageId = stageDefinition.nextStageId;
     const safeTimeMs = Number.isFinite(timeMs) ? Math.max(0, timeMs) : null;
-    const safeStars = Number.isFinite(stars)
-        ? Math.max(0, Math.min(3, stars))
-        : 0;
+    const safeStars = getStarRatingForTime(stageId, safeTimeMs);
     const safeDeathCount = Number.isFinite(deathCount)
         ? Math.max(0, Math.floor(deathCount))
         : 0;
@@ -151,14 +149,27 @@ export function recordStageClear(stageId, { timeMs, stars, deathCount } = {}) {
     return saveProgress(progress);
 }
 
-export function getStarRatingForTime(timeMs) {
+export function getStarRatingForTime(stageId, timeMs) {
     if (!Number.isFinite(timeMs)) {
         return 0;
     }
 
-    const overtimeMs = Math.max(0, timeMs - 30000);
-    const penaltySteps = Math.ceil(overtimeMs / 5000);
-    return Math.max(0, 3 - penaltySteps * 0.5);
+    const stageDefinition = getStageDefinition(stageId);
+    const thresholds = stageDefinition?.starThresholds;
+
+    if (!thresholds) {
+        return 0;
+    }
+
+    if (timeMs <= thresholds.threeStarsMs) {
+        return 3;
+    }
+
+    if (timeMs <= thresholds.twoStarsMs) {
+        return 2;
+    }
+
+    return 1;
 }
 
 export function formatProgressTime(timeMs) {
