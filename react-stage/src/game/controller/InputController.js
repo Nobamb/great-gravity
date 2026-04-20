@@ -18,6 +18,7 @@ export class InputController {
         };
         this.jumpQueued = false;
         this.interactQueued = false;
+        this.restartHeld = false;
         this.pointerState = {
             isDown: false,
             justPressed: false,
@@ -32,12 +33,14 @@ export class InputController {
         this.boundMouseDown = this.handleMouseDown.bind(this);
         this.boundMouseMove = this.handleMouseMove.bind(this);
         this.boundMouseUp = this.handleMouseUp.bind(this);
+        this.boundBlur = this.handleBlur.bind(this);
 
         this.target.addEventListener("keydown", this.boundKeyDown);
         this.target.addEventListener("keyup", this.boundKeyUp);
         this.target.addEventListener("mousedown", this.boundMouseDown);
         this.target.addEventListener("mousemove", this.boundMouseMove);
         this.target.addEventListener("mouseup", this.boundMouseUp);
+        this.target.addEventListener("blur", this.boundBlur);
     }
 
     handleKeyDown(event) {
@@ -66,6 +69,9 @@ export class InputController {
             case "KeyE":
                 this.interactQueued = true;
                 break;
+            case "KeyR":
+                this.restartHeld = true;
+                break;
             default:
                 break;
         }
@@ -91,9 +97,21 @@ export class InputController {
             case "ArrowDown":
                 this.keys.down = false;
                 break;
+            case "KeyR":
+                this.restartHeld = false;
+                break;
             default:
                 break;
         }
+    }
+
+    handleBlur() {
+        this.keys.left = false;
+        this.keys.right = false;
+        this.keys.up = false;
+        this.keys.down = false;
+        this.restartHeld = false;
+        this.resetTransientActions();
     }
 
     isTrackedKey(code) {
@@ -102,7 +120,8 @@ export class InputController {
             || code === "ArrowUp"
             || code === "ArrowDown"
             || code === "Space"
-            || code === "KeyE";
+            || code === "KeyE"
+            || code === "KeyR";
     }
 
     getPointerPosition(event) {
@@ -168,7 +187,7 @@ export class InputController {
     }
 
     /**
-     * @returns {object} { horizontal, vertical, jump, interact }
+     * @returns {object} { horizontal, vertical, jump, interact, restartHeld }
      */
     getSnapshot() {
         const pointerSnapshot = {
@@ -188,6 +207,7 @@ export class InputController {
             vertical: 0,
             jump: this.jumpQueued,
             interact: this.interactQueued,
+            restartHeld: this.restartHeld,
             pointer: pointerSnapshot,
         };
 
@@ -219,6 +239,7 @@ export class InputController {
     resetTransientActions() {
         this.jumpQueued = false;
         this.interactQueued = false;
+        this.restartHeld = false;
         this.pointerState = {
             isDown: false,
             justPressed: false,
@@ -235,5 +256,6 @@ export class InputController {
         this.target.removeEventListener("mousedown", this.boundMouseDown);
         this.target.removeEventListener("mousemove", this.boundMouseMove);
         this.target.removeEventListener("mouseup", this.boundMouseUp);
+        this.target.removeEventListener("blur", this.boundBlur);
     }
 }
