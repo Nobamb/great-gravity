@@ -172,7 +172,7 @@ body {
   position: absolute;
   left: 2%;
   top: 2%;
-  width: calc(200 * var(--cw));
+  min-width: calc(200 * var(--cw));
   padding: calc(12 * var(--cw)) calc(20 * var(--cw));
   background: rgba(10, 15, 30, 0.6);
   border: 1px solid rgba(0, 255, 255, 0.3);
@@ -180,14 +180,74 @@ body {
   backdrop-filter: blur(calc(8 * var(--cw)));
   box-shadow: 0 0 calc(15 * var(--cw)) rgba(0, 255, 255, 0.15);
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
+  gap: calc(12 * var(--cw));
+  z-index: 100;
+}
+
+.timer-ui__value {
+  flex: 1 1 auto;
   font-size: calc(24 * var(--cw));
   font-weight: bold;
   color: #00ffff;
   text-shadow: 0 0 calc(8 * var(--cw)) rgba(0, 255, 255, 0.6);
   letter-spacing: calc(2 * var(--cw));
-  z-index: 100;
+  text-align: center;
+}
+
+.timer-ui__restart {
+  --restart-progress: 0;
+  width: calc(36 * var(--cw));
+  height: calc(36 * var(--cw));
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.timer-ui__restart[hidden] {
+  display: none;
+}
+
+.timer-ui__restart-ring {
+  --restart-progress: 0;
+  width: 100%;
+  height: 100%;
+  padding: calc(2 * var(--cw));
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.12), transparent 58%),
+    conic-gradient(
+      from -90deg,
+      rgba(0, 255, 255, 0.98) calc(var(--restart-progress, 0) * 1turn),
+      rgba(0, 255, 255, 0.16) 0
+    );
+  box-shadow:
+    0 0 calc(14 * var(--cw)) rgba(0, 255, 255, 0.28),
+    inset 0 0 0 calc(1 * var(--cw)) rgba(255, 255, 255, 0.08);
+}
+
+.timer-ui__restart[data-complete="true"] .timer-ui__restart-ring {
+  box-shadow:
+    0 0 calc(18 * var(--cw)) rgba(0, 255, 255, 0.42),
+    inset 0 0 0 calc(1 * var(--cw)) rgba(255, 255, 255, 0.18);
+}
+
+.timer-ui__restart-core {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(6, 16, 32, 0.92);
+  border: 1px solid rgba(0, 255, 255, 0.22);
+  color: #d5ffff;
+  font-size: calc(16 * var(--cw));
+  font-weight: 800;
+  letter-spacing: calc(1 * var(--cw));
+  text-shadow: 0 0 calc(10 * var(--cw)) rgba(0, 255, 255, 0.55);
 }
 
 .breath-ui {
