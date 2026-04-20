@@ -8,7 +8,13 @@ export class GameView {
     this.containerElement = characterElement.parentElement;
     this.characterElement = characterElement;
     this.timerElement =
-      this.containerElement?.querySelector(".timer-ui") ?? null;
+      this.containerElement?.querySelector("[data-timer-value='true']") ??
+      this.containerElement?.querySelector(".timer-ui") ??
+      null;
+    this.restartHoldElement =
+      this.containerElement?.querySelector("[data-restart-hold='true']") ?? null;
+    this.restartHoldRingElement =
+      this.restartHoldElement?.querySelector("[data-restart-ring='true']") ?? null;
     this.clearOverlayElement =
       this.containerElement?.querySelector(".clear-overlay") ?? null;
     this.clearTimeElement =
@@ -262,6 +268,27 @@ export class GameView {
     }
   }
 
+  setRestartHoldState(state = {}) {
+    if (!this.restartHoldElement) {
+      return;
+    }
+
+    const {
+      visible = false,
+      progress = 0,
+      isComplete = false,
+    } = state ?? {};
+    const safeProgress = Math.max(0, Math.min(1, progress));
+
+    this.restartHoldElement.hidden = !visible;
+    this.restartHoldElement.dataset.complete = isComplete ? "true" : "false";
+    this.restartHoldElement.style.setProperty("--restart-progress", safeProgress);
+    this.restartHoldRingElement?.style.setProperty(
+      "--restart-progress",
+      safeProgress,
+    );
+  }
+
   showClearOverlay({ timeText, stars, showNextStage = false }) {
     if (!this.clearOverlayElement) {
       return;
@@ -278,6 +305,7 @@ export class GameView {
       maskElement.style.width = `${fillAmount * 100}%`;
     });
 
+    this.setRestartHoldState();
     this.clearOverlayElement.hidden = false;
   }
 
@@ -321,6 +349,7 @@ export class GameView {
     this.renderMissionAlarm(interaction.missionAlarm ?? null);
     this.renderBossState(interaction.bossState ?? null);
     this.renderBreathHud(character);
+    this.setRestartHoldState(interaction.restartHold ?? null);
 
     if (
       this.activeTriggerElement &&
@@ -1578,6 +1607,7 @@ export class GameView {
     this.resetMissionState();
     this.resetBossState();
     this.hideMissionAlarm();
+    this.setRestartHoldState();
 
     void this.containerElement.offsetWidth;
 
@@ -1648,6 +1678,7 @@ export class GameView {
     this.resetMissionState();
     this.resetBossState();
     this.hideMissionAlarm();
+    this.setRestartHoldState();
     this.boundRetryClick = null;
     this.boundNextClick = null;
     this.boundMainClick = null;
