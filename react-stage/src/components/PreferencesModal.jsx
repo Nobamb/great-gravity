@@ -8,6 +8,31 @@ const LANGUAGE_OPTIONS = [
     { value: "ja", label: "日本語" },
     { value: "zh", label: "中文" },
 ];
+const RESTART_STAGE_EVENT = "great-gravity:restart-stage";
+
+function ScreenSizePreference({ isFullscreen, enterFullscreen, exitFullscreen }) {
+    return (
+        <div className="preference-item">
+            <label>화면 크기</label>
+            <div className="button-group">
+                <button
+                    type="button"
+                    className={!isFullscreen ? "active" : ""}
+                    onClick={exitFullscreen}
+                >
+                    기본 화면
+                </button>
+                <button
+                    type="button"
+                    className={isFullscreen ? "active" : ""}
+                    onClick={enterFullscreen}
+                >
+                    전체 화면
+                </button>
+            </div>
+        </div>
+    );
+}
 
 export default function PreferencesModal() {
     const {
@@ -24,6 +49,7 @@ export default function PreferencesModal() {
         isFullscreen,
         enterFullscreen,
         exitFullscreen,
+        rememberCurrentScreenMode,
     } = usePreferences();
     const [isLanguageOpen, setIsLanguageOpen] = useState(false);
 
@@ -45,7 +71,16 @@ export default function PreferencesModal() {
     };
 
     const handleRetry = () => {
-        window.location.reload();
+        rememberCurrentScreenMode();
+
+        const restartEvent = new Event(RESTART_STAGE_EVENT, { cancelable: true });
+        const wasHandled = !window.dispatchEvent(restartEvent);
+
+        handleClose();
+
+        if (!wasHandled) {
+            window.location.reload();
+        }
     };
 
     const handleClose = () => {
@@ -60,7 +95,7 @@ export default function PreferencesModal() {
 
     return (
         <div className="preferences-overlay" onClick={handleBackdropClick}>
-            <div className="preferences-modal">
+            <div className={`preferences-modal ${isStagePage ? "preferences-modal--stage" : ""}`}>
                 <div className="preferences-header">
                     <h2>{isMenuPage ? "환경설정" : "게임 일시정지"}</h2>
                     <button
@@ -142,25 +177,11 @@ export default function PreferencesModal() {
                                 </div>
                             </div>
 
-                            <div className="preference-item">
-                                <label>화면 크기</label>
-                                <div className="button-group">
-                                    <button
-                                        type="button"
-                                        className={!isFullscreen ? "active" : ""}
-                                        onClick={exitFullscreen}
-                                    >
-                                        기본 화면
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className={isFullscreen ? "active" : ""}
-                                        onClick={enterFullscreen}
-                                    >
-                                        전체 화면
-                                    </button>
-                                </div>
-                            </div>
+                            <ScreenSizePreference
+                                isFullscreen={isFullscreen}
+                                enterFullscreen={enterFullscreen}
+                                exitFullscreen={exitFullscreen}
+                            />
                         </>
                     )}
 
@@ -223,6 +244,12 @@ export default function PreferencesModal() {
                                     메인 화면 이동
                                 </button>
                             </div>
+
+                            <ScreenSizePreference
+                                isFullscreen={isFullscreen}
+                                enterFullscreen={enterFullscreen}
+                                exitFullscreen={exitFullscreen}
+                            />
                         </>
                     )}
                 </div>
