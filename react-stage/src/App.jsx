@@ -29,6 +29,8 @@ import {
     recordStageClear,
 } from "./stages/progressStorage.js";
 
+const RESTART_STAGE_EVENT = "great-gravity:restart-stage";
+
 function useGameRuntime({
     containerRef,
     characterRef,
@@ -144,6 +146,22 @@ function useGameRuntime({
         }
     }, [isPreferencesOpen]);
 
+    useEffect(() => {
+        const handleStageRestart = (event) => {
+            if (!gameControllerRef.current) {
+                return;
+            }
+
+            event.preventDefault();
+            gameControllerRef.current.restartStage?.();
+        };
+
+        window.addEventListener(RESTART_STAGE_EVENT, handleStageRestart);
+        return () => {
+            window.removeEventListener(RESTART_STAGE_EVENT, handleStageRestart);
+        };
+    }, []);
+
     useLayoutEffect(() => {
         if (bossStructureVersion === 0) {
             return;
@@ -211,23 +229,19 @@ function StageRuntime({ stage }) {
     });
 
     return (
-        <div className="app-shell">
-            <Screen>
-                <StageGeometry
-                    stage={stage}
-                    containerRef={containerRef}
-                    characterRef={characterRef}
-                    heldStoneRef={heldStoneRef}
-                    treasureRef={treasureRef}
-                    treasureAnchorRef={treasureAnchorRef}
-                    stoneRef={stoneRef}
-                    stoneAnchorRef={stoneAnchorRef}
-                    stoneAimRef={stoneAimRef}
-                    bossStructureVersion={bossStructureVersion}
-                    bossStructureFluidsVisible={bossStructureFluidsVisible}
-                />
-            </Screen>
-        </div>
+        <StageGeometry
+            stage={stage}
+            containerRef={containerRef}
+            characterRef={characterRef}
+            heldStoneRef={heldStoneRef}
+            treasureRef={treasureRef}
+            treasureAnchorRef={treasureAnchorRef}
+            stoneRef={stoneRef}
+            stoneAnchorRef={stoneAnchorRef}
+            stoneAimRef={stoneAimRef}
+            bossStructureVersion={bossStructureVersion}
+            bossStructureFluidsVisible={bossStructureFluidsVisible}
+        />
     );
 }
 
@@ -242,50 +256,50 @@ function StageRoute({ stage }) {
 }
 
 function MenuScreen({ children }) {
-    return (
-        <div className="app-shell">
-            <Screen>{children}</Screen>
-        </div>
-    );
+    return children;
 }
 
 export default function App() {
     return (
         <BrowserRouter>
             <PreferencesProvider>
-                <Routes>
-                    <Route
-                        path="/"
-                        element={(
-                            <MenuScreen>
-                                <MainPage />
-                            </MenuScreen>
-                        )}
-                    />
-                    <Route
-                        path="/select"
-                        element={(
-                            <MenuScreen>
-                                <StageSelectPage />
-                            </MenuScreen>
-                        )}
-                    />
-                    {STAGE_LIST.map((stage) => (
-                        <Route
-                            key={stage.id}
-                            path={stage.path}
-                            element={<StageRoute stage={stage} />}
-                        />
-                    ))}
-                    {LEGACY_STAGE_ROUTES.map((legacyRoute) => (
-                        <Route
-                            key={legacyRoute.path}
-                            path={legacyRoute.path}
-                            element={<Navigate to={legacyRoute.redirectTo} replace />}
-                        />
-                    ))}
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+                <div className="app-shell">
+                    <Screen>
+                        <Routes>
+                            <Route
+                                path="/"
+                                element={(
+                                    <MenuScreen>
+                                        <MainPage />
+                                    </MenuScreen>
+                                )}
+                            />
+                            <Route
+                                path="/select"
+                                element={(
+                                    <MenuScreen>
+                                        <StageSelectPage />
+                                    </MenuScreen>
+                                )}
+                            />
+                            {STAGE_LIST.map((stage) => (
+                                <Route
+                                    key={stage.id}
+                                    path={stage.path}
+                                    element={<StageRoute stage={stage} />}
+                                />
+                            ))}
+                            {LEGACY_STAGE_ROUTES.map((legacyRoute) => (
+                                <Route
+                                    key={legacyRoute.path}
+                                    path={legacyRoute.path}
+                                    element={<Navigate to={legacyRoute.redirectTo} replace />}
+                                />
+                            ))}
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Routes>
+                    </Screen>
+                </div>
             </PreferencesProvider>
         </BrowserRouter>
     );
