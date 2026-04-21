@@ -10,7 +10,6 @@ import MainPage from "./components/MainPage.jsx";
 import Screen from "./components/Screen.jsx";
 import StageGeometry from "./components/StageGeometry.jsx";
 import StageSelectPage from "./components/StageSelectPage.jsx";
-import PreferencesModal from "./components/PreferencesModal.jsx";
 import { PreferencesProvider, usePreferences } from "./contexts/PreferencesContext.jsx";
 import { GameController } from "./game/controller/GameController.js";
 import { InputController } from "./game/controller/InputController.js";
@@ -287,7 +286,6 @@ export default function App() {
                     ))}
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
-                <PreferencesModal />
             </PreferencesProvider>
         </BrowserRouter>
     );
