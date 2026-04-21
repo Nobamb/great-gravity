@@ -1147,7 +1147,9 @@ export class GameView {
       if (hand.visible) {
         this.bossHandElement.style.width = `${hand.width}px`;
         this.bossHandElement.style.height = `${hand.height}px`;
-        this.bossHandElement.style.transform = `translate3d(${hand.x - (bossState.x ?? 0)}px, ${hand.y - (bossState.y ?? 0)}px, 0) scaleX(${spriteScaleX})`;
+        this.bossHandElement.style.transform = `translate3d(${hand.x - (bossState.x ?? 0)}px, ${hand.y - (bossState.y ?? 0)}px, 0)`;
+      } else {
+        this.bossHandElement.style.transform = "";
       }
     }
 
@@ -1156,6 +1158,8 @@ export class GameView {
         Boolean(bossState.isHandAttackTinted) &&
         !bossState.isDamaged &&
         !bossState.isDefeated;
+      this.bossHandImageElement.style.transform = `scaleX(${spriteScaleX})`;
+      this.bossHandImageElement.style.transformOrigin = "center center";
       this.bossHandImageElement.style.filter = shouldTintHandAttack
         ? "drop-shadow(0 0 calc(16 * var(--cw)) rgba(255, 54, 24, 0.32)) sepia(55%) hue-rotate(-38deg) saturate(240%) brightness(1.08)"
         : "var(--boss-hand-filter)";
@@ -1334,6 +1338,8 @@ export class GameView {
 
     if (this.bossHandImageElement) {
       this.bossHandImageElement.style.filter = "var(--boss-hand-filter)";
+      this.bossHandImageElement.style.transform = "";
+      this.bossHandImageElement.style.transformOrigin = "";
     }
 
     if (this.bossRushWarningElement) {
