@@ -1,4 +1,5 @@
 image/
+bgm/
 react-stage/node_modules/
 react-stage/dist/
 .env
