@@ -3649,6 +3649,9 @@ body {
 }
 
 .boss-stage-boss__hand-image {
+  position: absolute;
+  left: 0;
+  top: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -3656,6 +3659,7 @@ body {
   pointer-events: none;
   user-select: none;
   filter: var(--boss-hand-filter);
+  transform-origin: center center;
 }
 
 .boss-stage-boss.is-attacking-hand:not(.is-damaged):not(.is-defeated)
