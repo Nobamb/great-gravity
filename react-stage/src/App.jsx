@@ -11,7 +11,7 @@ import Screen from "./components/Screen.jsx";
 import StageGeometry from "./components/StageGeometry.jsx";
 import StageSelectPage from "./components/StageSelectPage.jsx";
 import PreferencesModal from "./components/PreferencesModal.jsx";
-import { PreferencesProvider } from "./contexts/PreferencesContext.jsx";
+import { PreferencesProvider, usePreferences } from "./contexts/PreferencesContext.jsx";
 import { GameController } from "./game/controller/GameController.js";
 import { InputController } from "./game/controller/InputController.js";
 import { PhysicsController } from "./game/controller/PhysicsController.js";
@@ -50,6 +50,8 @@ function useGameRuntime({
     onMainMenuRef,
 }) {
     const gameControllerRef = useRef(null);
+
+    const { isPreferencesOpen } = usePreferences();
 
     useEffect(() => {
         const container = containerRef.current;
@@ -132,6 +134,16 @@ function useGameRuntime({
         treasureAnchorRef,
         treasureRef,
     ]);
+
+    useEffect(() => {
+        if (gameControllerRef.current) {
+            if (isPreferencesOpen) {
+                gameControllerRef.current.pause?.();
+            } else {
+                gameControllerRef.current.resume?.();
+            }
+        }
+    }, [isPreferencesOpen]);
 
     useLayoutEffect(() => {
         if (bossStructureVersion === 0) {
