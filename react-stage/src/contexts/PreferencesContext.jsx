@@ -16,12 +16,20 @@ export function PreferencesProvider({ children }) {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === "Escape") {
+            if (e.key.toLowerCase() === "q") {
                 togglePreferences();
             }
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+        return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
     }, []);
 
     const value = {
