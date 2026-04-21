@@ -8,6 +8,7 @@ import {
     formatProgressTime,
     getProgressSnapshot,
 } from "../stages/progressStorage.js";
+import { usePreferences } from "../contexts/PreferencesContext.jsx";
 
 const STAR_TRACK = "\u2606";
 const STAR_FILL = "\u2605";
@@ -47,6 +48,7 @@ function getInitialCompactLayout() {
 
 export default function StageSelectPage() {
     const navigate = useNavigate();
+    const { openPreferences } = usePreferences();
     const popupTimerRef = useRef(null);
     const [progress] = useState(() => getProgressSnapshot());
     const [selectedStageId, setSelectedStageId] = useState(null);
@@ -166,6 +168,7 @@ export default function StageSelectPage() {
                         type="button"
                         className="menu-header__icon"
                         aria-label="settings"
+                        onClick={openPreferences}
                     >
                         <span className="material-symbols-outlined">settings</span>
                     </button>

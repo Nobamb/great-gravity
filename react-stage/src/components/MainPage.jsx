@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom";
+import { usePreferences } from "../contexts/PreferencesContext";
 
 export default function MainPage() {
     const navigate = useNavigate();
+    const { openPreferences } = usePreferences();
 
     return (
         <div id="game-container" className="menu-page menu-page--main">
@@ -24,6 +26,7 @@ export default function MainPage() {
                         type="button"
                         className="menu-header__icon"
                         aria-label="settings"
+                        onClick={openPreferences}
                     >
                         <span className="material-symbols-outlined">settings</span>
                     </button>
