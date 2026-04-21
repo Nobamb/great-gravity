@@ -242,3 +242,21 @@ Cloudflare R2 url: `VITE_BOSS_ASSET_BASE_URL`
 별 3: 4분 이내
 별 2: 5분 이내
 별 1: 5분 초과
+
+
+
+## 음악 목록
+
+### 음악 관련 주소 환경변수명
+
+VITE_BGM_BASE_URL
+
+### 메인 음악
+main_bgm.mp3
+
+### 게임 진행 음악
+stage_bgm.mp3
+
+### 보스전 음악
+boss_bgm.mp3
+
