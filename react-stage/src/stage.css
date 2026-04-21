@@ -5192,3 +5192,208 @@ body {
 .zIndex100 {
   z-index: 100;
 }
+
+/* Preferences Modal Styles */
+.preferences-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(calc(8 * var(--cw)));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.preferences-modal {
+  width: calc(480 * var(--cw));
+  max-width: 90vw;
+  background: rgba(16, 20, 28, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: calc(16 * var(--cw));
+  box-shadow: 0 calc(20 * var(--cw)) calc(60 * var(--cw)) rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(calc(20 * var(--cw))); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.preferences-header {
+  padding: calc(20 * var(--cw)) calc(24 * var(--cw));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.preferences-header h2 {
+  margin: 0;
+  font-size: calc(20 * var(--cw));
+  font-weight: 700;
+  color: #28a8ff;
+  letter-spacing: calc(-0.5 * var(--cw));
+}
+
+.preferences-header .close-button {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: calc(4 * var(--cw));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.preferences-header .close-button:hover {
+  color: white;
+}
+
+.preferences-content {
+  padding: calc(24 * var(--cw));
+  display: flex;
+  flex-direction: column;
+  gap: calc(24 * var(--cw));
+}
+
+.preference-item {
+  display: flex;
+  flex-direction: column;
+  gap: calc(10 * var(--cw));
+}
+
+.preference-item label {
+  font-size: calc(14 * var(--cw));
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: calc(16 * var(--cw));
+}
+
+.volume-control input[type="range"] {
+  flex: 1;
+  height: calc(4 * var(--cw));
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  appearance: none;
+  outline: none;
+}
+
+.volume-control input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: calc(16 * var(--cw));
+  height: calc(16 * var(--cw));
+  background: #28a8ff;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 calc(10 * var(--cw)) rgba(40, 168, 255, 0.4);
+}
+
+.volume-control span {
+  font-size: calc(14 * var(--cw));
+  font-weight: 700;
+  color: #28a8ff;
+  min-width: calc(40 * var(--cw));
+  text-align: right;
+}
+
+.preference-item select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: calc(8 * var(--cw));
+  padding: calc(10 * var(--cw)) calc(12 * var(--cw));
+  color: white;
+  font-size: calc(14 * var(--cw));
+  outline: none;
+  cursor: pointer;
+}
+
+.button-group {
+  display: flex;
+  gap: calc(8 * var(--cw));
+}
+
+.button-group button {
+  flex: 1;
+  padding: calc(10 * var(--cw));
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: calc(8 * var(--cw));
+  color: rgba(255, 255, 255, 0.6);
+  font-size: calc(13 * var(--cw));
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.button-group button.active {
+  background: rgba(40, 168, 255, 0.15);
+  border-color: #28a8ff;
+  color: #28a8ff;
+}
+
+.preference-actions {
+  display: flex;
+  flex-direction: column;
+  gap: calc(10 * var(--cw));
+}
+
+.action-button {
+  padding: calc(12 * var(--cw));
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: calc(8 * var(--cw));
+  color: white;
+  font-size: calc(14 * var(--cw));
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.action-button.retry {
+  background: rgba(255, 115, 80, 0.1);
+  border-color: rgba(255, 115, 80, 0.3);
+  color: #ff7350;
+}
+
+.action-button.retry:hover {
+  background: rgba(255, 115, 80, 0.2);
+}
+
+.mute-button {
+  padding: calc(10 * var(--cw));
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: calc(8 * var(--cw));
+  color: rgba(255, 255, 255, 0.8);
+  font-size: calc(13 * var(--cw));
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mute-button.muted {
+  background: rgba(255, 115, 80, 0.1);
+  border-color: #ff7350;
+  color: #ff7350;
+}
