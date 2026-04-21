@@ -2,6 +2,14 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const PreferencesContext = createContext(null);
 
+function getFullscreenElement() {
+    return document.fullscreenElement;
+}
+
+function getFullscreenTarget() {
+    return document.getElementById("screen") ?? document.documentElement;
+}
+
 export function PreferencesProvider({ children }) {
     const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
     const [bgmVolume, setBgmVolume] = useState(50);
@@ -13,11 +21,53 @@ export function PreferencesProvider({ children }) {
     const openPreferences = () => setIsPreferencesOpen(true);
     const closePreferences = () => setIsPreferencesOpen(false);
     const togglePreferences = () => setIsPreferencesOpen((prev) => !prev);
+    const syncFullscreenState = () => {
+        setIsFullscreen(Boolean(getFullscreenElement()));
+    };
+    const enterFullscreen = () => {
+        const target = getFullscreenTarget();
+
+        if (!target || getFullscreenElement() || typeof target.requestFullscreen !== "function") {
+            syncFullscreenState();
+            return;
+        }
+
+        target.requestFullscreen()
+            .then(syncFullscreenState)
+            .catch(syncFullscreenState);
+    };
+    const exitFullscreen = () => {
+        if (!getFullscreenElement() || typeof document.exitFullscreen !== "function") {
+            syncFullscreenState();
+            return;
+        }
+
+        document.exitFullscreen()
+            .then(syncFullscreenState)
+            .catch(syncFullscreenState);
+    };
+    const toggleFullscreen = () => {
+        if (getFullscreenElement()) {
+            exitFullscreen();
+            return;
+        }
+
+        enterFullscreen();
+    };
 
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key.toLowerCase() === "q") {
                 togglePreferences();
+            }
+
+            if (e.key === "F11") {
+                e.preventDefault();
+                toggleFullscreen();
+            }
+
+            if (e.key === "Escape" && getFullscreenElement()) {
+                exitFullscreen();
             }
         };
         window.addEventListener("keydown", handleKeyDown);
@@ -25,11 +75,14 @@ export function PreferencesProvider({ children }) {
     }, []);
 
     useEffect(() => {
-        const handleFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
+        syncFullscreenState();
+
+        document.addEventListener("fullscreenchange", syncFullscreenState);
+        window.addEventListener("resize", syncFullscreenState);
+        return () => {
+            document.removeEventListener("fullscreenchange", syncFullscreenState);
+            window.removeEventListener("resize", syncFullscreenState);
         };
-        document.addEventListener("fullscreenchange", handleFullscreenChange);
-        return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
     }, []);
 
     const value = {
@@ -46,7 +99,10 @@ export function PreferencesProvider({ children }) {
         language,
         setLanguage,
         isFullscreen,
-        setIsFullscreen,
+        enterFullscreen,
+        exitFullscreen,
+        toggleFullscreen,
+        syncFullscreenState,
     };
 
     return (
