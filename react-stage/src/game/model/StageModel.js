@@ -23,6 +23,10 @@ function getOverlapArea(a, b) {
   return overlapX * overlapY;
 }
 
+function getRectArea(rect) {
+  return Math.max(0, rect.right - rect.left) * Math.max(0, rect.bottom - rect.top);
+}
+
 function intersects(a, b) {
   return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 }
@@ -550,6 +554,35 @@ export class StageModel {
     }
 
     return bestMatch;
+  }
+
+  getWaterOverlapAreaForBounds(bounds) {
+    const zoneSource = this.hasRuntimeWaterZonesSnapshot
+      ? this.runtimeWaterZones
+      : this.waterZones;
+    const boundsArea = getRectArea(bounds);
+
+    if (boundsArea <= 0) {
+      return 0;
+    }
+
+    let totalOverlapArea = 0;
+
+    for (const zone of zoneSource) {
+      const rect = this.hasRuntimeWaterZonesSnapshot ? zone : zone.rect;
+
+      if (!intersects(bounds, rect)) {
+        continue;
+      }
+
+      totalOverlapArea += getOverlapArea(bounds, rect);
+
+      if (totalOverlapArea >= boundsArea) {
+        return boundsArea;
+      }
+    }
+
+    return totalOverlapArea;
   }
 
   getInteractableTrigger(bounds, padding = 0) {
