@@ -5305,6 +5305,26 @@ body {
   box-shadow: 0 0 calc(10 * var(--cw)) rgba(40, 168, 255, 0.4);
 }
 
+.mute-icon-button {
+  background: transparent;
+  border: none;
+  color: #28a8ff;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.mute-icon-button.muted {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.mute-icon-button:hover {
+  color: #ff7350;
+}
+
 .volume-control span {
   font-size: calc(14 * var(--cw));
   font-weight: 700;
