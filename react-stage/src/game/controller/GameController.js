@@ -6,6 +6,20 @@ function intersects(a, b) {
   );
 }
 
+function getHorizontalOverlap(a, b) {
+  return Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+}
+
+function getOverlapArea(a, b) {
+  const overlapX = getHorizontalOverlap(a, b);
+  const overlapY = Math.max(
+    0,
+    Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top),
+  );
+
+  return overlapX * overlapY;
+}
+
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
@@ -2754,8 +2768,7 @@ export class GameController {
       this.characterModel.height * 0.45,
       18 * this.characterModel.physicsScale,
     );
-
-    this.characterModel.launch({
+    const launchPlacement = this.resolveCannonLaunchPlacement({
       x:
         muzzlePoint.x +
         direction.x * launchOffset -
@@ -2766,6 +2779,14 @@ export class GameController {
         this.characterModel.height / 2,
       vx: velocity.x,
       vy: velocity.y,
+      direction,
+    });
+
+    this.characterModel.launch({
+      x: launchPlacement.x,
+      y: launchPlacement.y,
+      vx: launchPlacement.vx,
+      vy: launchPlacement.vy,
       airControlProfile: "cannon",
     });
 
@@ -2774,6 +2795,122 @@ export class GameController {
     }
 
     this.activeCannon = null;
+  }
+
+  getCharacterBoundsAt(position) {
+    return {
+      left: position.x,
+      top: position.y,
+      right: position.x + this.characterModel.width,
+      bottom: position.y + this.characterModel.height,
+    };
+  }
+
+  getSolidOverlapsForCharacterPosition(position) {
+    const bounds = this.getCharacterBoundsAt(position);
+
+    return (this.stageModel.solids ?? [])
+      .filter((solid) => intersects(bounds, solid))
+      .map((solid) => ({
+        solid,
+        bounds,
+        area: getOverlapArea(bounds, solid),
+      }))
+      .filter((overlap) => overlap.area > 0)
+      .sort((a, b) => b.area - a.area);
+  }
+
+  resolveCannonLaunchPlacement({ x, y, vx, vy, direction }) {
+    const placement = { x, y, vx, vy };
+    const initialOverlaps =
+      this.getSolidOverlapsForCharacterPosition(placement);
+
+    if (initialOverlaps.length === 0) {
+      return placement;
+    }
+
+    if (vy > 0) {
+      const minimumFloorOverlap = Math.max(
+        this.characterModel.getCollisionEpsilon?.() ?? 2,
+        this.characterModel.width * 0.25,
+      );
+      const floor = initialOverlaps
+        .map((overlap) => overlap.solid)
+        .filter(
+          (solid) =>
+            getHorizontalOverlap(initialOverlaps[0].bounds, solid) >=
+            minimumFloorOverlap,
+        )
+        .sort((a, b) => a.top - b.top)[0];
+
+      if (floor) {
+        return {
+          ...placement,
+          y: floor.top - this.characterModel.height,
+          vy: 0,
+        };
+      }
+    }
+
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const overlaps = this.getSolidOverlapsForCharacterPosition(placement);
+
+      if (overlaps.length === 0) {
+        break;
+      }
+
+      const { solid, bounds } = overlaps[0];
+      const candidates = [
+        {
+          x: solid.left - this.characterModel.width,
+          y: placement.y,
+          distance: Math.abs(bounds.right - solid.left),
+          axis: "x",
+        },
+        {
+          x: solid.right,
+          y: placement.y,
+          distance: Math.abs(solid.right - bounds.left),
+          axis: "x",
+        },
+        {
+          x: placement.x,
+          y: solid.top - this.characterModel.height,
+          distance: Math.abs(bounds.bottom - solid.top),
+          axis: "y",
+        },
+        {
+          x: placement.x,
+          y: solid.bottom,
+          distance: Math.abs(solid.bottom - bounds.top),
+          axis: "y",
+        },
+      ];
+      const dominantAxis =
+        Math.abs(direction?.x ?? 0) >= Math.abs(direction?.y ?? 0)
+          ? "x"
+          : "y";
+      const bestCandidate = candidates.sort((a, b) => {
+        if (a.axis === dominantAxis && b.axis !== dominantAxis) {
+          return -1;
+        }
+        if (a.axis !== dominantAxis && b.axis === dominantAxis) {
+          return 1;
+        }
+        return a.distance - b.distance;
+      })[0];
+
+      placement.x = bestCandidate.x;
+      placement.y = bestCandidate.y;
+
+      if (bestCandidate.axis === "x") {
+        placement.vx = 0;
+      } else {
+        placement.vy = 0;
+      }
+    }
+
+    return placement;
   }
 
   getCannonLaunchVelocity(muzzlePoint, pointerPoint) {
