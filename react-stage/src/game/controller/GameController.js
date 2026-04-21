@@ -523,14 +523,12 @@ export class GameController {
         break;
       }
 
-      const bossStructureOffsetY = this.prepareBossSupportTransport(fixedStepMs);
+      const bossStructureOffsetY =
+        this.prepareBossSupportTransport(fixedStepMs);
       this.beginCannonAimIfNeeded(input);
 
       let didDie = false;
-      this.portalCooldownMs = Math.max(
-        0,
-        this.portalCooldownMs - fixedStepMs,
-      );
+      this.portalCooldownMs = Math.max(0, this.portalCooldownMs - fixedStepMs);
 
       if (this.isAimingCannon) {
         this.holdCharacterAtActiveCannon();
@@ -1431,7 +1429,7 @@ export class GameController {
     const startTipX =
       facing > 0 ? layout.stageWidth - width * 0.2 : width * 0.2;
     const centerTipX = layout.stageWidth * 0.5;
-    const edgeTipX = facing > 0 ? 0 : layout.stageWidth * 0.9;
+    const edgeTipX = facing > 0 ? 0 : layout.stageWidth;
     let tipX = startTipX;
 
     if (elapsed < travelToCenterMs) {
@@ -1735,6 +1733,17 @@ export class GameController {
 
       return {
         x: Math.sin((now - this.bossState.phaseStartMs) / 18) * intensity,
+        y: 0,
+      };
+    }
+
+    if (this.bossState.phase === "defeated-fall") {
+      const elapsed = now - this.bossState.phaseStartMs;
+      const progress = clamp(elapsed / BOSS_DEFEAT_FALL_MS, 0, 1);
+      const intensity = this.stageModel.bounds.width * 0.03 * (1 - progress);
+
+      return {
+        x: Math.sin(elapsed / 18) * intensity,
         y: 0,
       };
     }
@@ -2432,8 +2441,7 @@ export class GameController {
       isGroggy: this.bossState.phase === "groggy",
       isDamaged: now < this.bossState.damageFlashUntilMs,
       isDefeated: this.bossState.phase === "defeated-fall",
-      isHandAttackTinted:
-        this.bossState.phase === "pattern1" && Boolean(hand),
+      isHandAttackTinted: this.bossState.phase === "pattern1" && Boolean(hand),
       hand: hand
         ? {
             visible: true,
@@ -2541,9 +2549,9 @@ export class GameController {
       this.physicsController?.physicsModel?.initialized === true;
     const solidifiedBlocks = isPhysicsInitialized
       ? (this.physicsController?.getSolidifiedBlocks?.() ?? [])
-      : (this.stageModel.runtimeSolids?.length > 0
+      : ((this.stageModel.runtimeSolids?.length > 0
           ? this.stageModel.runtimeSolids
-          : this.stageModel.initialSolidifiedBlocks) ?? [];
+          : this.stageModel.initialSolidifiedBlocks) ?? []);
 
     return new Set(solidifiedBlocks.map((block) => block.id).filter(Boolean));
   }
@@ -2590,7 +2598,9 @@ export class GameController {
       return;
     }
 
-    const collapseState = this.stageModel.activateTrigger(this.activeTrigger.id);
+    const collapseState = this.stageModel.activateTrigger(
+      this.activeTrigger.id,
+    );
 
     if (!collapseState) {
       return;
@@ -3177,10 +3187,7 @@ export class GameController {
   }
 
   handleStageClear() {
-    const starRating = getStarRatingForTime(
-      this.stage?.id,
-      this.elapsedTimeMs,
-    );
+    const starRating = getStarRatingForTime(this.stage?.id, this.elapsedTimeMs);
 
     this.resetRestartHoldState();
     this.isStageCleared = true;
@@ -3452,7 +3459,8 @@ export class GameController {
         return;
       }
 
-      const collapseState = this.stageModel.activateProjectileTrigger(triggerId);
+      const collapseState =
+        this.stageModel.activateProjectileTrigger(triggerId);
 
       if (!collapseState) {
         return;
