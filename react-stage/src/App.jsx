@@ -10,6 +10,8 @@ import MainPage from "./components/MainPage.jsx";
 import Screen from "./components/Screen.jsx";
 import StageGeometry from "./components/StageGeometry.jsx";
 import StageSelectPage from "./components/StageSelectPage.jsx";
+import PreferencesModal from "./components/PreferencesModal.jsx";
+import { PreferencesProvider } from "./contexts/PreferencesContext.jsx";
 import { GameController } from "./game/controller/GameController.js";
 import { InputController } from "./game/controller/InputController.js";
 import { PhysicsController } from "./game/controller/PhysicsController.js";
@@ -239,39 +241,42 @@ function MenuScreen({ children }) {
 export default function App() {
     return (
         <BrowserRouter>
-            <Routes>
-                <Route
-                    path="/"
-                    element={(
-                        <MenuScreen>
-                            <MainPage />
-                        </MenuScreen>
-                    )}
-                />
-                <Route
-                    path="/select"
-                    element={(
-                        <MenuScreen>
-                            <StageSelectPage />
-                        </MenuScreen>
-                    )}
-                />
-                {STAGE_LIST.map((stage) => (
+            <PreferencesProvider>
+                <Routes>
                     <Route
-                        key={stage.id}
-                        path={stage.path}
-                        element={<StageRoute stage={stage} />}
+                        path="/"
+                        element={(
+                            <MenuScreen>
+                                <MainPage />
+                            </MenuScreen>
+                        )}
                     />
-                ))}
-                {LEGACY_STAGE_ROUTES.map((legacyRoute) => (
                     <Route
-                        key={legacyRoute.path}
-                        path={legacyRoute.path}
-                        element={<Navigate to={legacyRoute.redirectTo} replace />}
+                        path="/select"
+                        element={(
+                            <MenuScreen>
+                                <StageSelectPage />
+                            </MenuScreen>
+                        )}
                     />
-                ))}
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+                    {STAGE_LIST.map((stage) => (
+                        <Route
+                            key={stage.id}
+                            path={stage.path}
+                            element={<StageRoute stage={stage} />}
+                        />
+                    ))}
+                    {LEGACY_STAGE_ROUTES.map((legacyRoute) => (
+                        <Route
+                            key={legacyRoute.path}
+                            path={legacyRoute.path}
+                            element={<Navigate to={legacyRoute.redirectTo} replace />}
+                        />
+                    ))}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+                <PreferencesModal />
+            </PreferencesProvider>
         </BrowserRouter>
     );
 }
