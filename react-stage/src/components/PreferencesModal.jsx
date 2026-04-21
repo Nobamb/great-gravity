@@ -33,12 +33,10 @@ export default function PreferencesModal() {
 
     const toggleFullscreen = () => {
         if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-            setIsFullscreen(true);
+            document.documentElement.requestFullscreen().catch(() => {});
         } else {
             if (document.exitFullscreen) {
-                document.exitFullscreen();
-                setIsFullscreen(false);
+                document.exitFullscreen().catch(() => {});
             }
         }
     };
@@ -66,12 +64,24 @@ export default function PreferencesModal() {
                             <div className="preference-item">
                                 <label>BGM 음량</label>
                                 <div className="volume-control">
+                                    <button 
+                                        className={`mute-icon-button ${isMuted ? "muted" : ""}`}
+                                        onClick={() => setIsMuted(!isMuted)}
+                                        aria-label={isMuted ? "음소거 해제" : "음소거"}
+                                    >
+                                        <span className="material-symbols-outlined">
+                                            {isMuted ? "volume_off" : "volume_up"}
+                                        </span>
+                                    </button>
                                     <input
                                         type="range"
                                         min="0"
                                         max="100"
                                         value={isMuted ? 0 : bgmVolume}
-                                        onChange={(e) => setBgmVolume(Number(e.target.value))}
+                                        onChange={(e) => {
+                                            setBgmVolume(Number(e.target.value));
+                                            if (isMuted && Number(e.target.value) > 0) setIsMuted(false);
+                                        }}
                                     />
                                     <span>{isMuted ? 0 : bgmVolume}%</span>
                                 </div>
@@ -96,15 +106,20 @@ export default function PreferencesModal() {
                                     <button
                                         className={!isFullscreen ? "active" : ""}
                                         onClick={() => {
-                                            if (document.fullscreenElement) document.exitFullscreen();
-                                            setIsFullscreen(false);
+                                            if (document.fullscreenElement) {
+                                                document.exitFullscreen().catch(() => {});
+                                            }
                                         }}
                                     >
                                         기본 화면
                                     </button>
                                     <button
                                         className={isFullscreen ? "active" : ""}
-                                        onClick={toggleFullscreen}
+                                        onClick={() => {
+                                            if (!document.fullscreenElement) {
+                                                document.documentElement.requestFullscreen().catch(() => {});
+                                            }
+                                        }}
                                     >
                                         전체 화면
                                     </button>
@@ -118,12 +133,24 @@ export default function PreferencesModal() {
                             <div className="preference-item">
                                 <label>게임 음량</label>
                                 <div className="volume-control">
+                                    <button 
+                                        className={`mute-icon-button ${isMuted ? "muted" : ""}`}
+                                        onClick={() => setIsMuted(!isMuted)}
+                                        aria-label={isMuted ? "음소거 해제" : "음소거"}
+                                    >
+                                        <span className="material-symbols-outlined">
+                                            {isMuted ? "volume_off" : "volume_up"}
+                                        </span>
+                                    </button>
                                     <input
                                         type="range"
                                         min="0"
                                         max="100"
                                         value={isMuted ? 0 : gameVolume}
-                                        onChange={(e) => setGameVolume(Number(e.target.value))}
+                                        onChange={(e) => {
+                                            setGameVolume(Number(e.target.value));
+                                            if (isMuted && Number(e.target.value) > 0) setIsMuted(false);
+                                        }}
                                     />
                                     <span>{isMuted ? 0 : gameVolume}%</span>
                                 </div>
@@ -131,13 +158,10 @@ export default function PreferencesModal() {
 
                             <div className="preference-actions">
                                 <button
-                                    className="action-button"
-                                    onClick={() => {
-                                        navigate("/");
-                                        closePreferences();
-                                    }}
+                                    className="action-button retry"
+                                    onClick={handleRetry}
                                 >
-                                    메인 화면 이동
+                                    다시하기
                                 </button>
                                 <button
                                     className="action-button"
@@ -149,23 +173,17 @@ export default function PreferencesModal() {
                                     스테이지 선택 이동
                                 </button>
                                 <button
-                                    className="action-button retry"
-                                    onClick={handleRetry}
+                                    className="action-button"
+                                    onClick={() => {
+                                        navigate("/");
+                                        closePreferences();
+                                    }}
                                 >
-                                    다시하기
+                                    메인 화면 이동
                                 </button>
                             </div>
                         </>
                     )}
-
-                    <div className="preference-item">
-                        <button
-                            className={`mute-button ${isMuted ? "muted" : ""}`}
-                            onClick={() => setIsMuted(!isMuted)}
-                        >
-                            {isMuted ? "음소거 해제" : "음소거"}
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
