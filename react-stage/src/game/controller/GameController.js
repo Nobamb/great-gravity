@@ -161,6 +161,7 @@ export class GameController {
     this.accumulator = 0;
     this.lastTimestamp = 0;
     this.frameHandle = null;
+    this.isPaused = false;
     this.activeTrigger = null;
     this.elapsedTimeMs = 0;
     this.isStageCleared = false;
@@ -180,6 +181,17 @@ export class GameController {
     this.previousBossSupportType = null;
     this.previousBossStructureOffsetY = 0;
     this.tick = this.tick.bind(this);
+  }
+
+  pause() {
+    this.isPaused = true;
+  }
+
+  resume() {
+    if (this.isPaused) {
+      this.isPaused = false;
+      this.lastTimestamp = performance.now();
+    }
   }
 
   start() {
@@ -490,6 +502,12 @@ export class GameController {
   }
 
   tick(timestamp) {
+    if (this.isPaused) {
+      this.lastTimestamp = timestamp;
+      this.frameHandle = window.requestAnimationFrame(this.tick);
+      return;
+    }
+
     const shouldForceBossStructureSync = this.shouldForceBossStructureSync();
 
     if (shouldForceBossStructureSync) {
