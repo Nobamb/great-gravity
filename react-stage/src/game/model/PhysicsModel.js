@@ -30,21 +30,6 @@ function createRectFromEdges(left, top, right, bottom, extra = {}) {
   };
 }
 
-function getMedian(values) {
-  if (values.length === 0) {
-    return 0;
-  }
-
-  const sorted = [...values].sort((a, b) => a - b);
-  const middleIndex = Math.floor(sorted.length / 2);
-
-  if (sorted.length % 2 === 1) {
-    return sorted[middleIndex];
-  }
-
-  return (sorted[middleIndex - 1] + sorted[middleIndex]) / 2;
-}
-
 function parseOptionalNumber(value) {
   if (value === undefined || value === null || value === "") {
     return null;
@@ -1890,83 +1875,21 @@ export class PhysicsModel {
         return;
       }
 
-      const averageDiameter =
-        waterBodies.reduce((sum, body) => sum + body.circleRadius * 2, 0) /
-        waterBodies.length;
-      const columnWidth = Math.max(10, averageDiameter * 1.5);
-      const columnMap = new Map();
-
-      waterBodies.forEach((body) => {
-        const radius = body.circleRadius;
+      waterBodies.forEach((body, index) => {
+        const radius = body.circleRadius * 0.82;
         const left = body.position.x - radius;
         const top = body.position.y - radius;
         const right = body.position.x + radius;
         const bottom = body.position.y + radius;
-        const columnIndex = Math.floor(
-          (body.position.x - zone.containmentRect.left) / columnWidth,
-        );
-        const existingColumn = columnMap.get(columnIndex);
-
-        if (existingColumn) {
-          existingColumn.left = Math.min(existingColumn.left, left);
-          existingColumn.top = Math.min(existingColumn.top, top);
-          existingColumn.right = Math.max(existingColumn.right, right);
-          existingColumn.bottom = Math.max(existingColumn.bottom, bottom);
-          return;
-        }
-
-        columnMap.set(columnIndex, {
-          index: columnIndex,
-          left,
-          top,
-          right,
-          bottom,
-        });
-      });
-
-      const columns = [...columnMap.values()].sort((a, b) => a.index - b.index);
-      let currentRegionColumns = [];
-
-      const finalizeRegion = () => {
-        if (currentRegionColumns.length === 0) {
-          return;
-        }
-
-        const left = Math.min(...currentRegionColumns.map((column) => column.left));
-        const right = Math.max(
-          ...currentRegionColumns.map((column) => column.right),
-        );
-        const bottom = Math.max(
-          ...currentRegionColumns.map((column) => column.bottom),
-        );
-        const top = getMedian(
-          currentRegionColumns.map((column) => column.top),
-        );
         const rect = createRectFromEdges(left, top, right, bottom, {
+          id: `${zone.id}-water-${index}`,
           zoneId: zone.id,
         });
 
         if (rect.width > 0 && rect.height > 0) {
           activeZones.push(rect);
         }
-
-        currentRegionColumns = [];
-      };
-
-      columns.forEach((column) => {
-        const previousColumn =
-          currentRegionColumns[currentRegionColumns.length - 1] ?? null;
-        const shouldSplit =
-          previousColumn && column.index - previousColumn.index > 2;
-
-        if (shouldSplit) {
-          finalizeRegion();
-        }
-
-        currentRegionColumns.push(column);
       });
-
-      finalizeRegion();
     });
 
     return activeZones;
