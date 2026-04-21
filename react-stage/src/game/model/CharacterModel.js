@@ -36,6 +36,17 @@ function getVerticalOverlap(a, b) {
   return Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
 }
 
+function getRectArea(rect) {
+  return (
+    Math.max(0, rect.right - rect.left) *
+    Math.max(0, rect.bottom - rect.top)
+  );
+}
+
+function getOverlapArea(a, b) {
+  return getHorizontalOverlap(a, b) * getVerticalOverlap(a, b);
+}
+
 function getSweptBounds(startBounds, endBounds) {
   return {
     left: Math.min(startBounds.left, endBounds.left),
@@ -283,30 +294,39 @@ export class CharacterModel {
   }
 
   getSwimmingWaterZone(bounds = this.getBounds(), stage) {
-    const waterZone = stage.getWaterZoneForBounds?.(bounds) ?? null;
+    const bodyArea = getRectArea(bounds);
 
-    if (!waterZone) {
+    if (bodyArea <= 0) {
       return null;
     }
 
-    const overlapWidth =
-      Math.min(bounds.right, waterZone.right) -
-      Math.max(bounds.left, waterZone.left);
-    const overlapHeight =
-      Math.min(bounds.bottom, waterZone.bottom) -
-      Math.max(bounds.top, waterZone.top);
+    const waterZone = stage.getWaterZoneForBounds?.(bounds) ?? null;
     const overlapArea =
-      Math.max(0, overlapWidth) * Math.max(0, overlapHeight);
-    const bodyArea =
-      Math.max(0, bounds.right - bounds.left) *
-      Math.max(0, bounds.bottom - bounds.top);
+      stage.getWaterOverlapAreaForBounds?.(bounds) ??
+      (waterZone ? getOverlapArea(bounds, waterZone) : 0);
     const minimumSwimArea = bodyArea * 0.5;
 
     if (overlapArea < minimumSwimArea) {
       return null;
     }
 
-    return waterZone;
+    return waterZone ?? bounds;
+  }
+
+  isHeadUnderwaterEnough(stage) {
+    const headBounds = this.getHeadBounds();
+    const headArea = getRectArea(headBounds);
+
+    if (headArea <= 0) {
+      return false;
+    }
+
+    const waterZone = stage.getWaterZoneForBounds?.(headBounds) ?? null;
+    const overlapArea =
+      stage.getWaterOverlapAreaForBounds?.(headBounds) ??
+      (waterZone ? getOverlapArea(headBounds, waterZone) : 0);
+
+    return overlapArea >= headArea * 0.3;
   }
 
   /**
@@ -387,9 +407,7 @@ export class CharacterModel {
   }
 
   updateBreath(dt, stage) {
-    const isHeadUnderwater = Boolean(
-      stage.getWaterZoneForBounds?.(this.getHeadBounds()),
-    );
+    const isHeadUnderwater = this.isHeadUnderwaterEnough(stage);
     const drainRate = 1 / this.maxBreathTime;
     const recoverRate = drainRate * this.breathRecoveryMultiplier;
 
