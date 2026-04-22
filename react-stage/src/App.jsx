@@ -6,6 +6,7 @@ import {
     Routes,
     useNavigate,
 } from "react-router-dom";
+import BgmPlayer from "./components/BgmPlayer.jsx";
 import MainPage from "./components/MainPage.jsx";
 import Screen from "./components/Screen.jsx";
 import StageGeometry from "./components/StageGeometry.jsx";
@@ -263,6 +264,7 @@ export default function App() {
     return (
         <BrowserRouter>
             <PreferencesProvider>
+                <BgmPlayer />
                 <div className="app-shell">
                     <Screen>
                         <Routes>
