@@ -45,8 +45,8 @@ export default function PreferencesModal() {
         setBgmVolume,
         gameVolume,
         setGameVolume,
-        isMuted,
         setIsMuted,
+        isAudioMuted,
         language,
         setLanguage,
         isFullscreen,
@@ -120,26 +120,26 @@ export default function PreferencesModal() {
                                 <div className="volume-control">
                                     <button
                                         type="button"
-                                        className={`mute-icon-button ${isMuted ? "muted" : ""}`}
-                                        onClick={() => setIsMuted(!isMuted)}
-                                        aria-label={isMuted ? t("preferences.unmute") : t("preferences.mute")}
+                                        className={`mute-icon-button ${isAudioMuted ? "muted" : ""}`}
+                                        onClick={() => setIsMuted(!isAudioMuted)}
+                                        aria-label={isAudioMuted ? t("preferences.unmute") : t("preferences.mute")}
                                     >
                                         <span className="material-symbols-outlined">
-                                            {isMuted ? "volume_off" : "volume_up"}
+                                            {isAudioMuted ? "volume_off" : "volume_up"}
                                         </span>
                                     </button>
                                     <input
                                         type="range"
                                         min="0"
                                         max="100"
-                                        value={isMuted ? 0 : bgmVolume}
+                                        value={isAudioMuted ? 0 : bgmVolume}
                                         onChange={(e) => {
                                             const nextVolume = Number(e.target.value);
                                             setBgmVolume(nextVolume);
-                                            if (isMuted && nextVolume > 0) setIsMuted(false);
+                                            if (isAudioMuted && nextVolume > 0) setIsMuted(false);
                                         }}
                                     />
-                                    <span>{isMuted ? 0 : bgmVolume}%</span>
+                                    <span>{isAudioMuted ? 0 : bgmVolume}%</span>
                                 </div>
                             </div>
 
@@ -198,26 +198,26 @@ export default function PreferencesModal() {
                                 <div className="volume-control">
                                     <button
                                         type="button"
-                                        className={`mute-icon-button ${isMuted ? "muted" : ""}`}
-                                        onClick={() => setIsMuted(!isMuted)}
-                                        aria-label={isMuted ? t("preferences.unmute") : t("preferences.mute")}
+                                        className={`mute-icon-button ${isAudioMuted ? "muted" : ""}`}
+                                        onClick={() => setIsMuted(!isAudioMuted)}
+                                        aria-label={isAudioMuted ? t("preferences.unmute") : t("preferences.mute")}
                                     >
                                         <span className="material-symbols-outlined">
-                                            {isMuted ? "volume_off" : "volume_up"}
+                                            {isAudioMuted ? "volume_off" : "volume_up"}
                                         </span>
                                     </button>
                                     <input
                                         type="range"
                                         min="0"
                                         max="100"
-                                        value={isMuted ? 0 : gameVolume}
+                                        value={isAudioMuted ? 0 : gameVolume}
                                         onChange={(e) => {
                                             const nextVolume = Number(e.target.value);
                                             setGameVolume(nextVolume);
-                                            if (isMuted && nextVolume > 0) setIsMuted(false);
+                                            if (isAudioMuted && nextVolume > 0) setIsMuted(false);
                                         }}
                                     />
-                                    <span>{isMuted ? 0 : gameVolume}%</span>
+                                    <span>{isAudioMuted ? 0 : gameVolume}%</span>
                                 </div>
                             </div>
 
