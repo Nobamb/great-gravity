@@ -4685,7 +4685,7 @@ body {
   top: 0;
   z-index: 20;
   height: calc(72 * var(--cw));
-  padding: 0 calc(24 * var(--cw));
+  padding: 0 calc(64 * var(--cw));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4713,7 +4713,7 @@ body {
 
 .menu-header__actions {
   display: flex;
-  gap: calc(12 * var(--cw));
+  gap: calc(16 * var(--cw));
 }
 
 .menu-header__icon {
@@ -4727,6 +4727,69 @@ body {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.02);
   color: rgba(255, 255, 255, 0.82);
+}
+
+.menu-header__icon-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.speech-bubble {
+  position: absolute;
+  top: calc(100% + calc(10 * var(--cw)));
+  left: 50%;
+  transform: translate(-50%, calc(-10 * var(--cw)));
+  background: rgba(10, 12, 18, 0.9);
+  color: #fff;
+  padding: calc(8 * var(--cw)) calc(12 * var(--cw));
+  border-radius: calc(6 * var(--cw));
+  font-size: calc(10 * var(--cw));
+  font-family: "Pretendard", "Manrope", sans-serif;
+  line-height: 1.4;
+  white-space: pre-line;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 calc(4 * var(--cw)) calc(12 * var(--cw)) rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0.3s ease-out;
+  z-index: 100;
+  width: max-content;
+}
+
+.speech-bubble::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: calc(6 * var(--cw));
+  border-style: solid;
+  border-color: transparent transparent rgba(10, 12, 18, 0.9) transparent;
+}
+
+.speech-bubble--visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.speech-bubble__text--desktop {
+  display: none;
+}
+
+.speech-bubble__text--mobile {
+  display: inline;
+}
+
+@media (min-width: 1024px) {
+  .speech-bubble__text--desktop {
+    display: inline;
+  }
+  .speech-bubble__text--mobile {
+    display: none;
+  }
 }
 
 .menu-main {
