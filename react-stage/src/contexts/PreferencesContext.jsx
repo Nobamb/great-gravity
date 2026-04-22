@@ -49,7 +49,7 @@ export function PreferencesProvider({ children }) {
     const [isActualFullscreen, setIsActualFullscreen] = useState(false);
     const [screenModePreference, setScreenModePreference] = useState(readStoredScreenMode);
     const screenModePreferenceRef = useRef(screenModePreference);
-    const isFullscreen = isActualFullscreen || screenModePreference === "fullscreen";
+    const isFullscreen = isActualFullscreen;
 
     const openPreferences = () => setIsPreferencesOpen(true);
     const closePreferences = () => setIsPreferencesOpen(false);
@@ -61,7 +61,13 @@ export function PreferencesProvider({ children }) {
         writeStoredScreenMode(nextMode);
     };
     const syncFullscreenState = () => {
-        setIsActualFullscreen(Boolean(getFullscreenElement()));
+        const nextIsFullscreen = Boolean(getFullscreenElement());
+
+        setIsActualFullscreen(nextIsFullscreen);
+
+        if (!nextIsFullscreen && screenModePreferenceRef.current === "fullscreen") {
+            persistScreenModePreference("default");
+        }
     };
     const rememberCurrentScreenMode = () => {
         persistScreenModePreference(
