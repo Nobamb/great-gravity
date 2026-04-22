@@ -60,7 +60,8 @@ export function PreferencesProvider({ children }) {
     const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
     const [bgmVolume, setBgmVolume] = useState(50);
     const [gameVolume, setGameVolume] = useState(50);
-    const [isMuted, setIsMuted] = useState(false);
+    const [isMuted, setIsMutedState] = useState(false);
+    const [isAutoplayMuted, setIsAutoplayMuted] = useState(true);
     const [language, setLanguageState] = useState(() => normalizeLanguage(i18n.language));
     const [isActualFullscreen, setIsActualFullscreen] = useState(false);
     const [screenModePreference, setScreenModePreference] = useState(readStoredScreenMode);
@@ -70,6 +71,19 @@ export function PreferencesProvider({ children }) {
     const openPreferences = () => setIsPreferencesOpen(true);
     const closePreferences = () => setIsPreferencesOpen(false);
     const togglePreferences = () => setIsPreferencesOpen((prev) => !prev);
+    const isAudioMuted = isMuted || isAutoplayMuted;
+    const setIsMuted = (nextValue) => {
+        setIsMutedState((previousValue) => {
+            const resolvedValue =
+                typeof nextValue === "function" ? nextValue(previousValue) : nextValue;
+
+            return Boolean(resolvedValue);
+        });
+        setIsAutoplayMuted(false);
+    };
+    const clearAutoplayMute = () => {
+        setIsAutoplayMuted(false);
+    };
     const setLanguage = (nextLanguage) => {
         const normalizedLanguage = normalizeLanguage(nextLanguage);
 
@@ -231,6 +245,9 @@ export function PreferencesProvider({ children }) {
         setGameVolume,
         isMuted,
         setIsMuted,
+        isAutoplayMuted,
+        isAudioMuted,
+        clearAutoplayMute,
         language,
         setLanguage,
         isFullscreen,
