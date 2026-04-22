@@ -33,6 +33,8 @@ const resources = {
             common: {
                 account: "Account",
                 settings: "Settings",
+                settingsTooltipFull: "Settings\nYou can also press Q.",
+                settingsTooltipShort: "Settings",
                 stars: "{{count}} stars",
             },
             main: {
@@ -91,6 +93,8 @@ const resources = {
             common: {
                 account: "계정",
                 settings: "환경설정",
+                settingsTooltipFull: "환경설정\nQ를 눌러서도 확인이 가능합니다.",
+                settingsTooltipShort: "환경설정",
                 stars: "별 {{count}}개",
             },
             main: {
@@ -149,6 +153,8 @@ const resources = {
             common: {
                 account: "アカウント",
                 settings: "設定",
+                settingsTooltipFull: "設定\nQを押しても確認できます。",
+                settingsTooltipShort: "設定",
                 stars: "星 {{count}} 個",
             },
             main: {
@@ -207,6 +213,8 @@ const resources = {
             common: {
                 account: "账户",
                 settings: "设置",
+                settingsTooltipFull: "设置\n也可以按Q键确认。",
+                settingsTooltipShort: "设置",
                 stars: "{{count}} 颗星",
             },
             main: {
