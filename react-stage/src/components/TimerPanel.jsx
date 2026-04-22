@@ -1,4 +1,8 @@
+import { useTranslation } from "react-i18next";
+
 export default function TimerPanel() {
+    const { t } = useTranslation();
+
     return (
         <div className="timer-ui">
             <div className="timer-ui__value" data-timer-value="true">00:00:00</div>
@@ -7,7 +11,7 @@ export default function TimerPanel() {
                 data-restart-hold="true"
                 data-complete="false"
                 hidden
-                aria-label="hold R to restart"
+                aria-label={t("game.holdRestart")}
             >
                 <div className="timer-ui__restart-ring" data-restart-ring="true">
                     <div className="timer-ui__restart-core">R</div>

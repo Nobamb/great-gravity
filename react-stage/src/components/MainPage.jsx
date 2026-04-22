@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { usePreferences } from "../contexts/PreferencesContext";
 
 export default function MainPage() {
     const navigate = useNavigate();
     const { openPreferences } = usePreferences();
+    const { t } = useTranslation();
 
     return (
         <div id="game-container" className="menu-page menu-page--main">
@@ -18,14 +20,14 @@ export default function MainPage() {
                     <button
                         type="button"
                         className="menu-header__icon"
-                        aria-label="account"
+                        aria-label={t("common.account")}
                     >
                         <span className="material-symbols-outlined">account_circle</span>
                     </button>
                     <button
                         type="button"
                         className="menu-header__icon"
-                        aria-label="settings"
+                        aria-label={t("common.settings")}
                         onClick={openPreferences}
                     >
                         <span className="material-symbols-outlined">settings</span>
@@ -35,7 +37,7 @@ export default function MainPage() {
 
             <main className="menu-main menu-main--centered">
                 <div className="menu-hero">
-                    <div className="menu-hero__eyebrow">NEON CORE PLATFORMER</div>
+                    <div className="menu-hero__eyebrow">{t("main.eyebrow")}</div>
                     <h1 className="menu-hero__title">
                         <span>GREAT</span>
                         <span>GRAVITY</span>
@@ -49,14 +51,14 @@ export default function MainPage() {
                                 navigate("/select");
                             }}
                         >
-                            <span>시작하기</span>
+                            <span>{t("main.start")}</span>
                             <span className="material-symbols-outlined">play_arrow</span>
                         </button>
                         <button
                             type="button"
                             className="menu-button menu-button--secondary"
                         >
-                            <span>게임 방법</span>
+                            <span>{t("main.howToPlay")}</span>
                             <span className="material-symbols-outlined">info</span>
                         </button>
                     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
     getStagePath,
@@ -12,13 +13,14 @@ import { usePreferences } from "../contexts/PreferencesContext.jsx";
 
 const STAR_TRACK = "\u2606";
 const STAR_FILL = "\u2605";
-const LOCKED_STAGE_MESSAGE = "이전 스테이지를 클리어해야 해당 스테이지를 진행할 수 있습니다.";
 const MOBILE_MAX_WIDTH_QUERY = "(max-width: 1023px)";
 const MOBILE_ITEMS_PER_PAGE = 4;
 
 function StarRating({ value }) {
+    const { t } = useTranslation();
+
     return (
-        <div className="stage-select-card__stars" aria-label={`${value} stars`}>
+        <div className="stage-select-card__stars" aria-label={t("common.stars", { count: value })}>
             {Array.from({ length: 3 }).map((_, index) => {
                 const fillAmount = Math.max(0, Math.min(1, value - index));
 
@@ -49,6 +51,7 @@ function getInitialCompactLayout() {
 export default function StageSelectPage() {
     const navigate = useNavigate();
     const { openPreferences } = usePreferences();
+    const { t } = useTranslation();
     const popupTimerRef = useRef(null);
     const [progress] = useState(() => getProgressSnapshot());
     const [selectedStageId, setSelectedStageId] = useState(null);
@@ -136,7 +139,7 @@ export default function StageSelectPage() {
     }, [isCompactLayout, selectedStageId]);
 
     function showLockedPopup() {
-        setPopupMessage(LOCKED_STAGE_MESSAGE);
+        setPopupMessage("locked");
 
         if (popupTimerRef.current) {
             window.clearTimeout(popupTimerRef.current);
@@ -160,14 +163,14 @@ export default function StageSelectPage() {
                     <button
                         type="button"
                         className="menu-header__icon"
-                        aria-label="account"
+                        aria-label={t("common.account")}
                     >
                         <span className="material-symbols-outlined">account_circle</span>
                     </button>
                     <button
                         type="button"
                         className="menu-header__icon"
-                        aria-label="settings"
+                        aria-label={t("common.settings")}
                         onClick={openPreferences}
                     >
                         <span className="material-symbols-outlined">settings</span>
@@ -185,10 +188,10 @@ export default function StageSelectPage() {
                         }}
                     >
                         <span className="material-symbols-outlined">arrow_back_ios</span>
-                        <span>메인 화면으로</span>
+                        <span>{t("stageSelect.backToMain")}</span>
                     </button>
                     <h1 className="stage-select__title">
-                        스테이지를<span>선택해주세요</span>
+                        {t("stageSelect.titlePrefix")}<span>{t("stageSelect.titleAccent")}</span>
                     </h1>
                 </div>
 
@@ -226,10 +229,10 @@ export default function StageSelectPage() {
                                         <StarRating value={stageProgress?.bestStars ?? 0} />
                                         <div className="stage-select-card__meta">
                                             <p>
-                                                사망 횟수: <span>{stageProgress?.deathCount ?? 0}</span>
+                                                {t("stageSelect.deathCount")}: <span>{stageProgress?.deathCount ?? 0}</span>
                                             </p>
                                             <p>
-                                                클리어 시간: <span>{isCleared ? formatProgressTime(stageProgress?.bestTimeMs) : "--:--:--"}</span>
+                                                {t("stageSelect.clearTime")}: <span>{isCleared ? formatProgressTime(stageProgress?.bestTimeMs) : "--:--:--"}</span>
                                             </p>
                                         </div>
                                     </div>
@@ -246,21 +249,21 @@ export default function StageSelectPage() {
                 <div className="stage-select__footer">
                     <div className="stage-select__selection">
                         <div className="stage-select__selection-label">
-                            {selectedStage?.title ?? "스테이지를 선택해 주세요"}
+                            {selectedStage?.title ?? t("stageSelect.selectPrompt")}
                         </div>
                         <div className="stage-select__selection-meta">
                             {showStageActions ? (
                                 <>
-                                    <span>사망 횟수 {selectedProgress?.deathCount ?? 0}</span>
-                                    <span>최고 기록 {formatProgressTime(selectedProgress?.bestTimeMs)}</span>
+                                    <span>{t("stageSelect.deathCount")} {selectedProgress?.deathCount ?? 0}</span>
+                                    <span>{t("stageSelect.bestRecord")} {formatProgressTime(selectedProgress?.bestTimeMs)}</span>
                                 </>
                             ) : (
-                                <span>카드를 클릭하면 시작하기와 랭킹보기 버튼이 나타납니다</span>
+                                <span>{t("stageSelect.actionHint")}</span>
                             )}
                         </div>
                     </div>
 
-                    <div className="stage-select__pagination" aria-label="stage pages">
+                    <div className="stage-select__pagination" aria-label={t("stageSelect.pagesLabel")}>
                         <button
                             type="button"
                             className="stage-select__page-button"
@@ -275,7 +278,7 @@ export default function StageSelectPage() {
                             }}
                             disabled={!isCompactLayout || currentPageIndex === 0}
                         >
-                            이전
+                            {t("stageSelect.previous")}
                         </button>
                         <span className="stage-select__page-indicator">
                             {pageIndicatorText}
@@ -294,7 +297,7 @@ export default function StageSelectPage() {
                             }}
                             disabled={!isCompactLayout || currentPageIndex === totalPages - 1}
                         >
-                            다음
+                            {t("stageSelect.next")}
                         </button>
                     </div>
 
@@ -305,7 +308,7 @@ export default function StageSelectPage() {
                                 className="menu-button menu-button--secondary stage-select__action"
                                 disabled
                             >
-                                랭킹보기
+                                {t("stageSelect.ranking")}
                             </button>
                             <button
                                 type="button"
@@ -314,7 +317,7 @@ export default function StageSelectPage() {
                                     navigate(getStagePath(selectedStage.id));
                                 }}
                             >
-                                시작하기
+                                {t("stageSelect.start")}
                             </button>
                         </div>
                     ) : null}
@@ -326,7 +329,7 @@ export default function StageSelectPage() {
                 role="status"
                 aria-live="polite"
             >
-                {popupMessage}
+                {popupMessage ? t("stageSelect.lockedMessage") : null}
             </div>
         </div>
     );

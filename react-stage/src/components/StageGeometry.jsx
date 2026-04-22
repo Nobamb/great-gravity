@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import BackgroundLayer from "./BackgroundLayer.jsx";
 import DefaultBlock from "./DefaultBlock.jsx";
 import JumpBlock from "./JumpBlock.jsx";
@@ -1618,6 +1619,7 @@ export default function StageGeometry({
   bossStructureVersion = 0,
   bossStructureFluidsVisible = true,
 }) {
+  const { t } = useTranslation();
   const hasMonsterMission = stage.id === "stage4" || stage.id === "stage7";
   const hasBossHud = stage.id === "bossStage";
   const missionCountId =
@@ -1653,7 +1655,7 @@ export default function StageGeometry({
         <MissionHud
           missionFaces={monsterMissionFaces}
           missionCounts={monsterMissionCounts}
-          ariaLabel="remaining monster mission"
+          ariaLabel={t("game.remainingMonsterMission")}
         />
       ) : null}
       {hasBossHud ? (

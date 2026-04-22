@@ -1,4 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import i18n, {
+    LANGUAGE_STORAGE_KEY,
+    normalizeLanguage,
+} from "../i18n/index.js";
 
 const PreferencesContext = createContext(null);
 const SCREEN_MODE_STORAGE_KEY = "great-gravity-screen-mode";
@@ -32,6 +36,18 @@ function writeStoredScreenMode(mode) {
     }
 }
 
+function writeStoredLanguage(language) {
+    if (typeof window === "undefined") {
+        return;
+    }
+
+    try {
+        window.localStorage.setItem(LANGUAGE_STORAGE_KEY, normalizeLanguage(language));
+    } catch {
+        // Ignore storage errors; language switching should still work in memory.
+    }
+}
+
 function getFullscreenElement() {
     return document.fullscreenElement;
 }
@@ -45,7 +61,7 @@ export function PreferencesProvider({ children }) {
     const [bgmVolume, setBgmVolume] = useState(50);
     const [gameVolume, setGameVolume] = useState(50);
     const [isMuted, setIsMuted] = useState(false);
-    const [language, setLanguage] = useState("ko"); // ko, en, ja, zh
+    const [language, setLanguageState] = useState(() => normalizeLanguage(i18n.language));
     const [isActualFullscreen, setIsActualFullscreen] = useState(false);
     const [screenModePreference, setScreenModePreference] = useState(readStoredScreenMode);
     const screenModePreferenceRef = useRef(screenModePreference);
@@ -54,6 +70,16 @@ export function PreferencesProvider({ children }) {
     const openPreferences = () => setIsPreferencesOpen(true);
     const closePreferences = () => setIsPreferencesOpen(false);
     const togglePreferences = () => setIsPreferencesOpen((prev) => !prev);
+    const setLanguage = (nextLanguage) => {
+        const normalizedLanguage = normalizeLanguage(nextLanguage);
+
+        setLanguageState(normalizedLanguage);
+        writeStoredLanguage(normalizedLanguage);
+
+        if (i18n.language !== normalizedLanguage) {
+            i18n.changeLanguage(normalizedLanguage);
+        }
+    };
     const persistScreenModePreference = (mode) => {
         const nextMode = mode === "fullscreen" ? "fullscreen" : "default";
         screenModePreferenceRef.current = nextMode;
@@ -127,6 +153,22 @@ export function PreferencesProvider({ children }) {
             .then(syncFullscreenState)
             .catch(syncFullscreenState);
     };
+
+    useEffect(() => {
+        const handleLanguageChanged = (nextLanguage) => {
+            const normalizedLanguage = normalizeLanguage(nextLanguage);
+
+            setLanguageState(normalizedLanguage);
+            writeStoredLanguage(normalizedLanguage);
+        };
+
+        handleLanguageChanged(i18n.language);
+        i18n.on("languageChanged", handleLanguageChanged);
+
+        return () => {
+            i18n.off("languageChanged", handleLanguageChanged);
+        };
+    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e) => {

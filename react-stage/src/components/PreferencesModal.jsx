@@ -1,33 +1,36 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usePreferences } from "../contexts/PreferencesContext";
 
 const LANGUAGE_OPTIONS = [
-    { value: "ko", label: "한국어" },
     { value: "en", label: "English" },
+    { value: "ko", label: "한국어" },
     { value: "ja", label: "日本語" },
-    { value: "zh", label: "中文" },
+    { value: "zh", label: "简体中文" },
 ];
 const RESTART_STAGE_EVENT = "great-gravity:restart-stage";
 
 function ScreenSizePreference({ isFullscreen, enterFullscreen, exitFullscreen }) {
+    const { t } = useTranslation();
+
     return (
         <div className="preference-item">
-            <label>화면 크기</label>
+            <label>{t("preferences.screenSize")}</label>
             <div className="button-group">
                 <button
                     type="button"
                     className={!isFullscreen ? "active" : ""}
                     onClick={exitFullscreen}
                 >
-                    기본 화면
+                    {t("preferences.defaultScreen")}
                 </button>
                 <button
                     type="button"
                     className={isFullscreen ? "active" : ""}
                     onClick={enterFullscreen}
                 >
-                    전체 화면
+                    {t("preferences.fullscreen")}
                 </button>
             </div>
         </div>
@@ -51,6 +54,7 @@ export default function PreferencesModal() {
         exitFullscreen,
         rememberCurrentScreenMode,
     } = usePreferences();
+    const { t } = useTranslation();
     const [isLanguageOpen, setIsLanguageOpen] = useState(false);
 
     const location = useLocation();
@@ -64,9 +68,14 @@ export default function PreferencesModal() {
         LANGUAGE_OPTIONS.find((option) => option.value === language)?.label ??
         LANGUAGE_OPTIONS[0].label;
 
+    const handleClose = () => {
+        setIsLanguageOpen(false);
+        closePreferences();
+    };
+
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) {
-            closePreferences();
+            handleClose();
         }
     };
 
@@ -83,11 +92,6 @@ export default function PreferencesModal() {
         }
     };
 
-    const handleClose = () => {
-        setIsLanguageOpen(false);
-        closePreferences();
-    };
-
     const handleLanguageSelect = (value) => {
         setLanguage(value);
         setIsLanguageOpen(false);
@@ -97,12 +101,12 @@ export default function PreferencesModal() {
         <div className="preferences-overlay" onClick={handleBackdropClick}>
             <div className={`preferences-modal ${isStagePage ? "preferences-modal--stage" : ""}`}>
                 <div className="preferences-header">
-                    <h2>{isMenuPage ? "환경설정" : "게임 일시정지"}</h2>
+                    <h2>{isMenuPage ? t("preferences.title") : t("preferences.pauseTitle")}</h2>
                     <button
                         type="button"
                         className="close-button"
                         onClick={handleClose}
-                        aria-label="환경설정 닫기"
+                        aria-label={t("preferences.close")}
                     >
                         <span className="material-symbols-outlined">close</span>
                     </button>
@@ -112,13 +116,13 @@ export default function PreferencesModal() {
                     {isMenuPage && (
                         <>
                             <div className="preference-item">
-                                <label>BGM 음량</label>
+                                <label>{t("preferences.bgmVolume")}</label>
                                 <div className="volume-control">
                                     <button
                                         type="button"
                                         className={`mute-icon-button ${isMuted ? "muted" : ""}`}
                                         onClick={() => setIsMuted(!isMuted)}
-                                        aria-label={isMuted ? "음소거 해제" : "음소거"}
+                                        aria-label={isMuted ? t("preferences.unmute") : t("preferences.mute")}
                                     >
                                         <span className="material-symbols-outlined">
                                             {isMuted ? "volume_off" : "volume_up"}
@@ -140,7 +144,9 @@ export default function PreferencesModal() {
                             </div>
 
                             <div className="preference-item">
-                                <label id="preferences-language-label">언어 선택</label>
+                                <label id="preferences-language-label">
+                                    {t("preferences.language")}
+                                </label>
                                 <div className="language-select">
                                     <button
                                         type="button"
@@ -188,13 +194,13 @@ export default function PreferencesModal() {
                     {isStagePage && (
                         <>
                             <div className="preference-item">
-                                <label>게임 음량</label>
+                                <label>{t("preferences.gameVolume")}</label>
                                 <div className="volume-control">
                                     <button
                                         type="button"
                                         className={`mute-icon-button ${isMuted ? "muted" : ""}`}
                                         onClick={() => setIsMuted(!isMuted)}
-                                        aria-label={isMuted ? "음소거 해제" : "음소거"}
+                                        aria-label={isMuted ? t("preferences.unmute") : t("preferences.mute")}
                                     >
                                         <span className="material-symbols-outlined">
                                             {isMuted ? "volume_off" : "volume_up"}
@@ -221,7 +227,7 @@ export default function PreferencesModal() {
                                     className="action-button retry"
                                     onClick={handleRetry}
                                 >
-                                    다시하기
+                                    {t("preferences.retry")}
                                 </button>
                                 <button
                                     type="button"
@@ -231,7 +237,7 @@ export default function PreferencesModal() {
                                         handleClose();
                                     }}
                                 >
-                                    스테이지 선택 이동
+                                    {t("preferences.stageSelect")}
                                 </button>
                                 <button
                                     type="button"
@@ -241,7 +247,7 @@ export default function PreferencesModal() {
                                         handleClose();
                                     }}
                                 >
-                                    메인 화면 이동
+                                    {t("preferences.mainMenu")}
                                 </button>
                             </div>
 
