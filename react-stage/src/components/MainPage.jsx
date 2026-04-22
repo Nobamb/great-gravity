@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { usePreferences } from "../contexts/PreferencesContext";
+import SpeechBubble from "./SpeechBubble";
 
 export default function MainPage() {
     const navigate = useNavigate();
     const { openPreferences } = usePreferences();
     const { t } = useTranslation();
+    const [isSettingsHovered, setIsSettingsHovered] = useState(false);
 
     return (
         <div id="game-container" className="menu-page menu-page--main">
@@ -24,14 +27,21 @@ export default function MainPage() {
                     >
                         <span className="material-symbols-outlined">account_circle</span>
                     </button>
-                    <button
-                        type="button"
-                        className="menu-header__icon"
-                        aria-label={t("common.settings")}
-                        onClick={openPreferences}
+                    <div 
+                        className="menu-header__icon-wrapper"
+                        onMouseEnter={() => setIsSettingsHovered(true)}
+                        onMouseLeave={() => setIsSettingsHovered(false)}
                     >
-                        <span className="material-symbols-outlined">settings</span>
-                    </button>
+                        <button
+                            type="button"
+                            className="menu-header__icon"
+                            aria-label={t("common.settings")}
+                            onClick={openPreferences}
+                        >
+                            <span className="material-symbols-outlined">settings</span>
+                        </button>
+                        <SpeechBubble isVisible={isSettingsHovered} />
+                    </div>
                 </div>
             </header>
 
