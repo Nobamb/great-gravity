@@ -1,4 +1,5 @@
 import { getStarRatingForTime } from "../../stages/progressStorage.js";
+import i18n from "../../i18n/index.js";
 
 function intersects(a, b) {
   return (
@@ -100,16 +101,19 @@ const STAGE7_LOCKED_TREASURE_MESSAGE =
 const STAGE4_LOCKED_TREASURE_MESSAGE =
   "지금은 보물에 접근할 수 없습니다!\n몬스터를 처치하고 오세요!";
 
+const STAGE7_LOCKED_TREASURE_MESSAGE_KEY = "game.lockedTreasureStage7";
+const STAGE4_LOCKED_TREASURE_MESSAGE_KEY = "game.lockedTreasureDefault";
+
 const STAGE_MISSION_CONFIGS = {
   stage4: {
     requiredMonsterKills: 1,
     missionCountId: "stage4-guardian",
-    lockedTreasureMessage: STAGE4_LOCKED_TREASURE_MESSAGE,
+    lockedTreasureMessageKey: STAGE4_LOCKED_TREASURE_MESSAGE_KEY,
   },
   stage7: {
     requiredMonsterKills: 2,
     missionCountId: "stage7-guardian",
-    lockedTreasureMessage: STAGE7_LOCKED_TREASURE_MESSAGE,
+    lockedTreasureMessageKey: STAGE7_LOCKED_TREASURE_MESSAGE_KEY,
   },
 };
 const STAGE3_MID_VERTICAL_TRIGGER_ID = "stage3-mid-vertical-trigger";
@@ -3257,10 +3261,11 @@ export class GameController {
     }
 
     if (!this.isMissionAlarmActive()) {
-      this.showMissionAlarm(
-        this.getStageMissionConfig()?.lockedTreasureMessage ??
-          STAGE4_LOCKED_TREASURE_MESSAGE,
-      );
+      const messageKey =
+        this.getStageMissionConfig()?.lockedTreasureMessageKey ??
+        STAGE4_LOCKED_TREASURE_MESSAGE_KEY;
+
+      this.showMissionAlarm(i18n.t(messageKey));
     }
 
     return false;
