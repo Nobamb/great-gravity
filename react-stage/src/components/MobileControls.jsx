@@ -13,10 +13,16 @@ function dispatchJoystickInput(horizontal = 0, vertical = 0) {
 }
 
 export default function MobileControls() {
-    const { isMobileViewport, isPreferencesOpen } = usePreferences();
+    const {
+        isMobileViewport,
+        isPreferencesOpen,
+        isLandscapeScreen,
+        isViewportLandscape,
+    } = usePreferences();
     const joystickRef = useRef(null);
     const activeTouchIdRef = useRef(null);
     const [stickOffset, setStickOffset] = useState({ x: 0, y: 0 });
+    const isRotatedLandscapeControls = isLandscapeScreen && !isViewportLandscape;
 
     useEffect(() => () => {
         dispatchJoystickInput(0, 0);
@@ -113,7 +119,12 @@ export default function MobileControls() {
     if (!isMobileViewport || isPreferencesOpen || typeof document === "undefined") return null;
 
     const controls = (
-        <div className="mobile-controls">
+        <div
+            className={[
+                "mobile-controls",
+                isRotatedLandscapeControls ? "mobile-controls--rotated" : "",
+            ].filter(Boolean).join(" ")}
+        >
             <div
                 className="mobile-controls__dpad"
                 ref={joystickRef}
