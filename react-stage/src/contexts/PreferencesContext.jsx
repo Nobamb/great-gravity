@@ -7,6 +7,15 @@ import i18n, {
 const PreferencesContext = createContext(null);
 const SCREEN_MODE_STORAGE_KEY = "great-gravity-screen-mode";
 const RESTART_STAGE_EVENT = "great-gravity:restart-stage";
+const MOBILE_VIEWPORT_MAX_WIDTH = 1023;
+
+function isMobileViewportWidth() {
+    if (typeof window === "undefined") {
+        return false;
+    }
+
+    return window.innerWidth <= MOBILE_VIEWPORT_MAX_WIDTH;
+}
 
 function readStoredScreenMode() {
     if (typeof window === "undefined") {
@@ -65,8 +74,11 @@ export function PreferencesProvider({ children }) {
     const [language, setLanguageState] = useState(() => normalizeLanguage(i18n.language));
     const [isActualFullscreen, setIsActualFullscreen] = useState(false);
     const [screenModePreference, setScreenModePreference] = useState(readStoredScreenMode);
+    const [isMobileViewport, setIsMobileViewport] = useState(isMobileViewportWidth);
     const screenModePreferenceRef = useRef(screenModePreference);
+    const isMobileViewportRef = useRef(isMobileViewport);
     const isFullscreen = isActualFullscreen;
+    const isLandscapeScreen = isMobileViewport && screenModePreference === "fullscreen";
 
     const openPreferences = () => setIsPreferencesOpen(true);
     const closePreferences = () => setIsPreferencesOpen(false);
@@ -105,7 +117,11 @@ export function PreferencesProvider({ children }) {
 
         setIsActualFullscreen(nextIsFullscreen);
 
-        if (!nextIsFullscreen && screenModePreferenceRef.current === "fullscreen") {
+        if (
+            !nextIsFullscreen &&
+            screenModePreferenceRef.current === "fullscreen" &&
+            !isMobileViewportRef.current
+        ) {
             persistScreenModePreference("default");
         }
     };
@@ -152,6 +168,11 @@ export function PreferencesProvider({ children }) {
     };
     const requestPreferredFullscreen = () => {
         if (screenModePreferenceRef.current !== "fullscreen" || getFullscreenElement()) {
+            syncFullscreenState();
+            return;
+        }
+
+        if (isMobileViewportRef.current) {
             syncFullscreenState();
             return;
         }
@@ -224,6 +245,25 @@ export function PreferencesProvider({ children }) {
     }, []);
 
     useEffect(() => {
+        const syncMobileViewport = () => {
+            const nextIsMobileViewport = isMobileViewportWidth();
+
+            isMobileViewportRef.current = nextIsMobileViewport;
+            setIsMobileViewport(nextIsMobileViewport);
+
+            if (!nextIsMobileViewport) {
+                syncFullscreenState();
+            }
+        };
+
+        syncMobileViewport();
+        window.addEventListener("resize", syncMobileViewport);
+        return () => {
+            window.removeEventListener("resize", syncMobileViewport);
+        };
+    }, []);
+
+    useEffect(() => {
         syncFullscreenState();
 
         document.addEventListener("fullscreenchange", syncFullscreenState);
@@ -251,6 +291,9 @@ export function PreferencesProvider({ children }) {
         language,
         setLanguage,
         isFullscreen,
+        screenModePreference,
+        isMobileViewport,
+        isLandscapeScreen,
         enterFullscreen,
         exitFullscreen,
         toggleFullscreen,
