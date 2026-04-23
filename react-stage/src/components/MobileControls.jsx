@@ -1,9 +1,26 @@
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePreferences } from "../contexts/PreferencesContext";
 
-export default function MobileControls() {
-    const { isMobileViewport } = usePreferences();
+const MOBILE_JOYSTICK_EVENT = "great-gravity:mobile-joystick";
+const JOYSTICK_DEAD_ZONE = 0.28;
+const JOYSTICK_MAX_OFFSET = 44;
 
-    if (!isMobileViewport) return null;
+function dispatchJoystickInput(horizontal = 0, vertical = 0) {
+    window.dispatchEvent(new CustomEvent(MOBILE_JOYSTICK_EVENT, {
+        detail: { horizontal, vertical },
+    }));
+}
+
+export default function MobileControls() {
+    const { isMobileViewport, isPreferencesOpen } = usePreferences();
+    const joystickRef = useRef(null);
+    const activeTouchIdRef = useRef(null);
+    const [stickOffset, setStickOffset] = useState({ x: 0, y: 0 });
+
+    useEffect(() => () => {
+        dispatchJoystickInput(0, 0);
+    }, []);
 
     const handlePointerDown = (keyCode) => {
         window.dispatchEvent(new KeyboardEvent("keydown", { code: keyCode }));
@@ -13,51 +30,106 @@ export default function MobileControls() {
         window.dispatchEvent(new KeyboardEvent("keyup", { code: keyCode }));
     };
 
-    return (
+    const resetJoystick = () => {
+        activeTouchIdRef.current = null;
+        setStickOffset({ x: 0, y: 0 });
+        dispatchJoystickInput(0, 0);
+    };
+
+    const getTrackedTouch = (touchList) => {
+        const activeTouchId = activeTouchIdRef.current;
+
+        if (activeTouchId === null) {
+            return touchList[0] ?? null;
+        }
+
+        return Array.from(touchList).find((touch) => touch.identifier === activeTouchId) ?? null;
+    };
+
+    const updateJoystick = (touch) => {
+        const joystickElement = joystickRef.current;
+
+        if (!joystickElement || !touch) {
+            return;
+        }
+
+        const rect = joystickElement.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const rawX = touch.clientX - centerX;
+        const rawY = touch.clientY - centerY;
+        const distance = Math.hypot(rawX, rawY);
+        const maxOffset = Math.min(rect.width, rect.height) * 0.5 - 20;
+        const safeMaxOffset = Math.max(24, Math.min(maxOffset, JOYSTICK_MAX_OFFSET));
+        const scale = distance > safeMaxOffset ? safeMaxOffset / distance : 1;
+        const x = rawX * scale;
+        const y = rawY * scale;
+        const normalizedX = x / safeMaxOffset;
+        const normalizedY = y / safeMaxOffset;
+        const horizontal =
+            Math.abs(normalizedX) >= JOYSTICK_DEAD_ZONE ? Math.sign(normalizedX) : 0;
+        const vertical =
+            Math.abs(normalizedY) >= JOYSTICK_DEAD_ZONE ? Math.sign(normalizedY) : 0;
+
+        setStickOffset({ x, y });
+        dispatchJoystickInput(horizontal, vertical);
+    };
+
+    const handleJoystickTouchStart = (event) => {
+        if (activeTouchIdRef.current !== null) {
+            return;
+        }
+
+        const touch = event.changedTouches[0];
+
+        if (!touch) {
+            return;
+        }
+
+        activeTouchIdRef.current = touch.identifier;
+        updateJoystick(touch);
+    };
+
+    const handleJoystickTouchMove = (event) => {
+        const touch = getTrackedTouch(event.changedTouches);
+
+        if (!touch) {
+            return;
+        }
+
+        updateJoystick(touch);
+    };
+
+    const handleJoystickTouchEnd = (event) => {
+        const touch = getTrackedTouch(event.changedTouches);
+
+        if (!touch) {
+            return;
+        }
+
+        resetJoystick();
+    };
+
+    if (!isMobileViewport || isPreferencesOpen || typeof document === "undefined") return null;
+
+    const controls = (
         <div className="mobile-controls">
-            <div className="mobile-controls__dpad">
-                <button
-                    type="button"
-                    className="mobile-btn mobile-btn--up"
-                    onPointerDown={() => handlePointerDown("ArrowUp")}
-                    onPointerUp={() => handlePointerUp("ArrowUp")}
-                    onPointerLeave={() => handlePointerUp("ArrowUp")}
-                    onPointerCancel={() => handlePointerUp("ArrowUp")}
-                >
-                    <span className="material-symbols-outlined">arrow_upward</span>
-                </button>
-                <div className="mobile-controls__dpad-mid">
-                    <button
-                        type="button"
-                        className="mobile-btn mobile-btn--left"
-                        onPointerDown={() => handlePointerDown("ArrowLeft")}
-                        onPointerUp={() => handlePointerUp("ArrowLeft")}
-                        onPointerLeave={() => handlePointerUp("ArrowLeft")}
-                        onPointerCancel={() => handlePointerUp("ArrowLeft")}
-                    >
-                        <span className="material-symbols-outlined">arrow_back</span>
-                    </button>
-                    <button
-                        type="button"
-                        className="mobile-btn mobile-btn--right"
-                        onPointerDown={() => handlePointerDown("ArrowRight")}
-                        onPointerUp={() => handlePointerUp("ArrowRight")}
-                        onPointerLeave={() => handlePointerUp("ArrowRight")}
-                        onPointerCancel={() => handlePointerUp("ArrowRight")}
-                    >
-                        <span className="material-symbols-outlined">arrow_forward</span>
-                    </button>
-                </div>
-                <button
-                    type="button"
-                    className="mobile-btn mobile-btn--down"
-                    onPointerDown={() => handlePointerDown("ArrowDown")}
-                    onPointerUp={() => handlePointerUp("ArrowDown")}
-                    onPointerLeave={() => handlePointerUp("ArrowDown")}
-                    onPointerCancel={() => handlePointerUp("ArrowDown")}
-                >
-                    <span className="material-symbols-outlined">arrow_downward</span>
-                </button>
+            <div
+                className="mobile-controls__dpad"
+                ref={joystickRef}
+                onTouchStart={handleJoystickTouchStart}
+                onTouchMove={handleJoystickTouchMove}
+                onTouchEnd={handleJoystickTouchEnd}
+                onTouchCancel={handleJoystickTouchEnd}
+                aria-label="Movement joystick"
+                role="application"
+            >
+                <div
+                    className="mobile-controls__joystick-stick"
+                    style={{
+                        transform: `translate3d(${stickOffset.x}px, ${stickOffset.y}px, 0)`,
+                    }}
+                ></div>
             </div>
 
             <div className="mobile-controls__actions">
@@ -94,4 +166,6 @@ export default function MobileControls() {
             </div>
         </div>
     );
+
+    return createPortal(controls, document.body);
 }
