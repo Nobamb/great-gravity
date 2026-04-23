@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { usePreferences } from "../contexts/PreferencesContext.jsx";
 import BackgroundLayer from "./BackgroundLayer.jsx";
 import DefaultBlock from "./DefaultBlock.jsx";
 import JumpBlock from "./JumpBlock.jsx";
@@ -9,6 +10,7 @@ import CharacterSprite from "./CharacterSprite.jsx";
 import ClearOverlay from "./ClearOverlay.jsx";
 import CustomMissionAlarm from "./CustomMissionAlarm.jsx";
 import MissionHud from "./MissionHud.jsx";
+import MobileControls from "./MobileControls.jsx";
 import { PortalIn, PortalOut } from "./Portal.jsx";
 import { FireZone, IceZone, LavaZone, WaterZone } from "./StageElements.jsx";
 import TimerPanel from "./TimerPanel.jsx";
@@ -1642,6 +1644,8 @@ export default function StageGeometry({
     </span>,
   ];
 
+  const { openPreferences } = usePreferences();
+
   return (
     <div
       id="game-container"
@@ -1650,6 +1654,14 @@ export default function StageGeometry({
       data-stage-id={stage.id}
     >
       <BackgroundLayer />
+      <button
+        type="button"
+        className="game-preferences-btn"
+        aria-label={t("common.settings")}
+        onClick={openPreferences}
+      >
+        <span className="material-symbols-outlined">settings</span>
+      </button>
       <TimerPanel title={stage.title} />
       {hasMonsterMission ? (
         <MissionHud
@@ -1688,6 +1700,7 @@ export default function StageGeometry({
       <BreathHud />
       {hasMonsterMission ? <CustomMissionAlarm /> : null}
       <ClearOverlay />
+      <MobileControls />
 
       <div className="vignette"></div>
     </div>
