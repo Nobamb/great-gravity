@@ -81,6 +81,34 @@ body {
   #screen {
     width: 600px;
   }
+
+  #screen.screen--mobile-portrait {
+    width: min(600px, 100vw);
+    height: auto;
+    aspect-ratio: 16 / 9;
+    transform: none;
+  }
+}
+
+@media (max-width: 1023px) and (orientation: portrait) {
+  #screen.screen--mobile-landscape {
+    width: 100vh;
+    height: 100vw;
+    max-width: none;
+    aspect-ratio: auto;
+    transform: rotate(90deg);
+    transform-origin: center center;
+  }
+}
+
+@media (max-width: 1023px) and (orientation: landscape) {
+  #screen.screen--mobile-landscape {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    aspect-ratio: auto;
+    transform: none;
+  }
 }
 
 #game-container {
