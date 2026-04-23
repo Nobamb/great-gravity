@@ -1,16 +1,7 @@
-function createRelativeRect(elementRect, containerRect) {
-  const left = elementRect.left - containerRect.left;
-  const top = elementRect.top - containerRect.top;
-
-  return {
-    left,
-    top,
-    width: elementRect.width,
-    height: elementRect.height,
-    right: left + elementRect.width,
-    bottom: top + elementRect.height,
-  };
-}
+import {
+  getContainerLayoutRect,
+  getRelativeLayoutRect,
+} from "../dom/layoutMetrics.js";
 
 function getOverlapArea(a, b) {
   const overlapX = Math.min(a.right, b.right) - Math.max(a.left, b.left);
@@ -149,7 +140,7 @@ export class StageModel {
     this.portals = [];
     this.dirty = true;
     this.shouldSeedInitialSolidifiedBlocks = true;
-    this.containerRect = container.getBoundingClientRect();
+    this.containerRect = getContainerLayoutRect(container);
 
     this.markDirty = this.markDirty.bind(this);
     this.refresh = this.refresh.bind(this);
@@ -177,7 +168,7 @@ export class StageModel {
 
     const previousWidth = this.bounds.width;
     const previousHeight = this.bounds.height;
-    const containerRect = this.container.getBoundingClientRect();
+    const containerRect = getContainerLayoutRect(this.container);
 
     this.containerRect = containerRect;
     this.bounds = {
@@ -188,10 +179,7 @@ export class StageModel {
     this.domSolids = Array.from(
       this.container.querySelectorAll(this.solidSelector),
     ).map((element) => {
-      const rect = createRelativeRect(
-        element.getBoundingClientRect(),
-        containerRect,
-      );
+      const rect = getRelativeLayoutRect(element, this.container);
 
       return normalizeSolidRect({
         ...rect,
@@ -204,10 +192,7 @@ export class StageModel {
     this.initialSolidifiedBlocks = Array.from(
       this.container.querySelectorAll(this.initialSolidifiedSelector),
     ).map((element, index) => {
-      const rect = createRelativeRect(
-        element.getBoundingClientRect(),
-        containerRect,
-      );
+      const rect = getRelativeLayoutRect(element, this.container);
 
       return normalizeSolidRect({
         // 1. 고유 ID 부여: HTML의 data-solidified-id 값을 쓰거나 없으면 순번으로 생성
@@ -272,13 +257,13 @@ export class StageModel {
       this.container.querySelectorAll(this.waterZoneSelector),
     ).map((element, index) => ({
       id: element.dataset.fluidId || `water-zone-${index}`,
-      rect: createRelativeRect(element.getBoundingClientRect(), containerRect),
+      rect: getRelativeLayoutRect(element, this.container),
     }));
 
     this.ladders = Array.from(
       this.container.querySelectorAll(this.ladderSelector),
     ).map((element) =>
-      createRelativeRect(element.getBoundingClientRect(), containerRect),
+      getRelativeLayoutRect(element, this.container),
     );
 
     const triggerableTargets = Array.from(
@@ -289,10 +274,7 @@ export class StageModel {
       return {
         id,
         element,
-        rect: createRelativeRect(
-          element.getBoundingClientRect(),
-          containerRect,
-        ),
+        rect: getRelativeLayoutRect(element, this.container),
       };
     });
 
@@ -333,10 +315,7 @@ export class StageModel {
           id: element.dataset.triggerId || `trigger-${index}`,
           direction: element.dataset.triggerDirection || "left",
           element,
-          rect: createRelativeRect(
-            element.getBoundingClientRect(),
-            containerRect,
-          ),
+          rect: getRelativeLayoutRect(element, this.container),
           targets: resolvedTargets,
           supportsInteract:
             element.dataset.interactTrigger !== "false" &&
@@ -364,14 +343,14 @@ export class StageModel {
     ).map((element, index) => ({
       id: element.dataset.stoneSourceId || `stone-source-${index}`,
       element,
-      rect: createRelativeRect(element.getBoundingClientRect(), containerRect),
+      rect: getRelativeLayoutRect(element, this.container),
     }));
     this.timedBlocks = Array.from(
       this.container.querySelectorAll(this.timedBlockSelector),
     ).map((element, index) => ({
       id: element.dataset.collapseId || `timed-block-${index}`,
       element,
-      rect: createRelativeRect(element.getBoundingClientRect(), containerRect),
+      rect: getRelativeLayoutRect(element, this.container),
       isCollapsed:
         element.dataset.collider === "disabled" ||
         ["collapsed", "collapsing"].includes(
@@ -381,22 +360,16 @@ export class StageModel {
     this.cannons = Array.from(
       this.container.querySelectorAll(this.cannonSelector),
     ).map((element, index) => {
-      const rect = createRelativeRect(
-        element.getBoundingClientRect(),
-        containerRect,
-      );
+      const rect = getRelativeLayoutRect(element, this.container);
       const seatElement = element.querySelector('[data-cannon-seat="true"]');
       const muzzleElement = element.querySelector(
         '[data-cannon-muzzle="true"]',
       );
       const seatRect = seatElement
-        ? createRelativeRect(seatElement.getBoundingClientRect(), containerRect)
+        ? getRelativeLayoutRect(seatElement, this.container)
         : rect;
       const muzzleRect = muzzleElement
-        ? createRelativeRect(
-            muzzleElement.getBoundingClientRect(),
-            containerRect,
-          )
+        ? getRelativeLayoutRect(muzzleElement, this.container)
         : rect;
 
       return {
@@ -425,7 +398,7 @@ export class StageModel {
     ).map((element, index) => ({
       id: element.dataset.monsterId || `monster-${index}`,
       element,
-      rect: createRelativeRect(element.getBoundingClientRect(), containerRect),
+      rect: getRelativeLayoutRect(element, this.container),
       direction:
         (element.dataset.monsterDirection || "left") === "right" ? 1 : -1,
       speedMultiplier: Math.max(
@@ -441,7 +414,7 @@ export class StageModel {
       targetId: element.dataset.portalTarget || null,
       exitDirection: element.dataset.portalExitDirection || "right",
       element,
-      rect: createRelativeRect(element.getBoundingClientRect(), containerRect),
+      rect: getRelativeLayoutRect(element, this.container),
     }));
 
     if (!this.initialTriggerStates) {
@@ -497,10 +470,7 @@ export class StageModel {
       return { x: 0, y: 0 };
     }
 
-    const spawnRect = createRelativeRect(
-      spawnElement.getBoundingClientRect(),
-      this.containerRect,
-    );
+    const spawnRect = getRelativeLayoutRect(spawnElement, this.container);
 
     return {
       x: spawnRect.left + (spawnRect.width - characterSize.width) / 2,
