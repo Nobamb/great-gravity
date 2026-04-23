@@ -1,18 +1,5 @@
 import Matter from "matter-js";
-
-function createRelativeRect(elementRect, containerRect) {
-  const left = elementRect.left - containerRect.left;
-  const top = elementRect.top - containerRect.top;
-
-  return {
-    left,
-    top,
-    width: elementRect.width,
-    height: elementRect.height,
-    right: left + elementRect.width,
-    bottom: top + elementRect.height,
-  };
-}
+import { getRelativeLayoutRect } from "../dom/layoutMetrics.js";
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -342,7 +329,6 @@ export class PhysicsModel {
       ...(this.dynamicBodies.stone ? [this.dynamicBodies.stone] : []),
     ]);
 
-    const containerRect = this.container.getBoundingClientRect();
     const fluidElements = Array.from(
       this.container.querySelectorAll("[data-fluid-type]"),
     );
@@ -356,10 +342,7 @@ export class PhysicsModel {
           return null;
         }
 
-        const originRect = createRelativeRect(
-          element.getBoundingClientRect(),
-          containerRect,
-        );
+        const originRect = getRelativeLayoutRect(element, this.container);
         const densityScale = Math.max(
           1,
           parseOptionalNumber(element.dataset.fluidDensityScale) ?? 1,
@@ -393,9 +376,9 @@ export class PhysicsModel {
       this.treasureAnchorElement ?? this.treasureElement;
 
     if (treasureSourceElement) {
-      const treasureRect = createRelativeRect(
-        treasureSourceElement.getBoundingClientRect(),
-        containerRect,
+      const treasureRect = getRelativeLayoutRect(
+        treasureSourceElement,
+        this.container,
       );
 
       this.dynamicBodies.treasure = this.createTreasureBody(treasureRect);
@@ -404,9 +387,9 @@ export class PhysicsModel {
     }
 
     if (this.stoneElement && this.stoneAnchorElement) {
-      const stoneRect = createRelativeRect(
-        this.stoneAnchorElement.getBoundingClientRect(),
-        containerRect,
+      const stoneRect = getRelativeLayoutRect(
+        this.stoneAnchorElement,
+        this.container,
       );
       this.stoneSpawnRect = stoneRect;
       this.dynamicBodies.stone = this.createStoneBody(stoneRect);
@@ -470,10 +453,7 @@ export class PhysicsModel {
     this.projectileTriggers = Array.from(
       this.container.querySelectorAll('[data-projectile-trigger="true"]'),
     ).map((element, index) => {
-      const rect = createRelativeRect(
-        element.getBoundingClientRect(),
-        this.container.getBoundingClientRect(),
-      );
+      const rect = getRelativeLayoutRect(element, this.container);
 
       return {
         id: element.dataset.triggerId || `projectile-trigger-${index}`,
@@ -793,11 +773,7 @@ export class PhysicsModel {
       }
 
       // 새 파티클 생성
-      const containerRect = this.container.getBoundingClientRect();
-      const originRect = createRelativeRect(
-        zone.element.getBoundingClientRect(),
-        containerRect,
-      );
+      const originRect = getRelativeLayoutRect(zone.element, this.container);
       zone.originRect = originRect;
       zone.containmentRect = { ...originRect };
 
@@ -2108,10 +2084,7 @@ export class PhysicsModel {
       }
 
       const liveRect = trigger.element
-        ? createRelativeRect(
-            trigger.element.getBoundingClientRect(),
-            this.container.getBoundingClientRect(),
-          )
+        ? getRelativeLayoutRect(trigger.element, this.container)
         : trigger.rect;
       const radius = stoneBody.circleRadius;
       const previousCenterX = stoneBody.position.x - stoneBody.velocity.x;
