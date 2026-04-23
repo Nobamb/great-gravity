@@ -3494,6 +3494,15 @@ export class GameController {
     if (stoneState === "held") {
       const carryPoint = this.getStoneCarryPoint();
       const pointerPosition = pointer.position ?? carryPoint;
+
+      if (pointer.inputType === "touch" && !pointer.startedOnCharacter) {
+        this.physicsController.setHeldStonePosition(carryPoint);
+        this.isPreparingStoneThrow = false;
+        this.isDraggingStone = false;
+        this.stoneAim = null;
+        return;
+      }
+
       const dragDistance = this.getPointerDistance(
         pointer.dragStart ?? pointerPosition,
         pointerPosition,
