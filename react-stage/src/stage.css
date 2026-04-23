@@ -5350,6 +5350,12 @@ body {
   justify-content: center;
 }
 
+.mobile-controls--rotated .mobile-controls__dpad,
+.mobile-controls--rotated .mobile-controls__actions {
+  transform: rotate(90deg);
+  transform-origin: center center;
+}
+
 .mobile-controls__dpad {
   position: relative;
   flex: 0 0 min(128px, 29.8vmin);
