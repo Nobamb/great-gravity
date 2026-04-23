@@ -1,3 +1,8 @@
+import {
+  getContainerLayoutRect,
+  getRelativeLayoutRect,
+} from "../dom/layoutMetrics.js";
+
 const CUSTOM_MISSION_ALARM_DURATION_MS = 1600;
 
 export class GameView {
@@ -202,7 +207,10 @@ export class GameView {
   }
 
   measureCharacter() {
-    const rect = this.characterElement.getBoundingClientRect();
+    const rect = getRelativeLayoutRect(
+      this.characterElement,
+      this.containerElement,
+    );
 
     return {
       width: rect.width,
@@ -393,29 +401,30 @@ export class GameView {
       return null;
     }
 
-    const containerRect = this.containerElement.getBoundingClientRect();
     const heldStoneRect =
       this.heldStoneElement && !this.heldStoneElement.hidden
-        ? this.heldStoneElement.getBoundingClientRect()
+        ? getRelativeLayoutRect(this.heldStoneElement, this.containerElement)
         : null;
 
     if (heldStoneRect && heldStoneRect.width > 0 && heldStoneRect.height > 0) {
       return {
-        x: heldStoneRect.left - containerRect.left + heldStoneRect.width / 2,
-        y: heldStoneRect.top - containerRect.top + heldStoneRect.height / 2,
+        x: heldStoneRect.left + heldStoneRect.width / 2,
+        y: heldStoneRect.top + heldStoneRect.height / 2,
       };
     }
 
-    const headRect = this.characterHeadElement?.getBoundingClientRect();
+    const headRect = this.characterHeadElement
+      ? getRelativeLayoutRect(this.characterHeadElement, this.containerElement)
+      : null;
 
     if (!headRect) {
       return null;
     }
 
     return {
-      x: headRect.left - containerRect.left + headRect.width / 2,
+      x: headRect.left + headRect.width / 2,
       y:
-        headRect.top - containerRect.top - Math.max(headRect.height * 0.35, 10),
+        headRect.top - Math.max(headRect.height * 0.35, 10),
     };
   }
 
@@ -894,18 +903,16 @@ export class GameView {
       return [];
     }
 
-    const containerRect = this.containerElement.getBoundingClientRect();
-
     return this.bossStoneSlots
       .filter(({ element }) => !element.hidden)
       .map(({ element }) => {
-        const rect = element.getBoundingClientRect();
+        const rect = getRelativeLayoutRect(element, this.containerElement);
 
         return {
-          left: rect.left - containerRect.left,
-          top: rect.top - containerRect.top,
-          right: rect.right - containerRect.left,
-          bottom: rect.bottom - containerRect.top,
+          left: rect.left,
+          top: rect.top,
+          right: rect.right,
+          bottom: rect.bottom,
           width: rect.width,
           height: rect.height,
         };
@@ -1206,10 +1213,16 @@ export class GameView {
         warningVisible ? (ending.warningOpacity ?? 1) : 0
       }`;
 
-      const containerRect =
-        this.containerElement?.getBoundingClientRect?.() ?? null;
+      const containerRect = this.containerElement
+        ? getContainerLayoutRect(this.containerElement)
+        : null;
       const warningRect =
-        this.bossEndingWarningElement.getBoundingClientRect?.() ?? null;
+        this.containerElement && this.bossEndingWarningElement
+          ? getRelativeLayoutRect(
+              this.bossEndingWarningElement,
+              this.containerElement,
+            )
+          : null;
       const resolvedWidthRaw = warningRect?.width ?? warningWidth;
       const resolvedHeightRaw = warningRect?.height ?? warningHeight;
       const resolvedXRaw =
