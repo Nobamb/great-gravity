@@ -77,24 +77,39 @@ body {
     width: 1024px;
   }
 }
-@media (max-width: 1023px) {
+@media (max-width: 1023px), (pointer: coarse) and (max-height: 1023px) {
   #screen {
     width: 600px;
   }
 
   #screen.screen--mobile-portrait {
+    width: min(600px, 100vw);
     width: min(600px, 100dvw);
     height: auto;
     aspect-ratio: 16 / 9;
     transform: none;
   }
 
-  #screen.screen--mobile-landscape {
-    width: 100dvh;
-    height: 100dvw;
+  #screen.screen--mobile-landscape,
+  #screen:fullscreen.screen--mobile-landscape {
     max-width: none;
-    aspect-ratio: auto;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    transform-origin: center center;
+  }
+
+  #screen.screen--mobile-landscape.screen--viewport-portrait,
+  #screen:fullscreen.screen--mobile-landscape.screen--viewport-portrait {
+    width: min(100vh, calc(100vw * 16 / 9));
+    width: min(100dvh, calc(100dvw * 16 / 9));
     transform: rotate(90deg);
+  }
+
+  #screen.screen--mobile-landscape.screen--viewport-landscape,
+  #screen:fullscreen.screen--mobile-landscape.screen--viewport-landscape {
+    width: min(100vw, calc(100vh * 16 / 9));
+    width: min(100dvw, calc(100dvh * 16 / 9));
+    transform: none;
     transform-origin: center center;
   }
 }
