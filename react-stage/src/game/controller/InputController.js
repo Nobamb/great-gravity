@@ -1,6 +1,26 @@
 import { getRelativePointerPosition } from "../dom/layoutMetrics.js";
 
 const MOBILE_JOYSTICK_EVENT = "great-gravity:mobile-joystick";
+const INTERACTIVE_UI_SELECTOR = [
+    ".mobile-controls",
+    ".game-preferences-btn",
+    ".clear-overlay",
+    ".clear-action",
+    ".preferences-overlay",
+    ".preferences-modal",
+    ".close-button",
+    ".mute-icon-button",
+    ".language-select__trigger",
+    ".language-select__option",
+    ".button-group button",
+    ".action-button",
+    "button",
+    "input",
+    "select",
+    "textarea",
+    "[role='button']",
+    "a[href]",
+].join(", ");
 
 /**
  * [InputController]
@@ -171,7 +191,7 @@ export class InputController {
             return false;
         }
 
-        return Boolean(target.closest(".mobile-controls"));
+        return Boolean(target.closest(INTERACTIVE_UI_SELECTOR));
     }
 
     getTouchById(touchList, touchId) {
