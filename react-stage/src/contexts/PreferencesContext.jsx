@@ -14,7 +14,25 @@ function isMobileViewportWidth() {
         return false;
     }
 
-    return window.innerWidth <= MOBILE_VIEWPORT_MAX_WIDTH;
+    if (typeof window.matchMedia === "function") {
+        return window.matchMedia(
+            `(max-width: ${MOBILE_VIEWPORT_MAX_WIDTH}px), ` +
+            `(pointer: coarse) and (max-height: ${MOBILE_VIEWPORT_MAX_WIDTH}px)`,
+        ).matches;
+    }
+
+    return (
+        window.innerWidth <= MOBILE_VIEWPORT_MAX_WIDTH ||
+        (navigator.maxTouchPoints > 0 && window.innerHeight <= MOBILE_VIEWPORT_MAX_WIDTH)
+    );
+}
+
+function isViewportLandscapeNow() {
+    if (typeof window === "undefined") {
+        return false;
+    }
+
+    return window.innerWidth > window.innerHeight;
 }
 
 function readStoredScreenMode() {
@@ -75,8 +93,10 @@ export function PreferencesProvider({ children }) {
     const [isActualFullscreen, setIsActualFullscreen] = useState(false);
     const [screenModePreference, setScreenModePreference] = useState(readStoredScreenMode);
     const [isMobileViewport, setIsMobileViewport] = useState(isMobileViewportWidth);
+    const [isViewportLandscape, setIsViewportLandscape] = useState(isViewportLandscapeNow);
     const screenModePreferenceRef = useRef(screenModePreference);
     const isMobileViewportRef = useRef(isMobileViewport);
+    const isViewportLandscapeRef = useRef(isViewportLandscape);
     const isFullscreen = isActualFullscreen;
     const isLandscapeScreen = isMobileViewport && screenModePreference === "fullscreen";
 
@@ -136,6 +156,11 @@ export function PreferencesProvider({ children }) {
         const target = getFullscreenTarget();
 
         persistScreenModePreference("fullscreen");
+
+        if (isMobileViewportRef.current) {
+            syncFullscreenState();
+            return;
+        }
 
         if (!target || getFullscreenElement() || typeof target.requestFullscreen !== "function") {
             syncFullscreenState();
@@ -247,9 +272,12 @@ export function PreferencesProvider({ children }) {
     useEffect(() => {
         const syncMobileViewport = () => {
             const nextIsMobileViewport = isMobileViewportWidth();
+            const nextIsViewportLandscape = isViewportLandscapeNow();
 
             isMobileViewportRef.current = nextIsMobileViewport;
+            isViewportLandscapeRef.current = nextIsViewportLandscape;
             setIsMobileViewport(nextIsMobileViewport);
+            setIsViewportLandscape(nextIsViewportLandscape);
 
             if (!nextIsMobileViewport) {
                 syncFullscreenState();
@@ -258,8 +286,10 @@ export function PreferencesProvider({ children }) {
 
         syncMobileViewport();
         window.addEventListener("resize", syncMobileViewport);
+        window.addEventListener("orientationchange", syncMobileViewport);
         return () => {
             window.removeEventListener("resize", syncMobileViewport);
+            window.removeEventListener("orientationchange", syncMobileViewport);
         };
     }, []);
 
@@ -293,6 +323,7 @@ export function PreferencesProvider({ children }) {
         isFullscreen,
         screenModePreference,
         isMobileViewport,
+        isViewportLandscape,
         isLandscapeScreen,
         enterFullscreen,
         exitFullscreen,
