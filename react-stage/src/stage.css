@@ -5325,17 +5325,20 @@ body {
 
 /* Mobile Controls */
 .mobile-controls {
-  position: absolute;
-  bottom: calc(20 * var(--cw));
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + min(12px, 2.8vmin));
   left: 0;
+  right: 0;
   width: 100%;
-  height: calc(180 * var(--cw));
+  height: min(150px, 34.9vmin);
   pointer-events: none;
   display: flex;
   justify-content: space-between;
-  padding: 0 calc(40 * var(--cw));
+  gap: clamp(32px, 14vw, 96px);
+  padding: 0 min(40px, 9.3vmin);
   box-sizing: border-box;
-  z-index: 1200;
+  z-index: 1500;
+  touch-action: none;
 }
 
 .mobile-controls__dpad,
@@ -5347,16 +5350,70 @@ body {
   justify-content: center;
 }
 
-.mobile-controls__dpad-mid {
-  display: flex;
-  gap: calc(64 * var(--cw));
+.mobile-controls__dpad {
+  position: relative;
+  flex: 0 0 min(128px, 29.8vmin);
+  width: min(128px, 29.8vmin);
+  height: min(128px, 29.8vmin);
+  min-width: min(128px, 29.8vmin);
+  min-height: min(128px, 29.8vmin);
+  max-width: min(128px, 29.8vmin);
+  max-height: min(128px, 29.8vmin);
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(0, 0, 0, 0.76) 0 28%, transparent 29%),
+    radial-gradient(circle, rgba(0, 255, 255, 0.12), rgba(4, 14, 24, 0.42));
+  border: clamp(1px, 0.47vmin, 2px) solid rgba(0, 255, 255, 0.28);
+  box-shadow:
+    0 0 min(24px, 5.6vmin) rgba(0, 255, 255, 0.2),
+    inset 0 0 min(30px, 7vmin) rgba(0, 0, 0, 0.78);
+  touch-action: none;
+  user-select: none;
+}
+
+.mobile-controls__dpad::before,
+.mobile-controls__dpad::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: rgba(0, 255, 255, 0.12);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.mobile-controls__dpad::before {
+  width: 82%;
+  height: clamp(1px, 0.47vmin, 2px);
+}
+
+.mobile-controls__dpad::after {
+  width: clamp(1px, 0.47vmin, 2px);
+  height: 82%;
+}
+
+.mobile-controls__joystick-stick {
+  width: min(54px, 12.6vmin);
+  height: min(54px, 12.6vmin);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.28), transparent 18%),
+    #020308;
+  border: clamp(1px, 0.47vmin, 2px) solid rgba(0, 255, 255, 0.7);
+  box-shadow:
+    0 0 min(18px, 4.2vmin) rgba(0, 255, 255, 0.72),
+    0 0 min(32px, 7.5vmin) rgba(0, 255, 255, 0.26),
+    inset 0 0 min(16px, 3.8vmin) rgba(0, 255, 255, 0.18);
+  will-change: transform;
+  z-index: 1;
 }
 
 .mobile-btn {
-  width: calc(64 * var(--cw));
-  height: calc(64 * var(--cw));
+  width: min(50px, 11.7vmin);
+  height: min(50px, 11.7vmin);
   background: rgba(10, 10, 30, 0.5);
-  border: calc(2 * var(--cw)) solid rgba(0, 255, 255, 0.3);
+  border: clamp(1px, 0.47vmin, 2px) solid rgba(0, 255, 255, 0.3);
   border-radius: 50%;
   color: #00ffff;
   display: flex;
@@ -5365,7 +5422,7 @@ body {
   cursor: pointer;
   user-select: none;
   touch-action: none;
-  backdrop-filter: blur(calc(4 * var(--cw)));
+  backdrop-filter: blur(min(4px, 0.95vmin));
   transition:
     transform 0.1s ease,
     background 0.1s ease;
@@ -5378,26 +5435,29 @@ body {
 }
 
 .mobile-btn .material-symbols-outlined {
-  font-size: calc(32 * var(--cw));
+  font-size: min(28px, 6.6vmin);
 }
 
 .mobile-controls__actions {
-  flex-direction: row-reverse;
-  align-items: flex-end;
-  gap: calc(40 * var(--cw));
+  display: grid;
+  grid-template-columns: repeat(2, min(50px, 11.7vmin));
+  grid-template-rows: repeat(2, min(50px, 11.7vmin));
+  column-gap: min(30px, 7vmin);
+  row-gap: min(12px, 2.8vmin);
+  align-items: center;
+  justify-items: center;
 }
 
 .mobile-btn--action {
-  width: calc(72 * var(--cw));
-  height: calc(72 * var(--cw));
-  border-radius: calc(16 * var(--cw));
+  border-radius: 50%;
   font-weight: bold;
-  font-size: calc(20 * var(--cw));
+  font-size: min(20px, 4.7vmin);
 }
 
 .mobile-btn--jump {
-  width: calc(88 * var(--cw));
-  height: calc(88 * var(--cw));
+  grid-column: 1 / 3;
+  grid-row: 1;
+  justify-self: center;
   border-radius: 50%;
   border-color: rgba(255, 255, 0, 0.4);
   color: #ffff00;
@@ -5409,6 +5469,8 @@ body {
 }
 
 .mobile-btn--e {
+  grid-column: 2;
+  grid-row: 2;
   border-color: rgba(255, 0, 255, 0.4);
   color: #ff00ff;
 }
@@ -5419,6 +5481,8 @@ body {
 }
 
 .mobile-btn--r {
+  grid-column: 1;
+  grid-row: 2;
   border-color: rgba(255, 50, 0, 0.4);
   color: #ff3200;
 }
