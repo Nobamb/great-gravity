@@ -11,8 +11,15 @@ const LANGUAGE_OPTIONS = [
 ];
 const RESTART_STAGE_EVENT = "great-gravity:restart-stage";
 
-function ScreenSizePreference({ isFullscreen, enterFullscreen, exitFullscreen }) {
+function ScreenSizePreference({
+    isFullscreen,
+    isMobileViewport,
+    isLandscapeScreen,
+    enterFullscreen,
+    exitFullscreen,
+}) {
     const { t } = useTranslation();
+    const isLandscapeMode = isMobileViewport ? isLandscapeScreen : isFullscreen;
 
     return (
         <div className="preference-item">
@@ -20,17 +27,25 @@ function ScreenSizePreference({ isFullscreen, enterFullscreen, exitFullscreen })
             <div className="button-group">
                 <button
                     type="button"
-                    className={!isFullscreen ? "active" : ""}
+                    className={!isLandscapeMode ? "active" : ""}
                     onClick={exitFullscreen}
                 >
-                    {t("preferences.defaultScreen")}
+                    {t(
+                        isMobileViewport
+                            ? "preferences.portraitScreen"
+                            : "preferences.defaultScreen",
+                    )}
                 </button>
                 <button
                     type="button"
-                    className={isFullscreen ? "active" : ""}
+                    className={isLandscapeMode ? "active" : ""}
                     onClick={enterFullscreen}
                 >
-                    {t("preferences.fullscreen")}
+                    {t(
+                        isMobileViewport
+                            ? "preferences.landscapeScreen"
+                            : "preferences.fullscreen",
+                    )}
                 </button>
             </div>
         </div>
@@ -50,6 +65,8 @@ export default function PreferencesModal() {
         language,
         setLanguage,
         isFullscreen,
+        isMobileViewport,
+        isLandscapeScreen,
         enterFullscreen,
         exitFullscreen,
         rememberCurrentScreenMode,
@@ -185,6 +202,8 @@ export default function PreferencesModal() {
 
                             <ScreenSizePreference
                                 isFullscreen={isFullscreen}
+                                isMobileViewport={isMobileViewport}
+                                isLandscapeScreen={isLandscapeScreen}
                                 enterFullscreen={enterFullscreen}
                                 exitFullscreen={exitFullscreen}
                             />
@@ -253,6 +272,8 @@ export default function PreferencesModal() {
 
                             <ScreenSizePreference
                                 isFullscreen={isFullscreen}
+                                isMobileViewport={isMobileViewport}
+                                isLandscapeScreen={isLandscapeScreen}
                                 enterFullscreen={enterFullscreen}
                                 exitFullscreen={exitFullscreen}
                             />
