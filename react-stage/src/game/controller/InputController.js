@@ -1,3 +1,5 @@
+import { getRelativePointerPosition } from "../dom/layoutMetrics.js";
+
 /**
  * [InputController]
  * 사용자의 키보드 입력을 감지하고 게임에서 사용하기 쉬운 상태로 정리합니다.
@@ -129,12 +131,7 @@ export class InputController {
             return null;
         }
 
-        const containerRect = this.containerElement.getBoundingClientRect();
-
-        return {
-            x: event.clientX - containerRect.left,
-            y: event.clientY - containerRect.top,
-        };
+        return getRelativePointerPosition(event, this.containerElement);
     }
 
     handleMouseDown(event) {
