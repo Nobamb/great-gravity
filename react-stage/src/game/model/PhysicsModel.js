@@ -258,11 +258,26 @@ export class PhysicsModel {
 
   createEngine() {
     return this.Engine.create({
-      gravity: { x: 0, y: 1.0, scale: 0.001 },
+      gravity: { x: 0, y: 1.0, scale: 0.001 * this.getStageScale() },
       positionIterations: 10,
       velocityIterations: 8,
       constraintIterations: 4,
     });
+  }
+
+  getStageScale() {
+    const width = this.container?.clientWidth ?? 0;
+    return width > 0 ? width / 1280 : 1;
+  }
+
+  scaleStageValue(value) {
+    return value * this.getStageScale();
+  }
+
+  syncGravityScale() {
+    if (this.engine?.gravity) {
+      this.engine.gravity.scale = 0.001 * this.getStageScale();
+    }
   }
 
   resetEngine() {
@@ -293,6 +308,7 @@ export class PhysicsModel {
       return;
     }
 
+    this.syncGravityScale();
     this.rebuildDynamicBodies();
     this.rebuildStaticBodies(stageModel);
     this.syncSolidifiedState(stageModel.runtimeSolids);
@@ -306,6 +322,7 @@ export class PhysicsModel {
 
     if (hardReset) {
       this.resetEngine();
+      this.syncGravityScale();
       this.rebuildDynamicBodies();
       this.rebuildStaticBodies(stageModel);
       this.syncSolidifiedState(stageModel.runtimeSolids);
@@ -314,9 +331,11 @@ export class PhysicsModel {
     }
 
     if (resetDynamics || !this.initialized) {
+      this.syncGravityScale();
       this.rebuildDynamicBodies();
     }
 
+    this.syncGravityScale();
     this.rebuildStaticBodies(stageModel);
     this.syncSolidifiedState(stageModel.runtimeSolids);
     this.initialized = true;
@@ -463,9 +482,10 @@ export class PhysicsModel {
       };
     });
 
-    const boundaryThickness = Math.max(48, stageModel.bounds.width * 0.05);
-    const minSolidThickness = Math.max(12, stageModel.bounds.width * 0.012);
-    const solidCollisionPadding = Math.max(2, stageModel.bounds.width * 0.0025);
+    const stageScale = this.getStageScale();
+    const boundaryThickness = 64 * stageScale;
+    const minSolidThickness = 15.36 * stageScale;
+    const solidCollisionPadding = 3.2 * stageScale;
     const leftWall = this.Bodies.rectangle(
       -boundaryThickness / 2,
       stageModel.bounds.height / 2,
@@ -490,7 +510,7 @@ export class PhysicsModel {
 
     this.renderObstacles = physicsSolids.map((solid) =>
       this.createObstacleRect(solid, {
-        padding: this.renderObstaclePadding,
+        padding: this.scaleStageValue(this.renderObstaclePadding),
       }),
     );
 
@@ -813,9 +833,11 @@ export class PhysicsModel {
         return;
       }
 
+      const stageScale = this.getStageScale();
       const nextVelocityY = Math.min(
-        (block.velocityY ?? 0) + this.solidifyConfig.gravity * dt,
-        this.solidifyConfig.maxFallSpeed,
+        (block.velocityY ?? 0) +
+          this.solidifyConfig.gravity * stageScale * dt,
+        this.solidifyConfig.maxFallSpeed * stageScale,
       );
       let nextTop = block.top + nextVelocityY * dt;
       let nextBottom = nextTop + block.height;
@@ -830,8 +852,9 @@ export class PhysicsModel {
 
       supports.forEach((support) => {
         const horizontalOverlap =
-          block.left < support.right - 2 && block.right > support.left + 2;
-        const startsAbove = block.bottom <= support.top + 4;
+          block.left < support.right - 2 * stageScale &&
+          block.right > support.left + 2 * stageScale;
+        const startsAbove = block.bottom <= support.top + 4 * stageScale;
 
         if (!horizontalOverlap || !startsAbove) {
           return;
@@ -1475,7 +1498,7 @@ export class PhysicsModel {
     const start = bodyA.position;
     const end = bodyB.position;
     const padding = Math.max(
-      1.5,
+      this.scaleStageValue(1.5),
       Math.min(bodyA.circleRadius, bodyB.circleRadius) * 0.3,
     );
 
@@ -1934,7 +1957,7 @@ export class PhysicsModel {
       stoneBody.velocity.x ** 2 + stoneBody.velocity.y ** 2,
     );
 
-    if (speed > 2.8) {
+    if (speed > 2.8 * this.getStageScale()) {
       return false;
     }
 
@@ -2062,7 +2085,7 @@ export class PhysicsModel {
       stoneBody.velocity.x ** 2 + stoneBody.velocity.y ** 2,
     );
 
-    if (speed < 2.2) {
+    if (speed < 2.2 * this.getStageScale()) {
       return;
     }
 
@@ -2073,7 +2096,10 @@ export class PhysicsModel {
         travelDx * travelDx + travelDy * travelDy,
       );
 
-      if (travelDistance < Math.max(stoneBody.circleRadius * 2.2, 18)) {
+      if (
+        travelDistance <
+        Math.max(stoneBody.circleRadius * 2.2, this.scaleStageValue(18))
+      ) {
         return;
       }
     }
@@ -2095,7 +2121,10 @@ export class PhysicsModel {
         right: Math.max(stoneBounds.right, previousCenterX + radius),
         bottom: Math.max(stoneBounds.bottom, previousCenterY + radius),
       };
-      const triggerPadding = Math.max(stoneBody.circleRadius * 0.35, 4);
+      const triggerPadding = Math.max(
+        stoneBody.circleRadius * 0.35,
+        this.scaleStageValue(4),
+      );
       const overlapsTrigger = !(
         sweptBounds.right < liveRect.left - triggerPadding ||
         sweptBounds.left > liveRect.right + triggerPadding ||
@@ -2177,7 +2206,7 @@ export class PhysicsModel {
       return;
     }
 
-    if (speed > 1.1 || spin > 0.04) {
+    if (speed > 1.1 * this.getStageScale() || spin > 0.04) {
       return;
     }
 
@@ -2359,7 +2388,7 @@ export class PhysicsModel {
   }
 
   removeOffscreenFluidBodies() {
-    const removalLine = this.container.clientHeight + 120;
+    const removalLine = this.container.clientHeight + this.scaleStageValue(120);
     let cacheDirty = false;
 
     this.fluidZones.forEach((zone) => {
