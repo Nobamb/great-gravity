@@ -5298,8 +5298,8 @@ body {
   position: absolute;
   top: calc(20 * var(--cw));
   right: calc(20 * var(--cw));
-  width: calc(48 * var(--cw));
-  height: calc(48 * var(--cw));
+  width: calc(80 * var(--cw));
+  height: calc(80 * var(--cw));
   background: rgba(10, 10, 30, 0.4);
   border: calc(1.5 * var(--cw)) solid rgba(0, 255, 255, 0.2);
   border-radius: calc(12 * var(--cw));
@@ -5308,7 +5308,7 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 1100;
+  z-index: 1800;
   transition: all 0.2s ease;
   backdrop-filter: blur(calc(4 * var(--cw)));
 }
@@ -5320,7 +5320,7 @@ body {
 }
 
 .game-preferences-btn .material-symbols-outlined {
-  font-size: calc(28 * var(--cw));
+  font-size: calc(42 * var(--cw));
 }
 
 /* Mobile Controls */
