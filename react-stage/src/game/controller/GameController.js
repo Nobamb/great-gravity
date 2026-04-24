@@ -2604,10 +2604,7 @@ export class GameController {
   }
 
   updateActiveTrigger() {
-    const interactionPadding = Math.max(
-      18,
-      this.stageModel.bounds.width * 0.02,
-    );
+    const interactionPadding = this.scaleStageValue(1280 * 0.02);
     const candidateTrigger = this.stageModel.getInteractableTrigger(
       this.characterModel.getBounds(),
       interactionPadding,
@@ -2649,7 +2646,7 @@ export class GameController {
   handleTimedBlocks() {
     const timedBlock = this.stageModel.getStandingTimedBlock(
       this.characterModel.getBounds(),
-      Math.max(8, this.stageModel.bounds.width * 0.007),
+      this.scaleStageValue(1280 * 0.007),
     );
 
     if (timedBlock) {
@@ -3383,6 +3380,16 @@ export class GameController {
     return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}:${String(centiseconds).padStart(2, "0")}`;
   }
 
+  getStageScale() {
+    return this.stageModel.bounds.width > 0
+      ? this.stageModel.bounds.width / 1280
+      : 1;
+  }
+
+  scaleStageValue(value) {
+    return value * this.getStageScale();
+  }
+
   syncPhysicsRuntimeState() {
     this.stageModel.setRuntimeSolids(
       this.physicsController?.getSolidifiedBlocks?.() ?? [],
@@ -3409,7 +3416,7 @@ export class GameController {
     return (
       this.physicsController?.canPickupStone?.(
         this.characterModel.getBounds(),
-        Math.max(16, this.stageModel.bounds.width * 0.015),
+        this.scaleStageValue(1280 * 0.015),
       ) ?? false
     );
   }
@@ -3442,7 +3449,7 @@ export class GameController {
       return;
     }
 
-    const pickupPadding = Math.max(12, this.stageModel.bounds.width * 0.012);
+    const pickupPadding = this.scaleStageValue(1280 * 0.012);
     const source = this.stageModel.getOverlappingStoneSource(
       this.characterModel.getBounds(),
       pickupPadding,
@@ -3483,7 +3490,7 @@ export class GameController {
   handleStoneInteraction(input) {
     const pointer = input.pointer;
     const stoneState = this.getStoneState();
-    const aimThreshold = Math.max(34, this.stageModel.bounds.width * 0.028);
+    const aimThreshold = this.scaleStageValue(1280 * 0.028);
 
     if (!pointer || !this.physicsController) {
       this.isDraggingStone = false;
@@ -3593,7 +3600,7 @@ export class GameController {
     const dx = pointerPoint.x - carryPoint.x;
     const dy = pointerPoint.y - carryPoint.y;
     const distance = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
-    const releaseOffset = Math.max(12, this.stageModel.bounds.width * 0.012);
+    const releaseOffset = this.scaleStageValue(1280 * 0.012);
 
     return {
       x: carryPoint.x + (dx / distance) * releaseOffset,
@@ -3605,8 +3612,17 @@ export class GameController {
     const dx = target.x - origin.x;
     const dy = target.y - origin.y;
     const distance = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
-    const strength = clamp(dragDistance ?? distance, 24, 280);
-    const launchSpeed = clamp(strength * 0.12, 4, 34);
+    const stageScale = this.getStageScale();
+    const strength = clamp(
+      dragDistance ?? distance,
+      24 * stageScale,
+      280 * stageScale,
+    );
+    const launchSpeed = clamp(
+      strength * 0.12,
+      4 * stageScale,
+      34 * stageScale,
+    );
 
     return {
       x: (dx / distance) * launchSpeed,
