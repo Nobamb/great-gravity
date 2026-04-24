@@ -5325,12 +5325,16 @@ body {
 
 /* Mobile Controls */
 .mobile-controls {
+  --mobile-controls-bottom: calc(
+    env(safe-area-inset-bottom, 0px) + min(12px, 2.8vmin)
+  );
+  --mobile-controls-height: min(150px, 34.9vmin);
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + min(12px, 2.8vmin));
+  bottom: var(--mobile-controls-bottom);
   left: 0;
   right: 0;
   width: 100%;
-  height: min(150px, 34.9vmin);
+  height: var(--mobile-controls-height);
   pointer-events: none;
   display: flex;
   justify-content: space-between;
@@ -5341,6 +5345,16 @@ body {
   touch-action: none;
 }
 
+.mobile-controls--rotated {
+  left: var(--mobile-controls-bottom);
+  right: auto;
+  bottom: 0;
+  width: 100dvh;
+  transform: translateY(-100dvh) rotate(90deg);
+  transform-origin: left bottom;
+  padding: 0 min(40px, 9.3vmin);
+}
+
 .mobile-controls__dpad,
 .mobile-controls__actions {
   pointer-events: auto;
@@ -5348,12 +5362,6 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-
-.mobile-controls--rotated .mobile-controls__dpad,
-.mobile-controls--rotated .mobile-controls__actions {
-  transform: rotate(90deg);
-  transform-origin: center center;
 }
 
 .mobile-controls__dpad {
