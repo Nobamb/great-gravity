@@ -109,8 +109,8 @@ export default function MobileControls() {
         const maxOffset = Math.min(rect.width, rect.height) * 0.5 - 20;
         const safeMaxOffset = Math.max(24, Math.min(maxOffset, JOYSTICK_MAX_OFFSET));
         const scale = distance > safeMaxOffset ? safeMaxOffset / distance : 1;
-        const x = rawX * scale;
-        const y = rawY * scale;
+        const x = (isRotatedLandscapeControls ? rawY : rawX) * scale;
+        const y = (isRotatedLandscapeControls ? -rawX : rawY) * scale;
         const normalizedX = x / safeMaxOffset;
         const normalizedY = y / safeMaxOffset;
         const horizontal =
