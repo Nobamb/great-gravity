@@ -250,15 +250,67 @@ export class GameView {
   }
 
   bindButton(buttonElement, propertyKey, handler) {
-    if (buttonElement && this[propertyKey]) {
-      buttonElement.removeEventListener("click", this[propertyKey]);
+    const existingListeners = this[propertyKey];
+
+    if (buttonElement && existingListeners) {
+      buttonElement.removeEventListener("click", existingListeners.handleClick);
+      buttonElement.removeEventListener(
+        "pointerup",
+        existingListeners.handlePointerUp,
+      );
+      buttonElement.removeEventListener("touchend", existingListeners.handleTouchEnd);
     }
 
-    this[propertyKey] = typeof handler === "function" ? handler : null;
+    this[propertyKey] = null;
 
-    if (buttonElement && this[propertyKey]) {
-      buttonElement.addEventListener("click", this[propertyKey]);
+    if (!buttonElement || typeof handler !== "function") {
+      return;
     }
+
+    let lastActivationTime = 0;
+    const runHandler = (event) => {
+      if (buttonElement.disabled || buttonElement.hidden) {
+        return;
+      }
+
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
+      lastActivationTime = performance.now();
+      handler(event);
+    };
+    const handleClick = (event) => {
+      if (performance.now() - lastActivationTime < 350) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+
+      runHandler(event);
+    };
+    const handlePointerUp = (event) => {
+      if (event.pointerType === "mouse") {
+        return;
+      }
+
+      runHandler(event);
+    };
+    const handleTouchEnd = (event) => {
+      if (typeof window.PointerEvent === "function") {
+        return;
+      }
+
+      runHandler(event);
+    };
+
+    this[propertyKey] = {
+      handleClick,
+      handlePointerUp,
+      handleTouchEnd,
+    };
+
+    buttonElement.addEventListener("click", handleClick);
+    buttonElement.addEventListener("pointerup", handlePointerUp);
+    buttonElement.addEventListener("touchend", handleTouchEnd, { passive: false });
   }
 
   setNextStageVisibility(isVisible) {
@@ -1638,15 +1690,9 @@ export class GameView {
   }
 
   destroy() {
-    if (this.clearRetryButton && this.boundRetryClick) {
-      this.clearRetryButton.removeEventListener("click", this.boundRetryClick);
-    }
-    if (this.clearNextButton && this.boundNextClick) {
-      this.clearNextButton.removeEventListener("click", this.boundNextClick);
-    }
-    if (this.clearMainButton && this.boundMainClick) {
-      this.clearMainButton.removeEventListener("click", this.boundMainClick);
-    }
+    this.bindButton(this.clearRetryButton, "boundRetryClick", null);
+    this.bindButton(this.clearNextButton, "boundNextClick", null);
+    this.bindButton(this.clearMainButton, "boundMainClick", null);
 
     for (const timerId of this.collapseTimers.values()) {
       window.clearTimeout(timerId);
