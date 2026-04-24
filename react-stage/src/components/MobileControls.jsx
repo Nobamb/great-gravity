@@ -22,17 +22,52 @@ export default function MobileControls() {
     const joystickRef = useRef(null);
     const activeTouchIdRef = useRef(null);
     const [stickOffset, setStickOffset] = useState({ x: 0, y: 0 });
+    const [isClearOverlayVisible, setIsClearOverlayVisible] = useState(false);
     const isRotatedLandscapeControls = isLandscapeScreen && !isViewportLandscape;
 
     useEffect(() => () => {
         dispatchJoystickInput(0, 0);
     }, []);
 
-    const handlePointerDown = (keyCode) => {
+    useEffect(() => {
+        if (typeof document === "undefined") {
+            return undefined;
+        }
+
+        const clearOverlay = document.querySelector(".clear-overlay");
+
+        if (!clearOverlay) {
+            return undefined;
+        }
+
+        const syncClearOverlayVisibility = () => {
+            setIsClearOverlayVisible(!clearOverlay.hidden);
+        };
+        const observer = new MutationObserver(syncClearOverlayVisibility);
+
+        syncClearOverlayVisibility();
+        observer.observe(clearOverlay, {
+            attributes: true,
+            attributeFilter: ["hidden"],
+        });
+
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
+
+    const stopControlEvent = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
+
+    const handlePointerDown = (event, keyCode) => {
+        stopControlEvent(event);
         window.dispatchEvent(new KeyboardEvent("keydown", { code: keyCode }));
     };
 
-    const handlePointerUp = (keyCode) => {
+    const handlePointerUp = (event, keyCode) => {
+        stopControlEvent(event);
         window.dispatchEvent(new KeyboardEvent("keyup", { code: keyCode }));
     };
 
@@ -41,6 +76,12 @@ export default function MobileControls() {
         setStickOffset({ x: 0, y: 0 });
         dispatchJoystickInput(0, 0);
     };
+
+    useEffect(() => {
+        if (!isMobileViewport || isPreferencesOpen || isClearOverlayVisible) {
+            resetJoystick();
+        }
+    }, [isMobileViewport, isPreferencesOpen, isClearOverlayVisible]);
 
     const getTrackedTouch = (touchList) => {
         const activeTouchId = activeTouchIdRef.current;
@@ -82,6 +123,9 @@ export default function MobileControls() {
     };
 
     const handleJoystickTouchStart = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
         if (activeTouchIdRef.current !== null) {
             return;
         }
@@ -97,6 +141,9 @@ export default function MobileControls() {
     };
 
     const handleJoystickTouchMove = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
         const touch = getTrackedTouch(event.changedTouches);
 
         if (!touch) {
@@ -107,6 +154,9 @@ export default function MobileControls() {
     };
 
     const handleJoystickTouchEnd = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
         const touch = getTrackedTouch(event.changedTouches);
 
         if (!touch) {
@@ -116,7 +166,12 @@ export default function MobileControls() {
         resetJoystick();
     };
 
-    if (!isMobileViewport || isPreferencesOpen || typeof document === "undefined") return null;
+    if (
+        !isMobileViewport ||
+        isPreferencesOpen ||
+        isClearOverlayVisible ||
+        typeof document === "undefined"
+    ) return null;
 
     const controls = (
         <div
@@ -147,30 +202,30 @@ export default function MobileControls() {
                 <button
                     type="button"
                     className="mobile-btn mobile-btn--action mobile-btn--r"
-                    onPointerDown={() => handlePointerDown("KeyR")}
-                    onPointerUp={() => handlePointerUp("KeyR")}
-                    onPointerLeave={() => handlePointerUp("KeyR")}
-                    onPointerCancel={() => handlePointerUp("KeyR")}
+                    onPointerDown={(event) => handlePointerDown(event, "KeyR")}
+                    onPointerUp={(event) => handlePointerUp(event, "KeyR")}
+                    onPointerLeave={(event) => handlePointerUp(event, "KeyR")}
+                    onPointerCancel={(event) => handlePointerUp(event, "KeyR")}
                 >
                     <span>R</span>
                 </button>
                 <button
                     type="button"
                     className="mobile-btn mobile-btn--action mobile-btn--e"
-                    onPointerDown={() => handlePointerDown("KeyE")}
-                    onPointerUp={() => handlePointerUp("KeyE")}
-                    onPointerLeave={() => handlePointerUp("KeyE")}
-                    onPointerCancel={() => handlePointerUp("KeyE")}
+                    onPointerDown={(event) => handlePointerDown(event, "KeyE")}
+                    onPointerUp={(event) => handlePointerUp(event, "KeyE")}
+                    onPointerLeave={(event) => handlePointerUp(event, "KeyE")}
+                    onPointerCancel={(event) => handlePointerUp(event, "KeyE")}
                 >
                     <span>E</span>
                 </button>
                 <button
                     type="button"
                     className="mobile-btn mobile-btn--action mobile-btn--jump"
-                    onPointerDown={() => handlePointerDown("Space")}
-                    onPointerUp={() => handlePointerUp("Space")}
-                    onPointerLeave={() => handlePointerUp("Space")}
-                    onPointerCancel={() => handlePointerUp("Space")}
+                    onPointerDown={(event) => handlePointerDown(event, "Space")}
+                    onPointerUp={(event) => handlePointerUp(event, "Space")}
+                    onPointerLeave={(event) => handlePointerUp(event, "Space")}
+                    onPointerCancel={(event) => handlePointerUp(event, "Space")}
                 >
                     <span className="material-symbols-outlined">upload</span>
                 </button>
