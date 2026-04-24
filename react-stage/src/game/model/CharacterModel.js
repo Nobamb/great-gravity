@@ -333,7 +333,7 @@ export class CharacterModel {
    * 매 프레임 캐릭터의 상태를 업데이트하는 핵심 함수입니다.
    */
   update(dt, stage, input) {
-    const ladderPadding = Math.max(8, stage.bounds.width * 0.008);
+    const ladderPadding = 10.24 * this.physicsScale;
     const currentBounds = this.getBounds();
     const ladder = stage.getLadderForBounds(currentBounds, ladderPadding);
     const waterZone = this.getSwimmingWaterZone(currentBounds, stage);
@@ -588,7 +588,7 @@ export class CharacterModel {
    * 사다리를 타고 있을 때의 이동 로직입니다.
    */
   updateClimbing(dt, stage, input) {
-    const ladderPadding = Math.max(6, stage.bounds.width * 0.006);
+    const ladderPadding = 7.68 * this.physicsScale;
     const ladder = stage.getLadderForBounds(this.getBounds(), ladderPadding);
 
     if (!ladder) {
@@ -630,11 +630,11 @@ export class CharacterModel {
    * 수평 방향 지형 충돌을 체크하고 위치를 보정합니다.
    */
   getCollisionStepSize() {
-    return Math.max(4, 4 * this.physicsScale);
+    return 4 * this.physicsScale;
   }
 
   getCollisionEpsilon() {
-    return Math.max(2, 2 * this.physicsScale);
+    return 2 * this.physicsScale;
   }
 
   moveWithSubsteps(
