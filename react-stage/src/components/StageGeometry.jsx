@@ -1645,6 +1645,11 @@ export default function StageGeometry({
   ];
 
   const { openPreferences } = usePreferences();
+  const handlePreferencesPointer = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    openPreferences();
+  };
 
   return (
     <div
@@ -1658,6 +1663,7 @@ export default function StageGeometry({
         type="button"
         className="game-preferences-btn"
         aria-label={t("common.settings")}
+        onPointerUp={handlePreferencesPointer}
         onClick={openPreferences}
       >
         <span className="material-symbols-outlined">settings</span>
