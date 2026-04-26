@@ -24,12 +24,20 @@ export class GameView {
       this.containerElement?.querySelector(".clear-overlay") ?? null;
     this.clearTimeElement =
       this.clearOverlayElement?.querySelector(".clear-time") ?? null;
+    this.clearDeathElement =
+      this.clearOverlayElement?.querySelector(".clear-death__value") ?? null;
     this.clearRetryButton =
       this.clearOverlayElement?.querySelector(".clear-action--retry") ?? null;
     this.clearNextButton =
       this.clearOverlayElement?.querySelector(".clear-action--next") ?? null;
+    this.clearStageSelectButton =
+      this.clearOverlayElement?.querySelector(".clear-action--stage-select") ??
+      null;
     this.clearMainButton =
       this.clearOverlayElement?.querySelector(".clear-action--main") ?? null;
+    this.clearStarElements = Array.from(
+      this.clearOverlayElement?.querySelectorAll(".clear-star") ?? [],
+    );
     this.clearStarMasks = Array.from(
       this.clearOverlayElement?.querySelectorAll(".clear-star-mask") ?? [],
     );
@@ -162,6 +170,7 @@ export class GameView {
     this.activeMissionAlarmToken = null;
     this.boundRetryClick = null;
     this.boundNextClick = null;
+    this.boundStageSelectClick = null;
     this.boundMainClick = null;
     this.reportedBossImageErrors = new Set();
     this.reportedBossImageLoads = new Set();
@@ -243,9 +252,14 @@ export class GameView {
     this.refreshBossStageElements();
   }
 
-  bindControls({ onRetry, onNextStage, onMain } = {}) {
+  bindControls({ onRetry, onNextStage, onStageSelect, onMain } = {}) {
     this.bindButton(this.clearRetryButton, "boundRetryClick", onRetry);
     this.bindButton(this.clearNextButton, "boundNextClick", onNextStage);
+    this.bindButton(
+      this.clearStageSelectButton,
+      "boundStageSelectClick",
+      onStageSelect,
+    );
     this.bindButton(this.clearMainButton, "boundMainClick", onMain);
   }
 
@@ -318,8 +332,8 @@ export class GameView {
       return;
     }
 
-    this.clearNextButton.hidden = !isVisible;
     this.clearNextButton.disabled = !isVisible;
+    this.clearNextButton.setAttribute("aria-disabled", isVisible ? "false" : "true");
   }
 
   updateTimer(timeText) {
@@ -349,7 +363,7 @@ export class GameView {
     );
   }
 
-  showClearOverlay({ timeText, stars, showNextStage = false }) {
+  showClearOverlay({ timeText, stars, deathCount = 0, showNextStage = false }) {
     if (!this.clearOverlayElement) {
       return;
     }
@@ -358,15 +372,28 @@ export class GameView {
       this.clearTimeElement.textContent = timeText;
     }
 
+    if (this.clearDeathElement) {
+      this.clearDeathElement.textContent = String(Math.max(0, deathCount));
+    }
+
     this.setNextStageVisibility(showNextStage);
 
+    const starFillAmounts = [];
     this.clearStarMasks.forEach((maskElement, index) => {
       const fillAmount = Math.max(0, Math.min(1, stars - index));
+      starFillAmounts[index] = fillAmount;
       maskElement.style.width = `${fillAmount * 100}%`;
     });
 
     this.setRestartHoldState();
     this.clearOverlayElement.hidden = false;
+    this.clearStarElements.forEach((starElement, index) => {
+      starElement.classList.remove("is-visible");
+      void starElement.offsetWidth;
+      if (starFillAmounts[index] > 0) {
+        starElement.classList.add("is-visible");
+      }
+    });
   }
 
   hideClearOverlay() {
