@@ -6,7 +6,7 @@ import SpeechBubble from "./SpeechBubble";
 
 export default function MainPage() {
     const navigate = useNavigate();
-    const { openPreferences } = usePreferences();
+    const { openPreferences, openHowToPlay } = usePreferences();
     const { t } = useTranslation();
     const [isSettingsHovered, setIsSettingsHovered] = useState(false);
 
@@ -67,6 +67,7 @@ export default function MainPage() {
                         <button
                             type="button"
                             className="menu-button menu-button--secondary"
+                            onClick={openHowToPlay}
                         >
                             <span>{t("main.howToPlay")}</span>
                             <span className="material-symbols-outlined">info</span>
