@@ -85,6 +85,7 @@ function getFullscreenTarget() {
 
 export function PreferencesProvider({ children }) {
     const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
+    const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
     const [bgmVolume, setBgmVolume] = useState(50);
     const [gameVolume, setGameVolume] = useState(50);
     const [isMuted, setIsMutedState] = useState(false);
@@ -103,6 +104,9 @@ export function PreferencesProvider({ children }) {
     const openPreferences = () => setIsPreferencesOpen(true);
     const closePreferences = () => setIsPreferencesOpen(false);
     const togglePreferences = () => setIsPreferencesOpen((prev) => !prev);
+    const openHowToPlay = () => setIsHowToPlayOpen(true);
+    const closeHowToPlay = () => setIsHowToPlayOpen(false);
+    const toggleHowToPlay = () => setIsHowToPlayOpen((prev) => !prev);
     const isAudioMuted = isMuted || isAutoplayMuted;
     const setIsMuted = (nextValue) => {
         setIsMutedState((previousValue) => {
@@ -236,6 +240,10 @@ export function PreferencesProvider({ children }) {
                 togglePreferences();
             }
 
+            if (e.key.toLowerCase() === "h") {
+                toggleHowToPlay();
+            }
+
             if (e.key === "F5" && window.location.pathname.startsWith("/stage/")) {
                 e.preventDefault();
                 rememberCurrentScreenMode();
@@ -309,6 +317,10 @@ export function PreferencesProvider({ children }) {
         openPreferences,
         closePreferences,
         togglePreferences,
+        isHowToPlayOpen,
+        openHowToPlay,
+        closeHowToPlay,
+        toggleHowToPlay,
         bgmVolume,
         setBgmVolume,
         gameVolume,
