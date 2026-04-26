@@ -234,6 +234,9 @@ export class GameController {
             this.navigate?.(this.nextStagePath);
           }
         : null,
+      onStageSelect: () => {
+        this.navigate?.("/select");
+      },
       onMain: () => {
         this.onMainMenu?.();
       },
@@ -3365,6 +3368,7 @@ export class GameController {
     this.gameView.showClearOverlay({
       timeText: this.formatTime(this.elapsedTimeMs),
       stars: starRating,
+      deathCount: this.currentRunDeathCount,
       showNextStage: Boolean(
         this.stage?.supportsNextStage && this.nextStagePath,
       ),
