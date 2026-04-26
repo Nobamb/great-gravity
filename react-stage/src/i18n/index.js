@@ -237,7 +237,7 @@ const resources = {
                 selectPrompt: "Select a stage", actionHint: "Click a card to show Start and Ranking buttons",
                 previous: "Prev", next: "Next", ranking: "Ranking", start: "Start", pagesLabel: "stage pages",
             },
-            clear: { title: "Stage Clear", retry: "Retry", nextStage: "Next Stage", main: "Main Menu" },
+            clear: { title: "Stage Clear", retry: "Retry", nextStage: "Next Stage", stageSelect: "Stage Select", main: "Main Menu", deathCount: "Deaths" },
             game: {
                 holdRestart: "Hold R to restart",
                 remainingMonsterMission: "remaining monster mission",
@@ -272,7 +272,7 @@ const resources = {
                 selectPrompt: "스테이지를 선택해 주세요", actionHint: "카드를 클릭하면 시작하기와 랭킹보기 버튼이 표시됩니다.",
                 previous: "이전", next: "다음", ranking: "랭킹보기", start: "시작하기", pagesLabel: "스테이지 페이지",
             },
-            clear: { title: "Stage Clear", retry: "다시하기", nextStage: "다음 스테이지", main: "메인화면" },
+            clear: { title: "Stage Clear", retry: "다시하기", nextStage: "다음 스테이지", stageSelect: "스테이지 선택", main: "메인화면", deathCount: "사망 횟수" },
             game: {
                 holdRestart: "R을 길게 눌러 다시 시작",
                 remainingMonsterMission: "남은 몬스터 미션",
@@ -307,7 +307,7 @@ const resources = {
                 selectPrompt: "ステージを選択してください", actionHint: "カードをクリックすると開始とランキングボタンが表示されます。",
                 previous: "前へ", next: "次へ", ranking: "ランキング", start: "スタート", pagesLabel: "ステージページ",
             },
-            clear: { title: "Stage Clear", retry: "リトライ", nextStage: "次のステージ", main: "メイン" },
+            clear: { title: "Stage Clear", retry: "リトライ", nextStage: "次のステージ", stageSelect: "ステージ選択", main: "メイン", deathCount: "死亡回数" },
             game: {
                 holdRestart: "Rを長押しでリスタート",
                 remainingMonsterMission: "残りモンスターミッション",
@@ -342,7 +342,7 @@ const resources = {
                 selectPrompt: "请选择关卡", actionHint: "点击卡片后会显示开始和排行榜按钮。",
                 previous: "上一页", next: "下一页", ranking: "排行榜", start: "开始", pagesLabel: "关卡页面",
             },
-            clear: { title: "Stage Clear", retry: "重试", nextStage: "下一关", main: "主菜单" },
+            clear: { title: "Stage Clear", retry: "重试", nextStage: "下一关", stageSelect: "选择关卡", main: "主菜单", deathCount: "死亡次数" },
             game: {
                 holdRestart: "长按 R 重新开始",
                 remainingMonsterMission: "剩余怪物任务",
