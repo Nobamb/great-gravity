@@ -1,8 +1,16 @@
 import PreferencesModal from "./PreferencesModal.jsx";
+import HowToPlayModal from "./HowToPlayModal.jsx";
 import { usePreferences } from "../contexts/PreferencesContext.jsx";
 
 export default function Screen({ children }) {
-    const { isMobileViewport, isViewportLandscape, isLandscapeScreen } = usePreferences();
+    const { 
+        isMobileViewport, 
+        isViewportLandscape, 
+        isLandscapeScreen,
+        isHowToPlayOpen,
+        closeHowToPlay
+    } = usePreferences();
+    
     const screenClasses = [
         isMobileViewport ? "screen--mobile" : "",
         isMobileViewport && isViewportLandscape ? "screen--viewport-landscape" : "",
@@ -15,6 +23,10 @@ export default function Screen({ children }) {
         <div id="screen" className={screenClasses}>
             {children}
             <PreferencesModal />
+            <HowToPlayModal 
+                isOpen={isHowToPlayOpen} 
+                onClose={closeHowToPlay} 
+            />
         </div>
     );
 }
