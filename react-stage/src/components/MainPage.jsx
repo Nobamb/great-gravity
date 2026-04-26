@@ -9,6 +9,7 @@ export default function MainPage() {
     const { openPreferences, openHowToPlay } = usePreferences();
     const { t } = useTranslation();
     const [isSettingsHovered, setIsSettingsHovered] = useState(false);
+    const [isHowToPlayHovered, setIsHowToPlayHovered] = useState(false);
 
     return (
         <div id="game-container" className="menu-page menu-page--main">
@@ -64,14 +65,25 @@ export default function MainPage() {
                             <span>{t("main.start")}</span>
                             <span className="material-symbols-outlined">play_arrow</span>
                         </button>
-                        <button
-                            type="button"
-                            className="menu-button menu-button--secondary"
-                            onClick={openHowToPlay}
+                        <div
+                            className="menu-hero__button-wrapper"
+                            onMouseEnter={() => setIsHowToPlayHovered(true)}
+                            onMouseLeave={() => setIsHowToPlayHovered(false)}
                         >
-                            <span>{t("main.howToPlay")}</span>
-                            <span className="material-symbols-outlined">info</span>
-                        </button>
+                            <button
+                                type="button"
+                                className="menu-button menu-button--secondary"
+                                onClick={openHowToPlay}
+                            >
+                                <span>{t("main.howToPlay")}</span>
+                                <span className="material-symbols-outlined">info</span>
+                            </button>
+                            <SpeechBubble
+                                isVisible={isHowToPlayHovered}
+                                desktopKey="common.howToPlayTooltipFull"
+                                mobileKey="common.howToPlayTooltipShort"
+                            />
+                        </div>
                     </div>
                 </div>
             </main>
