@@ -4892,6 +4892,11 @@ body {
   flex-wrap: wrap;
 }
 
+.menu-hero__button-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
 .menu-button {
   display: flex;
   align-items: center;
