@@ -631,8 +631,10 @@ export class PhysicsView {
             return;
         }
 
-        const width = stoneBody.plugin.renderWidth;
-        const height = stoneBody.plugin.renderHeight;
+        const width =
+            this.stoneElement.offsetWidth || stoneBody.plugin.renderWidth;
+        const height =
+            this.stoneElement.offsetHeight || stoneBody.plugin.renderHeight;
         const x = stoneBody.position.x - (width / 2);
         const y = stoneBody.position.y - (height / 2);
 
