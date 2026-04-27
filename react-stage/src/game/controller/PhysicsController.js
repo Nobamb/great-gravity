@@ -91,6 +91,14 @@ export class PhysicsController {
         return this.physicsModel.getStoneBounds();
     }
 
+    getStoneDebugSnapshot() {
+        if (!this.physicsModel.enabled) {
+            return null;
+        }
+
+        return this.physicsModel.getStoneDebugSnapshot();
+    }
+
     canPickupStone(characterBounds, padding = 0) {
         if (!this.physicsModel.enabled) {
             return false;
@@ -105,6 +113,26 @@ export class PhysicsController {
         }
 
         return this.physicsModel.getStoneState();
+    }
+
+    getStoneTrajectoryConfig() {
+        if (!this.physicsModel.enabled) {
+            return null;
+        }
+
+        return this.physicsModel.getStoneTrajectoryConfig();
+    }
+
+    getStoneTrajectoryPath({ position, velocity, frames } = {}) {
+        if (!this.physicsModel.enabled) {
+            return [];
+        }
+
+        return this.physicsModel.getStoneTrajectoryPath({
+            position,
+            velocity,
+            frames,
+        });
     }
 
     getHeldStonePosition() {
