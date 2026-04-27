@@ -1123,11 +1123,10 @@ body {
   z-index: 130;
 }
 
-.stone-aim-line,
 .stone-aim-path {
   fill: none;
   stroke: #050510;
-  stroke-width: 5;
+  stroke-width: 6;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 16 12;
@@ -1137,16 +1136,6 @@ body {
   opacity: 1;
 }
 
-.stone-aim-line {
-  opacity: 0.38;
-}
-
-.stone-aim-path {
-  stroke-width: 6;
-  opacity: 1;
-}
-
-.stone-aim-line[hidden],
 .stone-aim-path[hidden] {
   display: none;
 }

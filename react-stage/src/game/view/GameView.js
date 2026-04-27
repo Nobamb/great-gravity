@@ -8,7 +8,7 @@ const CUSTOM_MISSION_ALARM_DURATION_MS = 1600;
 export class GameView {
   constructor(
     characterElement,
-    { heldStoneElement = null, stoneAimElement = null } = {},
+    { heldStoneElement = null } = {},
   ) {
     this.containerElement = characterElement.parentElement;
     this.characterElement = characterElement;
@@ -49,10 +49,7 @@ export class GameView {
       heldStoneElement ??
       this.characterElement?.querySelector(".held-stone") ??
       null;
-    this.stoneAimElement =
-      stoneAimElement ??
-      this.containerElement?.querySelector("[data-stone-aim-line]") ??
-      null;
+
     this.stoneAimPathElement =
       this.containerElement?.querySelector("[data-stone-aim-path]") ?? null;
     this.stoneAimReticleElement =
@@ -510,7 +507,7 @@ export class GameView {
   }
 
   renderStoneAim(stoneAim) {
-    if (!this.stoneAimElement && !this.stoneAimPathElement) {
+    if (!this.stoneAimPathElement) {
       return;
     }
 
@@ -523,14 +520,6 @@ export class GameView {
     const reticlePoint = pathPoints[pathPoints.length - 1] ?? stoneAim.end;
     this.syncStoneAimViewport();
 
-    if (this.stoneAimElement) {
-      this.stoneAimElement.removeAttribute("hidden");
-      this.stoneAimElement.style.display = "block";
-      this.stoneAimElement.setAttribute("x1", `${stoneAim.start.x}`);
-      this.stoneAimElement.setAttribute("y1", `${stoneAim.start.y}`);
-      this.stoneAimElement.setAttribute("x2", `${stoneAim.end.x}`);
-      this.stoneAimElement.setAttribute("y2", `${stoneAim.end.y}`);
-    }
 
     if (this.stoneAimPathElement) {
       const points = pathPoints
@@ -599,7 +588,6 @@ export class GameView {
 
   syncStoneAimViewport() {
     const svgElement =
-      this.stoneAimElement?.ownerSVGElement ??
       this.stoneAimPathElement?.ownerSVGElement ??
       this.stoneAimReticleElement?.ownerSVGElement ??
       null;
@@ -613,15 +601,6 @@ export class GameView {
   }
 
   resetStoneAimVisuals() {
-    if (this.stoneAimElement) {
-      this.stoneAimElement.setAttribute("hidden", "");
-      this.stoneAimElement.style.display = "none";
-      this.stoneAimElement.setAttribute("x1", "0");
-      this.stoneAimElement.setAttribute("y1", "0");
-      this.stoneAimElement.setAttribute("x2", "0");
-      this.stoneAimElement.setAttribute("y2", "0");
-    }
-
     if (this.stoneAimPathElement) {
       this.stoneAimPathElement.setAttribute("hidden", "");
       this.stoneAimPathElement.style.display = "none";
@@ -1711,7 +1690,7 @@ export class GameView {
         element.classList.remove("is-used", "is-interactable");
       });
 
-    if (this.stoneAimElement) {
+    if (this.stoneAimPathElement) {
       this.resetStoneAimVisuals();
     }
 
@@ -1768,7 +1747,7 @@ export class GameView {
     this.collapseTimers.clear();
     this.activeTriggerElement?.classList.remove("is-interactable");
     this.activeTriggerElement = null;
-    if (this.stoneAimElement) {
+    if (this.stoneAimPathElement) {
       this.resetStoneAimVisuals();
     }
     if (this.heldStoneElement) {

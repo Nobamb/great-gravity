@@ -260,12 +260,6 @@ function Stage2Layout({
         height="100%"
         aria-hidden="true"
       >
-        <line
-          className="stone-aim-line"
-          data-stone-aim-line
-          ref={stoneAimRef}
-          hidden
-        ></line>
         <polyline
           className="stone-aim-path"
           data-stone-aim-path
@@ -503,12 +497,6 @@ function Stage3Layout({
         height="100%"
         aria-hidden="true"
       >
-        <line
-          className="stone-aim-line"
-          data-stone-aim-line
-          ref={stoneAimRef}
-          hidden
-        ></line>
         <polyline
           className="stone-aim-path"
           data-stone-aim-path
@@ -646,12 +634,6 @@ function Stage4Layout({
         height="100%"
         aria-hidden="true"
       >
-        <line
-          className="stone-aim-line"
-          data-stone-aim-line
-          ref={stoneAimRef}
-          hidden
-        ></line>
         <polyline
           className="stone-aim-path"
           data-stone-aim-path
@@ -854,12 +836,6 @@ function Stage5Layout({
         height="100%"
         aria-hidden="true"
       >
-        <line
-          className="stone-aim-line"
-          data-stone-aim-line
-          ref={stoneAimRef}
-          hidden
-        ></line>
         <polyline
           className="stone-aim-path"
           data-stone-aim-path
@@ -1027,12 +1003,6 @@ function Stage6Layout({
         height="100%"
         aria-hidden="true"
       >
-        <line
-          className="stone-aim-line"
-          data-stone-aim-line
-          ref={stoneAimRef}
-          hidden
-        ></line>
         <polyline
           className="stone-aim-path"
           data-stone-aim-path
@@ -1293,12 +1263,6 @@ function Stage7Layout({
         height="100%"
         aria-hidden="true"
       >
-        <line
-          className="stone-aim-line"
-          data-stone-aim-line
-          ref={stoneAimRef}
-          hidden
-        ></line>
         <polyline
           className="stone-aim-path"
           data-stone-aim-path

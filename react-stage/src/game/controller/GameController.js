@@ -3781,15 +3781,25 @@ export class GameController {
     const dy = target.y - origin.y;
     const distance = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
     const stageScale = this.getStageScale();
+    
+    // 모바일 등 가로 너비가 좁을 때(stageScale < 1) 드래그 감도(Sensitivity)를 높여줍니다.
+    const sensitivity = stageScale < 1 ? 1 + (1 - stageScale) * 1.8 : 1;
+    const effectiveDragDistance = (dragDistance ?? distance) * sensitivity;
+
+    // 가로 너비가 좁은 화면에서는 stageScale이 매우 작아져 launchSpeed가 과도하게 낮아지고,
+    // 이로 인해 중력의 영향을 너무 빨리 받아 궤적이 손가락 방향(아랫방향 등)보다 심하게 아래로 쏠리게 됩니다.
+    // 이를 방지하기 위해 최소 속도 비율(speedScale)을 보정하여 궤적의 직진성(일치성)을 확보합니다.
+    const speedScale = stageScale < 1 ? Math.max(stageScale, 0.65) : stageScale;
+
     const strength = clamp(
-      dragDistance ?? distance,
-      24 * stageScale,
-      280 * stageScale,
+      effectiveDragDistance,
+      24 * speedScale,
+      280 * speedScale,
     );
     const launchSpeed = clamp(
       strength * 0.12,
-      4 * stageScale,
-      34 * stageScale,
+      4 * speedScale,
+      34 * speedScale,
     );
 
     return {
