@@ -172,6 +172,8 @@ export class GameController {
     this.isDraggingStone = false;
     this.isPreparingStoneThrow = false;
     this.stoneAim = null;
+    this.lastStoneThrowPreview = null;
+    this.activeStoneThrowDebugRecord = null;
     this.activeCannon = null;
     this.isAimingCannon = false;
     this.timedBlockStates = new Map();
@@ -217,6 +219,7 @@ export class GameController {
     this.isDraggingStone = false;
     this.isPreparingStoneThrow = false;
     this.stoneAim = null;
+    this.lastStoneThrowPreview = null;
     this.activeCannon = null;
     this.isAimingCannon = false;
     this.currentRunDeathCount = 0;
@@ -614,6 +617,9 @@ export class GameController {
       }
 
       this.physicsController?.step(this.fixedDeltaTime);
+      if (this.activeStoneThrowDebugRecord) {
+        this.activeStoneThrowDebugRecord.physicsSteps += 1;
+      }
       this.handleProjectileTriggerHits();
       this.syncPhysicsRuntimeState();
       this.handleContactTriggerHits();
@@ -2723,6 +2729,7 @@ export class GameController {
     this.isAimingCannon = true;
     this.isDraggingStone = false;
     this.isPreparingStoneThrow = false;
+    this.lastStoneThrowPreview = null;
     this.stoneAim = {
       start: cannon.muzzlePoint,
       end: input.pointer.position ?? cannon.muzzlePoint,
@@ -2772,6 +2779,7 @@ export class GameController {
 
     this.isAimingCannon = false;
     this.stoneAim = null;
+    this.lastStoneThrowPreview = null;
 
     if (dragDistance < aimThreshold) {
       this.activeCannon = null;
@@ -3183,6 +3191,7 @@ export class GameController {
     this.isDraggingStone = false;
     this.isPreparingStoneThrow = false;
     this.stoneAim = null;
+    this.lastStoneThrowPreview = null;
     this.activeCannon = null;
     this.isAimingCannon = false;
     this.resetRestartHoldState();
@@ -3224,6 +3233,7 @@ export class GameController {
     this.isDraggingStone = false;
     this.isPreparingStoneThrow = false;
     this.stoneAim = null;
+    this.lastStoneThrowPreview = null;
     this.activeCannon = null;
     this.isAimingCannon = false;
     this.customMissionAlarm = null;
@@ -3302,6 +3312,7 @@ export class GameController {
     this.isDraggingStone = false;
     this.isPreparingStoneThrow = false;
     this.stoneAim = null;
+    this.lastStoneThrowPreview = null;
     this.activeCannon = null;
     this.isAimingCannon = false;
     this.updateActiveTrigger();
@@ -3356,6 +3367,7 @@ export class GameController {
     this.isDraggingStone = false;
     this.isPreparingStoneThrow = false;
     this.stoneAim = null;
+    this.lastStoneThrowPreview = null;
     this.activeCannon = null;
     this.isAimingCannon = false;
     this.customMissionAlarm = null;
@@ -3467,6 +3479,7 @@ export class GameController {
       this.isDraggingStone = false;
       this.isPreparingStoneThrow = false;
       this.stoneAim = null;
+      this.lastStoneThrowPreview = null;
       return;
     }
 
@@ -3489,6 +3502,7 @@ export class GameController {
     this.isDraggingStone = false;
     this.isPreparingStoneThrow = false;
     this.stoneAim = null;
+    this.lastStoneThrowPreview = null;
   }
 
   handleStoneInteraction(input) {
@@ -3499,6 +3513,7 @@ export class GameController {
     if (!pointer || !this.physicsController) {
       this.isDraggingStone = false;
       this.stoneAim = null;
+      this.lastStoneThrowPreview = null;
       return;
     }
 
@@ -3511,6 +3526,7 @@ export class GameController {
         this.isPreparingStoneThrow = false;
         this.isDraggingStone = false;
         this.stoneAim = null;
+        this.lastStoneThrowPreview = null;
         return;
       }
 
@@ -3524,6 +3540,7 @@ export class GameController {
       if (pointer.justPressed) {
         this.isPreparingStoneThrow = true;
         this.isDraggingStone = false;
+        this.lastStoneThrowPreview = null;
         this.physicsController.clearStoneProjectileState();
       }
 
@@ -3536,16 +3553,19 @@ export class GameController {
       }
 
       if (pointer.isDown) {
-        const releasePoint = this.getStoneReleasePoint(
+        const throwPreview = this.getStoneThrowPreview(
           carryPoint,
           pointerPosition,
         );
         this.stoneAim = {
-          start: releasePoint,
+          start: throwPreview.releasePoint,
           end: pointerPosition,
+          path: throwPreview.path,
         };
+        this.lastStoneThrowPreview = throwPreview;
       } else if (!pointer.justReleased) {
         this.stoneAim = null;
+        this.lastStoneThrowPreview = null;
       }
 
       if (!pointer.justReleased) {
@@ -3555,33 +3575,37 @@ export class GameController {
       this.isPreparingStoneThrow = false;
       this.isDraggingStone = false;
       this.stoneAim = null;
+      const throwPreview =
+        this.lastStoneThrowPreview ??
+        this.getStoneThrowPreview(carryPoint, pointerPosition);
+      this.lastStoneThrowPreview = null;
 
-      if (dragDistance < aimThreshold) {
+      if (throwPreview.dragDistance < aimThreshold) {
         this.physicsController.clearStoneProjectileState();
         this.physicsController.setHeldStonePosition(carryPoint);
         return;
       }
 
-      const releasePoint = this.getStoneReleasePoint(
-        carryPoint,
-        pointerPosition,
-      );
-      const throwVelocity = this.getStoneThrowVelocity({
-        origin: releasePoint,
-        target: pointerPosition,
-        dragDistance: this.getPointerDistance(carryPoint, pointerPosition),
+      const didThrowStone = this.physicsController.throwStone({
+        position: throwPreview.releasePoint,
+        velocity: throwPreview.velocity,
       });
 
-      this.physicsController.throwStone({
-        position: releasePoint,
-        velocity: throwVelocity,
-      });
+      if (didThrowStone) {
+        this.logStoneThrowDebug({
+          carryPoint,
+          pointerPosition,
+          throwPreview,
+          snapshotAfterThrow: this.physicsController.getStoneDebugSnapshot?.(),
+        });
+      }
       return;
     }
 
     this.isDraggingStone = false;
     this.isPreparingStoneThrow = false;
     this.stoneAim = null;
+    this.lastStoneThrowPreview = null;
   }
 
   getStoneCarryPoint() {
@@ -3612,6 +3636,146 @@ export class GameController {
     };
   }
 
+  getStoneThrowPreview(carryPoint, pointerPoint) {
+    const releasePoint = this.getStoneReleasePoint(carryPoint, pointerPoint);
+    const dragDistance = this.getPointerDistance(carryPoint, pointerPoint);
+    const velocity = this.getStoneThrowVelocity({
+      origin: releasePoint,
+      target: pointerPoint,
+      dragDistance,
+    });
+
+    return {
+      releasePoint,
+      velocity,
+      dragDistance,
+      path: this.getStoneTrajectoryPath(releasePoint, velocity),
+    };
+  }
+
+  logStoneThrowDebug({
+    carryPoint,
+    pointerPosition,
+    throwPreview,
+    snapshotAfterThrow,
+  }) {
+    const path = Array.isArray(throwPreview.path) ? throwPreview.path : [];
+    const debugRecord = { physicsSteps: 0 };
+    this.activeStoneThrowDebugRecord = debugRecord;
+    const aimPathStart = path[0] ?? null;
+    const closestPathPointAfterThrow = this.findClosestTrajectoryPoint(
+      snapshotAfterThrow?.bodyCenter ?? null,
+      path,
+    );
+    const containerElement = this.gameView?.containerElement ?? null;
+    const container = containerElement
+      ? {
+          width: containerElement.offsetWidth,
+          height: containerElement.offsetHeight,
+          clientWidth: containerElement.clientWidth,
+          clientHeight: containerElement.clientHeight,
+        }
+      : null;
+    const baseLog = {
+      aimPathStart,
+      plannedReleasePoint: throwPreview.releasePoint,
+      actualBodyCenterAfterThrow: snapshotAfterThrow?.bodyCenter ?? null,
+      actualBoundsAfterThrow: snapshotAfterThrow?.bounds ?? null,
+      closestPathPointAfterThrow,
+      pointerPosition,
+      carryPoint,
+      dragDistance: throwPreview.dragDistance,
+      velocity: throwPreview.velocity,
+      stageScale: this.getStageScale(),
+      container,
+      pathSample: path.slice(0, 8),
+      stoneSnapshotAfterThrow: snapshotAfterThrow ?? null,
+    };
+
+    console.groupCollapsed("[stone-throw-debug]");
+    console.log("release", baseLog);
+
+    if (
+      aimPathStart &&
+      snapshotAfterThrow?.bodyCenter
+    ) {
+      console.log("delta: aimPathStart - actualBodyCenterAfterThrow", {
+        x: aimPathStart.x - snapshotAfterThrow.bodyCenter.x,
+        y: aimPathStart.y - snapshotAfterThrow.bodyCenter.y,
+      });
+    }
+
+    if (
+      typeof window !== "undefined" &&
+      typeof window.requestAnimationFrame === "function"
+    ) {
+      window.requestAnimationFrame(() => {
+        const snapshotNextFrame =
+          this.physicsController?.getStoneDebugSnapshot?.() ?? null;
+        const closestPathPointNextFrame = this.findClosestTrajectoryPoint(
+          snapshotNextFrame?.bodyCenter ?? null,
+          path,
+        );
+
+        console.log("next frame", {
+          ...baseLog,
+          actualBodyCenterNextFrame: snapshotNextFrame?.bodyCenter ?? null,
+          actualBoundsNextFrame: snapshotNextFrame?.bounds ?? null,
+          closestPathPointNextFrame,
+          throwFramePhysicsSteps: debugRecord.physicsSteps,
+          stoneSnapshotNextFrame: snapshotNextFrame,
+        });
+
+        if (aimPathStart && snapshotNextFrame?.bodyCenter) {
+          console.log("delta: aimPathStart - actualBodyCenterNextFrame", {
+            x: aimPathStart.x - snapshotNextFrame.bodyCenter.x,
+            y: aimPathStart.y - snapshotNextFrame.bodyCenter.y,
+          });
+        }
+
+        if (this.activeStoneThrowDebugRecord === debugRecord) {
+          this.activeStoneThrowDebugRecord = null;
+        }
+
+        console.groupEnd();
+      });
+      return;
+    }
+
+    if (this.activeStoneThrowDebugRecord === debugRecord) {
+      this.activeStoneThrowDebugRecord = null;
+    }
+
+    console.groupEnd();
+  }
+
+  findClosestTrajectoryPoint(point, path) {
+    if (!point || !Array.isArray(path) || path.length === 0) {
+      return null;
+    }
+
+    let closest = null;
+
+    path.forEach((pathPoint, index) => {
+      const delta = {
+        x: point.x - pathPoint.x,
+        y: point.y - pathPoint.y,
+      };
+      const distance = Math.hypot(delta.x, delta.y);
+
+      if (!closest || distance < closest.distance) {
+        closest = {
+          index,
+          point: pathPoint,
+          delta,
+          distance,
+        };
+      }
+    });
+
+    return closest;
+  }
+
   getStoneThrowVelocity({ origin, target, dragDistance = null }) {
     const dx = target.x - origin.x;
     const dy = target.y - origin.y;
@@ -3632,6 +3796,49 @@ export class GameController {
       x: (dx / distance) * launchSpeed,
       y: (dy / distance) * launchSpeed,
     };
+  }
+
+  getStoneTrajectoryPath(origin, velocity) {
+    const physicsPath = this.physicsController?.getStoneTrajectoryPath?.({
+      position: origin,
+      velocity,
+      frames: 28,
+    });
+
+    if (Array.isArray(physicsPath) && physicsPath.length > 0) {
+      return physicsPath;
+    }
+
+    const stageScale = this.getStageScale();
+    const trajectoryConfig =
+      this.physicsController?.getStoneTrajectoryConfig?.() ?? {};
+    const baseDeltaMs = trajectoryConfig.baseDeltaMs ?? 1000 / 60;
+    const gravityScale = trajectoryConfig.gravityScale ?? 0.001 * stageScale;
+    const gravityX = trajectoryConfig.gravityX ?? 0;
+    const gravityY = trajectoryConfig.gravityY ?? 1;
+    const frictionAir = trajectoryConfig.frictionAir ?? 0.018;
+    const airFactor = Math.max(
+      0,
+      1 - frictionAir * (baseDeltaMs / (1000 / 60)),
+    );
+    const gravityStepX = gravityX * gravityScale * baseDeltaMs * baseDeltaMs;
+    const gravityStepY = gravityY * gravityScale * baseDeltaMs * baseDeltaMs;
+    const pointCount = 28;
+    const points = [];
+    const position = { ...origin };
+    const simulatedVelocity = { ...velocity };
+
+    points.push({ ...position });
+
+    for (let frame = 1; frame < pointCount; frame += 1) {
+      simulatedVelocity.x = simulatedVelocity.x * airFactor + gravityStepX;
+      simulatedVelocity.y = simulatedVelocity.y * airFactor + gravityStepY;
+      position.x += simulatedVelocity.x;
+      position.y += simulatedVelocity.y;
+      points.push({ ...position });
+    }
+
+    return points;
   }
 
   getPointerDistance(startPoint, endPoint) {
