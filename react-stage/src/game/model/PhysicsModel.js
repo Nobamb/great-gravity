@@ -1,5 +1,8 @@
 import Matter from "matter-js";
-import { getRelativeLayoutRect } from "../dom/layoutMetrics.js";
+import {
+  getContainerLayoutRect,
+  getRelativeLayoutRect,
+} from "../dom/layoutMetrics.js";
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -266,7 +269,7 @@ export class PhysicsModel {
   }
 
   getStageScale() {
-    const width = this.container?.clientWidth ?? 0;
+    const width = getContainerLayoutRect(this.container).width;
     return width > 0 ? width / 1280 : 1;
   }
 
@@ -1933,8 +1936,117 @@ export class PhysicsModel {
     };
   }
 
+  getStoneDebugSnapshot() {
+    const stoneBody = this.dynamicBodies.stone;
+
+    if (!stoneBody) {
+      return null;
+    }
+
+    const bounds = this.getStoneBounds();
+
+    return {
+      state: this.stoneState,
+      isInWorld: this.stoneBodyInWorld,
+      isHeld: Boolean(stoneBody.plugin?.isHeld),
+      bodyCenter: {
+        x: stoneBody.position.x,
+        y: stoneBody.position.y,
+      },
+      bounds,
+      radius: stoneBody.circleRadius ?? null,
+      velocity: {
+        x: stoneBody.velocity.x,
+        y: stoneBody.velocity.y,
+      },
+      releaseOrigin: this.stoneReleaseOrigin
+        ? { ...this.stoneReleaseOrigin }
+        : null,
+    };
+  }
+
   getStoneState() {
     return this.stoneState;
+  }
+
+  getStoneTrajectoryConfig() {
+    const stoneBody = this.dynamicBodies.stone;
+    const gravity = this.engine?.gravity;
+
+    return {
+      baseDeltaMs: 1000 / 60,
+      frictionAir: stoneBody?.frictionAir ?? 0.018,
+      gravityX: gravity?.x ?? 0,
+      gravityY: gravity?.y ?? 1,
+      gravityScale: gravity?.scale ?? 0.001 * this.getStageScale(),
+    };
+  }
+
+  getStoneTrajectoryPath({ position, velocity, frames = 28 } = {}) {
+    const stoneBody = this.dynamicBodies.stone;
+
+    if (!stoneBody || !position || !velocity || frames <= 0) {
+      return [];
+    }
+
+    const engine = this.Engine.create({
+      gravity: {
+        x: this.engine?.gravity?.x ?? 0,
+        y: this.engine?.gravity?.y ?? 1,
+        scale: this.engine?.gravity?.scale ?? 0.001 * this.getStageScale(),
+      },
+      positionIterations: this.engine?.positionIterations ?? 10,
+      velocityIterations: this.engine?.velocityIterations ?? 8,
+      constraintIterations: this.engine?.constraintIterations ?? 4,
+    });
+    const previewBody = this.Bodies.circle(
+      position.x,
+      position.y,
+      stoneBody.circleRadius,
+      {
+        friction: stoneBody.friction,
+        frictionAir: stoneBody.frictionAir,
+        restitution: stoneBody.restitution,
+        density: stoneBody.density,
+      },
+    );
+    const previewStaticBodies = this.createPreviewStaticBodies();
+    const points = [];
+
+    this.World.add(engine.world, [...previewStaticBodies, previewBody]);
+    this.Body.setPosition(previewBody, position);
+    this.Body.setStatic(previewBody, false);
+    this.Body.setVelocity(previewBody, velocity);
+
+    for (let frame = 0; frame < frames; frame += 1) {
+      points.push({
+        x: previewBody.position.x,
+        y: previewBody.position.y,
+      });
+      this.Engine.update(engine, 1000 / 60);
+    }
+
+    this.World.remove(engine.world, [previewBody, ...previewStaticBodies]);
+    this.Engine.clear(engine);
+
+    return points;
+  }
+
+  createPreviewStaticBodies() {
+    return this.staticBodies.map((body) => {
+      const width = Math.max(2, body.bounds.max.x - body.bounds.min.x);
+      const height = Math.max(2, body.bounds.max.y - body.bounds.min.y);
+      const x = body.bounds.min.x + width / 2;
+      const y = body.bounds.min.y + height / 2;
+
+      return this.Bodies.rectangle(x, y, width, height, {
+        isStatic: true,
+        friction: body.friction,
+        frictionStatic: body.frictionStatic,
+        restitution: body.restitution,
+        slop: body.slop,
+      });
+    });
   }
 
   getHeldStonePosition() {
