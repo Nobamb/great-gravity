@@ -33,16 +33,19 @@ function getLogicalScreenRect(element) {
 
   const screenRect = screen.getBoundingClientRect();
   const elementRect = element.getBoundingClientRect();
-  const logicalHeight = screen.offsetHeight;
+  const logicalWidth = screen.offsetWidth || screenRect.height;
+  const logicalHeight = screen.offsetHeight || screenRect.width;
+  const scaleX = logicalWidth / Math.max(screenRect.height, 1);
+  const scaleY = logicalHeight / Math.max(screenRect.width, 1);
   const visualLeft = elementRect.left - screenRect.left;
   const visualTop = elementRect.top - screenRect.top;
   const visualRight = elementRect.right - screenRect.left;
 
   return createRect(
-    visualTop,
-    logicalHeight - visualRight,
-    elementRect.height,
-    elementRect.width,
+    visualTop * scaleX,
+    logicalHeight - visualRight * scaleY,
+    elementRect.height * scaleX,
+    elementRect.width * scaleY,
   );
 }
 
@@ -86,16 +89,20 @@ export function getRelativePointerPosition(event, container) {
   const containerRect = container.getBoundingClientRect();
   const visualX = event.clientX - containerRect.left;
   const visualY = event.clientY - containerRect.top;
+  const logicalWidth = container.offsetWidth || containerRect.width;
+  const logicalHeight = container.offsetHeight || containerRect.height;
 
   if (!isScreenRotatedForMobile(container)) {
     return {
-      x: visualX,
-      y: visualY,
+      x: visualX * (logicalWidth / Math.max(containerRect.width, 1)),
+      y: visualY * (logicalHeight / Math.max(containerRect.height, 1)),
     };
   }
 
   return {
-    x: visualY,
-    y: container.offsetHeight - visualX,
+    x: visualY * (logicalWidth / Math.max(containerRect.height, 1)),
+    y:
+      logicalHeight -
+      visualX * (logicalHeight / Math.max(containerRect.width, 1)),
   };
 }
