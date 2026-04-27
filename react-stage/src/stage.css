@@ -1123,11 +1123,13 @@ body {
   z-index: 130;
 }
 
-.stone-aim-line {
+.stone-aim-line,
+.stone-aim-path {
   fill: none;
   stroke: #050510;
   stroke-width: 5;
   stroke-linecap: round;
+  stroke-linejoin: round;
   stroke-dasharray: 16 12;
   vector-effect: non-scaling-stroke;
   filter: drop-shadow(0 0 calc(8 * var(--cw)) rgba(0, 255, 255, 0.55))
@@ -1135,7 +1137,17 @@ body {
   opacity: 1;
 }
 
-.stone-aim-line[hidden] {
+.stone-aim-line {
+  opacity: 0.38;
+}
+
+.stone-aim-path {
+  stroke-width: 6;
+  opacity: 1;
+}
+
+.stone-aim-line[hidden],
+.stone-aim-path[hidden] {
   display: none;
 }
 
