@@ -266,6 +266,11 @@ function Stage2Layout({
           ref={stoneAimRef}
           hidden
         ></line>
+        <polyline
+          className="stone-aim-path"
+          data-stone-aim-path
+          hidden
+        ></polyline>
         <circle
           className="stone-aim-reticle"
           data-stone-aim-reticle
@@ -504,6 +509,11 @@ function Stage3Layout({
           ref={stoneAimRef}
           hidden
         ></line>
+        <polyline
+          className="stone-aim-path"
+          data-stone-aim-path
+          hidden
+        ></polyline>
         <circle
           className="stone-aim-reticle"
           data-stone-aim-reticle
@@ -642,6 +652,11 @@ function Stage4Layout({
           ref={stoneAimRef}
           hidden
         ></line>
+        <polyline
+          className="stone-aim-path"
+          data-stone-aim-path
+          hidden
+        ></polyline>
         <circle
           className="stone-aim-reticle"
           data-stone-aim-reticle
@@ -845,6 +860,11 @@ function Stage5Layout({
           ref={stoneAimRef}
           hidden
         ></line>
+        <polyline
+          className="stone-aim-path"
+          data-stone-aim-path
+          hidden
+        ></polyline>
         <circle
           className="stone-aim-reticle"
           data-stone-aim-reticle
@@ -1013,6 +1033,11 @@ function Stage6Layout({
           ref={stoneAimRef}
           hidden
         ></line>
+        <polyline
+          className="stone-aim-path"
+          data-stone-aim-path
+          hidden
+        ></polyline>
         <circle
           className="stone-aim-reticle"
           data-stone-aim-reticle
@@ -1274,6 +1299,11 @@ function Stage7Layout({
           ref={stoneAimRef}
           hidden
         ></line>
+        <polyline
+          className="stone-aim-path"
+          data-stone-aim-path
+          hidden
+        ></polyline>
         <circle
           className="stone-aim-reticle"
           data-stone-aim-reticle
